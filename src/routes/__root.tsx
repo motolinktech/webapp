@@ -6,7 +6,7 @@ import {
 	redirect,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
-import { isAuthenticated } from "@/lib/modules/auth/auth.service";
+import { isAuthenticated } from "@/modules/auth/auth.service";
 import TanStackQueryDevtools from "../contexts/tanstack-query/devtools";
 
 interface MyRouterContext {

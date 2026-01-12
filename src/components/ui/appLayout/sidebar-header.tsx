@@ -1,5 +1,5 @@
-import { ChevronsUpDown, MapPin } from "lucide-react";
-import { useState } from "react";
+import { ChevronsUpDown, Loader2, MapPin } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -12,27 +12,70 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { useGlobal } from "@/contexts/global.context";
+import type { Branch } from "@/modules/branches/branches.types";
+import { useBranches } from "@/modules/branches/useBranches";
 
 const BRANCH_KEY = "motolink_selected_branch";
 
-const branches = [
-	{ id: "rj", name: "Rio de Janeiro" },
-	{ id: "sp", name: "São Paulo" },
-	{ id: "camp", name: "Campinas" },
-];
-
-function getStoredBranch() {
-	const storedId = localStorage.getItem(BRANCH_KEY);
-	return branches.find((b) => b.id === storedId) || branches[0];
-}
-
 export function AppSidebarHeader() {
-	const [selectedBranch, setSelectedBranch] = useState(getStoredBranch);
+	const { user } = useGlobal();
+	const { data, isLoading } = useBranches();
+	const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
 
-	const handleBranchChange = (branch: (typeof branches)[0]) => {
+	const availableBranches = useMemo(() => {
+		if (!data?.data || !user) return [];
+
+		if (user.role === "ADMIN") {
+			return data.data;
+		}
+
+		return data.data.filter((branch) => user.branches.includes(branch.id));
+	}, [data?.data, user]);
+
+	useEffect(() => {
+		if (availableBranches.length === 0) return;
+
+		const storedId = localStorage.getItem(BRANCH_KEY);
+		const storedBranch = availableBranches.find((b) => b.id === storedId);
+
+		if (storedBranch) {
+			setSelectedBranch(storedBranch);
+		} else {
+			setSelectedBranch(availableBranches[0]);
+		}
+	}, [availableBranches]);
+
+	const handleBranchChange = (branch: Branch) => {
 		setSelectedBranch(branch);
 		localStorage.setItem(BRANCH_KEY, branch.id);
 	};
+
+	if (isLoading) {
+		return (
+			<SidebarHeader>
+				<SidebarMenu>
+					<SidebarMenuItem>
+						<SidebarMenuButton size="lg" disabled>
+							<div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+								<Loader2 className="size-4 animate-spin" />
+							</div>
+							<div className="grid flex-1 text-left text-sm leading-tight">
+								<span className="truncate font-medium">Carregando...</span>
+								<span className="truncate text-xs text-muted-foreground">
+									Filial
+								</span>
+							</div>
+						</SidebarMenuButton>
+					</SidebarMenuItem>
+				</SidebarMenu>
+			</SidebarHeader>
+		);
+	}
+
+	if (!selectedBranch) {
+		return null;
+	}
 
 	return (
 		<SidebarHeader>
@@ -64,7 +107,7 @@ export function AppSidebarHeader() {
 							side="bottom"
 							sideOffset={4}
 						>
-							{branches.map((branch) => (
+							{availableBranches.map((branch) => (
 								<DropdownMenuItem
 									key={branch.id}
 									onClick={() => handleBranchChange(branch)}

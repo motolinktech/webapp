@@ -1,6 +1,6 @@
 import { createContext, type ReactNode, useContext, useState } from "react";
-import { clearAuth, getStoredUser } from "@/lib/modules/auth/auth.service";
-import type { User } from "@/lib/modules/auth/auth.types";
+import { clearAuth, getStoredUser } from "@/modules/auth/auth.service";
+import type { User } from "@/modules/auth/auth.types";
 
 interface GlobalContextType {
 	user: User | null;
