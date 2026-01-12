@@ -256,7 +256,7 @@ function Colaboradores() {
                             variant="ghost"
                             size="icon-sm"
                             onClick={() => {
-                              const url = `${import.meta.env.VITE_BASE_URL}/nova-senha?token=${user.verificationTokens![0].token}`;
+                              const url = `${import.meta.env.VITE_BASE_URL}/trocar-senha?token=${user.verificationTokens![0].token}&userId=${user.id}`;
                               navigator.clipboard.writeText(url);
 
                             }}

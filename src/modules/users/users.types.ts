@@ -38,3 +38,10 @@ export interface CreateUserData {
 export interface UpdateUserData extends Partial<CreateUserData> {
 	id: string;
 }
+
+export interface ChangePasswordData {
+	id: string;
+	password: string;
+	passwordConfirmation: string;
+	token: string;
+}

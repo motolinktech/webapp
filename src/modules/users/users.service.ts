@@ -1,5 +1,6 @@
 import { authApi } from "@/lib/services/api";
 import type {
+	ChangePasswordData,
 	CreateUserData,
 	UpdateUserData,
 	User,
@@ -29,5 +30,11 @@ export async function updateUser(data: UpdateUserData): Promise<User> {
 
 export async function deleteUser(id: string): Promise<User> {
 	const response = await authApi.delete<User>(`/users/${id}`);
+	return response.data;
+}
+
+export async function changePassword(data: ChangePasswordData): Promise<User> {
+	const { id, ...payload } = data;
+	const response = await authApi.post<User>(`/users/${id}/change-password`, payload);
 	return response.data;
 }
