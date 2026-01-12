@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { ChevronsUpDown, Loader2, MapPin } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -19,6 +20,7 @@ import { useBranches } from "@/modules/branches/useBranches";
 const BRANCH_KEY = "motolink_selected_branch";
 
 export function AppSidebarHeader() {
+  const queryClient = useQueryClient();
   const { user } = useGlobal();
   const { data, isLoading } = useBranches();
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
@@ -37,21 +39,22 @@ export function AppSidebarHeader() {
     if (availableBranches.length === 0) return;
 
     const storedId = localStorage.getItem(BRANCH_KEY);
-    const storedBranch = availableBranches.find((b) => b.id === storedId);
+    const currentValidBranch = availableBranches.find((b) => b.id === storedId);
 
-    if (storedBranch) {
-      setSelectedBranch(storedBranch);
-      localStorage.setItem(BRANCH_KEY, storedBranch.id);
-    } else {
-      setSelectedBranch(availableBranches[0]);
-      localStorage.setItem(BRANCH_KEY, availableBranches[0].id);
+    const newBranch = currentValidBranch || availableBranches[0];
+
+    setSelectedBranch(newBranch);
+
+    if (storedId !== newBranch.id) {
+      localStorage.setItem(BRANCH_KEY, newBranch.id);
+      queryClient.invalidateQueries();
     }
-
-  }, [availableBranches]);
+  }, [availableBranches, queryClient]);
 
   const handleBranchChange = (branch: Branch) => {
     setSelectedBranch(branch);
     localStorage.setItem(BRANCH_KEY, branch.id);
+    queryClient.invalidateQueries();
   };
 
   if (isLoading) {
