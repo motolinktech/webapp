@@ -1,4 +1,4 @@
-import { api } from "@/lib/services/api";
+import { publicApi } from "@/lib/services/api";
 import type { AuthCredentials, AuthResponse, User } from "./auth.types";
 
 const TOKEN_KEY = "motolink_token";
@@ -7,7 +7,7 @@ const USER_KEY = "motolink_user";
 export async function authenticate(
 	credentials: AuthCredentials,
 ): Promise<AuthResponse> {
-	const response = await api.post<AuthResponse>("/auth/", credentials);
+	const response = await publicApi.post<AuthResponse>("/auth/", credentials);
 	return response.data;
 }
 
