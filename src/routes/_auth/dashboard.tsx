@@ -10,9 +10,7 @@ function Dashboard() {
 
 	return (
 		<div className="p-6">
-			<h1 className="text-2xl font-bold">
-				Olá, {user?.name || "Usuário"}
-			</h1>
+			<h1 className="text-2xl font-bold">Olá, {user?.name || "Usuário"}</h1>
 			<p className="text-muted-foreground mt-2">
 				Bem-vindo ao painel de controle.
 			</p>

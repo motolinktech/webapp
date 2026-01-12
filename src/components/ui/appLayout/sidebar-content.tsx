@@ -1,5 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import { ChevronDown, CirclePlus, Home, Landmark, Target } from "lucide-react";
+import {
+	BookUser,
+	ChevronDown,
+	CirclePlus,
+	Home,
+	Landmark,
+	Target,
+} from "lucide-react";
 import {
 	Collapsible,
 	CollapsibleContent,
@@ -68,6 +75,17 @@ const items = [
 			{
 				title: "Solicitação de Pagamento",
 				url: "/financeiro/solicitacao-pagamento",
+			},
+		],
+	},
+	{
+		title: "Recursos Humanos",
+		icon: BookUser,
+		requiredPermission: "hr.view",
+		items: [
+			{
+				title: "Colaboradores",
+				url: "/rh/colaboradores",
 			},
 		],
 	},
