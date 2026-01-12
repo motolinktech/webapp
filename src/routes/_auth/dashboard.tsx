@@ -1,7 +1,5 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Button } from "@/components/ui/button";
+import { createFileRoute } from "@tanstack/react-router";
 import { useGlobal } from "@/contexts/global.context";
-import { clearAuth } from "@/lib/modules/auth/auth.service";
 
 export const Route = createFileRoute("/_auth/dashboard")({
 	component: Dashboard,
@@ -9,17 +7,15 @@ export const Route = createFileRoute("/_auth/dashboard")({
 
 function Dashboard() {
 	const { user } = useGlobal();
-	const navigate = useNavigate();
-
-	const handleLogout = () => {
-		clearAuth();
-		navigate({ to: "/login" });
-	};
 
 	return (
-		<div>
-			<h1>Hello {user?.name || "Dashboard"}</h1>
-			<Button onClick={handleLogout}>Logout</Button>
+		<div className="p-6">
+			<h1 className="text-2xl font-bold">
+				Olá, {user?.name || "Usuário"}
+			</h1>
+			<p className="text-muted-foreground mt-2">
+				Bem-vindo ao painel de controle.
+			</p>
 		</div>
 	);
 }
