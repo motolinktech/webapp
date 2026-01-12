@@ -17,8 +17,10 @@ import { Route as AuthDashboardRouteImport } from './routes/_auth/dashboard'
 import { Route as AuthRhColaboradoresRouteImport } from './routes/_auth/rh/colaboradores'
 import { Route as AuthGestaoRegiaoIndexRouteImport } from './routes/_auth/gestao/regiao/index'
 import { Route as AuthGestaoGruposIndexRouteImport } from './routes/_auth/gestao/grupos/index'
+import { Route as AuthGestaoClientesIndexRouteImport } from './routes/_auth/gestao/clientes/index'
 import { Route as AuthGestaoRegiaoRegionIdRouteImport } from './routes/_auth/gestao/regiao/$regionId'
 import { Route as AuthGestaoGruposGroupIdRouteImport } from './routes/_auth/gestao/grupos/$groupId'
+import { Route as AuthGestaoClientesClientIdRouteImport } from './routes/_auth/gestao/clientes/$clientId'
 
 const TrocarSenhaRoute = TrocarSenhaRouteImport.update({
   id: '/trocar-senha',
@@ -59,6 +61,11 @@ const AuthGestaoGruposIndexRoute = AuthGestaoGruposIndexRouteImport.update({
   path: '/gestao/grupos/',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthGestaoClientesIndexRoute = AuthGestaoClientesIndexRouteImport.update({
+  id: '/gestao/clientes/',
+  path: '/gestao/clientes/',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthGestaoRegiaoRegionIdRoute =
   AuthGestaoRegiaoRegionIdRouteImport.update({
     id: '/gestao/regiao/$regionId',
@@ -70,6 +77,12 @@ const AuthGestaoGruposGroupIdRoute = AuthGestaoGruposGroupIdRouteImport.update({
   path: '/gestao/grupos/$groupId',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthGestaoClientesClientIdRoute =
+  AuthGestaoClientesClientIdRouteImport.update({
+    id: '/gestao/clientes/$clientId',
+    path: '/gestao/clientes/$clientId',
+    getParentRoute: () => AuthRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -77,8 +90,10 @@ export interface FileRoutesByFullPath {
   '/trocar-senha': typeof TrocarSenhaRoute
   '/dashboard': typeof AuthDashboardRoute
   '/rh/colaboradores': typeof AuthRhColaboradoresRoute
+  '/gestao/clientes/$clientId': typeof AuthGestaoClientesClientIdRoute
   '/gestao/grupos/$groupId': typeof AuthGestaoGruposGroupIdRoute
   '/gestao/regiao/$regionId': typeof AuthGestaoRegiaoRegionIdRoute
+  '/gestao/clientes': typeof AuthGestaoClientesIndexRoute
   '/gestao/grupos': typeof AuthGestaoGruposIndexRoute
   '/gestao/regiao': typeof AuthGestaoRegiaoIndexRoute
 }
@@ -88,8 +103,10 @@ export interface FileRoutesByTo {
   '/trocar-senha': typeof TrocarSenhaRoute
   '/dashboard': typeof AuthDashboardRoute
   '/rh/colaboradores': typeof AuthRhColaboradoresRoute
+  '/gestao/clientes/$clientId': typeof AuthGestaoClientesClientIdRoute
   '/gestao/grupos/$groupId': typeof AuthGestaoGruposGroupIdRoute
   '/gestao/regiao/$regionId': typeof AuthGestaoRegiaoRegionIdRoute
+  '/gestao/clientes': typeof AuthGestaoClientesIndexRoute
   '/gestao/grupos': typeof AuthGestaoGruposIndexRoute
   '/gestao/regiao': typeof AuthGestaoRegiaoIndexRoute
 }
@@ -101,8 +118,10 @@ export interface FileRoutesById {
   '/trocar-senha': typeof TrocarSenhaRoute
   '/_auth/dashboard': typeof AuthDashboardRoute
   '/_auth/rh/colaboradores': typeof AuthRhColaboradoresRoute
+  '/_auth/gestao/clientes/$clientId': typeof AuthGestaoClientesClientIdRoute
   '/_auth/gestao/grupos/$groupId': typeof AuthGestaoGruposGroupIdRoute
   '/_auth/gestao/regiao/$regionId': typeof AuthGestaoRegiaoRegionIdRoute
+  '/_auth/gestao/clientes/': typeof AuthGestaoClientesIndexRoute
   '/_auth/gestao/grupos/': typeof AuthGestaoGruposIndexRoute
   '/_auth/gestao/regiao/': typeof AuthGestaoRegiaoIndexRoute
 }
@@ -114,8 +133,10 @@ export interface FileRouteTypes {
     | '/trocar-senha'
     | '/dashboard'
     | '/rh/colaboradores'
+    | '/gestao/clientes/$clientId'
     | '/gestao/grupos/$groupId'
     | '/gestao/regiao/$regionId'
+    | '/gestao/clientes'
     | '/gestao/grupos'
     | '/gestao/regiao'
   fileRoutesByTo: FileRoutesByTo
@@ -125,8 +146,10 @@ export interface FileRouteTypes {
     | '/trocar-senha'
     | '/dashboard'
     | '/rh/colaboradores'
+    | '/gestao/clientes/$clientId'
     | '/gestao/grupos/$groupId'
     | '/gestao/regiao/$regionId'
+    | '/gestao/clientes'
     | '/gestao/grupos'
     | '/gestao/regiao'
   id:
@@ -137,8 +160,10 @@ export interface FileRouteTypes {
     | '/trocar-senha'
     | '/_auth/dashboard'
     | '/_auth/rh/colaboradores'
+    | '/_auth/gestao/clientes/$clientId'
     | '/_auth/gestao/grupos/$groupId'
     | '/_auth/gestao/regiao/$regionId'
+    | '/_auth/gestao/clientes/'
     | '/_auth/gestao/grupos/'
     | '/_auth/gestao/regiao/'
   fileRoutesById: FileRoutesById
@@ -208,6 +233,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthGestaoGruposIndexRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/gestao/clientes/': {
+      id: '/_auth/gestao/clientes/'
+      path: '/gestao/clientes'
+      fullPath: '/gestao/clientes'
+      preLoaderRoute: typeof AuthGestaoClientesIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/gestao/regiao/$regionId': {
       id: '/_auth/gestao/regiao/$regionId'
       path: '/gestao/regiao/$regionId'
@@ -222,14 +254,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthGestaoGruposGroupIdRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/gestao/clientes/$clientId': {
+      id: '/_auth/gestao/clientes/$clientId'
+      path: '/gestao/clientes/$clientId'
+      fullPath: '/gestao/clientes/$clientId'
+      preLoaderRoute: typeof AuthGestaoClientesClientIdRouteImport
+      parentRoute: typeof AuthRoute
+    }
   }
 }
 
 interface AuthRouteChildren {
   AuthDashboardRoute: typeof AuthDashboardRoute
   AuthRhColaboradoresRoute: typeof AuthRhColaboradoresRoute
+  AuthGestaoClientesClientIdRoute: typeof AuthGestaoClientesClientIdRoute
   AuthGestaoGruposGroupIdRoute: typeof AuthGestaoGruposGroupIdRoute
   AuthGestaoRegiaoRegionIdRoute: typeof AuthGestaoRegiaoRegionIdRoute
+  AuthGestaoClientesIndexRoute: typeof AuthGestaoClientesIndexRoute
   AuthGestaoGruposIndexRoute: typeof AuthGestaoGruposIndexRoute
   AuthGestaoRegiaoIndexRoute: typeof AuthGestaoRegiaoIndexRoute
 }
@@ -237,8 +278,10 @@ interface AuthRouteChildren {
 const AuthRouteChildren: AuthRouteChildren = {
   AuthDashboardRoute: AuthDashboardRoute,
   AuthRhColaboradoresRoute: AuthRhColaboradoresRoute,
+  AuthGestaoClientesClientIdRoute: AuthGestaoClientesClientIdRoute,
   AuthGestaoGruposGroupIdRoute: AuthGestaoGruposGroupIdRoute,
   AuthGestaoRegiaoRegionIdRoute: AuthGestaoRegiaoRegionIdRoute,
+  AuthGestaoClientesIndexRoute: AuthGestaoClientesIndexRoute,
   AuthGestaoGruposIndexRoute: AuthGestaoGruposIndexRoute,
   AuthGestaoRegiaoIndexRoute: AuthGestaoRegiaoIndexRoute,
 }
