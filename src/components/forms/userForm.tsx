@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, ChevronDown } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -19,10 +19,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Badge } from "@/components/ui/badge";
 import { createUser, updateUser } from "@/modules/users/users.service";
-import type { User } from "@/modules/auth/auth.types";
 import { dateMask } from "@/lib/masks/dateMask";
+import { userPermissions } from "@/modules/users/users.constants";
 import dayjs from "dayjs";
+import type { User } from "@/modules/users/users.types";
 
 const userFormSchema = z.object({
   name: z
@@ -42,6 +49,7 @@ const userFormSchema = z.object({
   role: z.enum(["ADMIN", "USER"], {
     message: "Selecione um tipo de usuário"
   }),
+  permissions: z.array(z.string()).optional(),
 });
 
 type UserFormData = z.infer<typeof userFormSchema>;
@@ -56,7 +64,9 @@ export function UserForm({ setToogleSheet, user }: UserFormProps) {
     register,
     handleSubmit,
     formState: { errors },
-    control
+    control,
+    watch,
+    setValue
   } = useForm<UserFormData>({
     resolver: zodResolver(userFormSchema),
     defaultValues: {
@@ -64,9 +74,21 @@ export function UserForm({ setToogleSheet, user }: UserFormProps) {
       email: user?.email || "",
       birthDate: dayjs(user?.birthDate).format("DD/MM/YYYY") || "",
       role: user?.role || "USER",
+      permissions: user?.permissions || [],
     }
   });
   const queryClient = useQueryClient()
+
+  const selectedPermissions = watch("permissions") || [];
+
+  const togglePermission = (permission: string) => {
+    const current = selectedPermissions;
+    if (current.includes(permission)) {
+      setValue("permissions", current.filter(p => p !== permission));
+    } else {
+      setValue("permissions", [...current, permission]);
+    }
+  };
 
   const { mutateAsync, isError, isPending } = useMutation({
     mutationFn: async (data: UserFormData) => {
@@ -83,7 +105,7 @@ export function UserForm({ setToogleSheet, user }: UserFormProps) {
   });
 
   return (
-    <form onSubmit={handleSubmit(data => mutateAsync(data))} className="p-4">
+    <form onSubmit={handleSubmit(data => mutateAsync(data))} className="p-4 overflow-y-auto">
       <FieldGroup>
         {isError && (
           <Alert variant="destructive">
@@ -138,6 +160,37 @@ export function UserForm({ setToogleSheet, user }: UserFormProps) {
           name="role"
           render={({ field: { onChange, value } }) => (
             <Field>
+              <Field>
+                <FieldLabel>Permissões</FieldLabel>
+                <div className="space-y-2">
+                  {userPermissions.map((group) => (
+                    <Collapsible key={group.type}>
+                      <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-secondary rounded-lg hover:bg-secondary/80 transition-colors">
+                        <div className="flex flex-col items-start">
+                          <span className="font-medium text-sm">{group.type}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {group.description}
+                          </span>
+                        </div>
+                        <ChevronDown className="size-4 transition-transform duration-200 [.data-[state=open]>&]:rotate-180" />
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="pt-2 px-3 space-y-1.5">
+                        {group.rules.map((rule) => (
+                          <Badge
+                            key={rule.permission}
+                            variant={selectedPermissions.includes(rule.permission) ? "default" : "outline"}
+                            className="cursor-pointer hover:opacity-80 transition-opacity py-1.5 px-3"
+                            onClick={() => togglePermission(rule.permission)}
+                            asChild={false}
+                          >
+                            <span className="text-xs">{rule.description}</span>
+                          </Badge>
+                        ))}
+                      </CollapsibleContent>
+                    </Collapsible>
+                  ))}
+                </div>
+              </Field>
               <FieldLabel htmlFor="role">Tipo</FieldLabel>
               <Select onValueChange={onChange} value={value} defaultValue={value}>
                 <SelectTrigger id="role" aria-invalid={!!errors.role}>

@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { Search, Plus, Trash2, Pencil, Eye } from "lucide-react";
+import { Search, Plus, Trash2, Pencil, Eye, Link } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Pagination,
   PaginationContent,
@@ -28,12 +29,18 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Alert } from "@/components/ui/alert";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Text } from "@/components/ui/text";
-import { Heading } from "@/components/ui/heading";
-import type { User } from "@/modules/auth/auth.types";
+import { userStatusTranslations, userPermissions } from "@/modules/users/users.constants";
+import type { User } from "@/modules/users/users.types";
 
 export const Route = createFileRoute("/_auth/rh/colaboradores")({
   component: Colaboradores,
 });
+
+const statusColors = {
+  ACTIVE: "bg-green-500",
+  BLOCKED: "bg-red-500",
+  PENDING: "bg-yellow-500",
+};
 
 function Colaboradores() {
   const queryClient = useQueryClient()
@@ -215,6 +222,7 @@ function Colaboradores() {
                 <TableHead>Nome</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Data de Nascimento</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead />
               </TableRow>
             </TableHeader>
@@ -222,7 +230,7 @@ function Colaboradores() {
               {users.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={4}
+                    colSpan={5}
                     className="text-center text-muted-foreground"
                   >
                     Nenhum colaborador encontrado
@@ -234,8 +242,28 @@ function Colaboradores() {
                     <TableCell className="font-medium">{user.name}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{dayjs(user.birthDate).format("DD/MM/YYYY")}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs ${statusColors[user.status as keyof typeof statusColors]}`}
+                      >
+                        {userStatusTranslations[user.status]}
+                      </span>
+                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
+                        {user.verificationTokens && user.verificationTokens.length > 0 && (
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => {
+                              const url = `${import.meta.env.VITE_BASE_URL}/nova-senha?token=${user.verificationTokens![0].token}`;
+                              navigator.clipboard.writeText(url);
+
+                            }}
+                          >
+                            <Link className="size-4" />
+                          </Button>
+                        )}
                         <Button
                           variant="ghost"
                           size="icon-sm"
@@ -337,6 +365,43 @@ function Colaboradores() {
                   <Text variant="large">
                     {selectedUser.role}
                   </Text>
+                </div>
+                <div className="space-y-2">
+                  <Text variant="muted">Permissões</Text>
+                  {selectedUser.permissions && selectedUser.permissions.length > 0 ? (
+                    <div className="space-y-3">
+                      {userPermissions.map((group) => {
+                        const groupPermissions = group.rules.filter((rule) =>
+                          selectedUser.permissions?.includes(rule.permission)
+                        );
+
+                        if (groupPermissions.length === 0) return null;
+
+                        return (
+                          <div key={group.type} className="space-y-1.5">
+                            <Text variant="small" className="font-medium">
+                              {group.type}
+                            </Text>
+                            <div className="flex flex-wrap gap-1.5">
+                              {groupPermissions.map((rule) => (
+                                <Badge
+                                  key={rule.permission}
+                                  variant="secondary"
+                                  className="text-xs"
+                                >
+                                  {rule.description}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <Text variant="small" className="text-muted-foreground">
+                      Nenhuma permissão atribuída
+                    </Text>
+                  )}
                 </div>
               </div>
             )}

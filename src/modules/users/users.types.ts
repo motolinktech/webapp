@@ -1,6 +1,18 @@
-import type { User } from "../auth/auth.types";
-
-export type { User };
+export interface User {
+	id: string;
+	name: string;
+	email: string;
+	role: "ADMIN" | "USER";
+	status: "ACTIVE" | "INACTIVE" | "PENDING";
+	permissions: string[];
+	branches: string[];
+	birthDate: string;
+	documents: Array<{ url: string; type: string; uploadedAt: string }>;
+	isDeleted: boolean;
+	createdAt: string;
+	updatedAt: string;
+  verificationTokens?: Array<{ token: string }>;
+}
 
 export interface UserListParams {
 	page?: number;
