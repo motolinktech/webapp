@@ -2,25 +2,25 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { ContentHeader } from "@/components/composite/content-header";
-import { UserForm } from "@/components/forms/user-form";
+import { GroupsForm } from "@/components/forms/groups-form";
 import { Alert } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getUserById } from "@/modules/users/users.service";
+import { getGroupById } from "@/modules/groups/groups.service";
 
-export const Route = createFileRoute("/_auth/rh/colaboradores/$userId/editar")({
-  component: EditarColaborador,
+export const Route = createFileRoute("/_auth/gestao/grupos/$groupId/editar")({
+  component: EditarGrupo,
 });
 
-export function EditarColaborador() {
-  const { userId } = Route.useParams();
+export function EditarGrupo() {
+  const { groupId } = Route.useParams();
 
   const {
-    data: user,
+    data: group,
     isLoading,
     isError,
   } = useQuery({
-    queryKey: ["users", userId],
-    queryFn: () => getUserById(userId),
+    queryKey: ["groups", groupId],
+    queryFn: () => getGroupById(groupId),
   });
 
   if (isLoading) {
@@ -28,8 +28,8 @@ export function EditarColaborador() {
       <main>
         <ContentHeader
           breadcrumbItems={[
-            { title: "Colaboradores", href: "/rh/colaboradores" },
-            { title: "Editar Colaborador" },
+            { title: "Grupos", href: "/gestao/grupos" },
+            { title: "Editar Grupo" },
           ]}
         />
         <div className="p-6">
@@ -44,12 +44,12 @@ export function EditarColaborador() {
       <main>
         <ContentHeader
           breadcrumbItems={[
-            { title: "Colaboradores", href: "/rh/colaboradores" },
+            { title: "Grupos", href: "/gestao/grupos" },
             { title: "Erro" },
           ]}
         />
         <Alert variant="destructive" className="m-6">
-          Erro ao carregar colaborador para edição.
+          Erro ao carregar grupo para edição.
         </Alert>
       </main>
     );
@@ -59,12 +59,15 @@ export function EditarColaborador() {
     <main>
       <ContentHeader
         breadcrumbItems={[
-          { title: "Colaboradores", href: "/rh/colaboradores" },
-          { title: user?.name || "Detalhes do usuário", href: `/rh/colaboradores/${userId}/detalhe` },
+          { title: "Grupos", href: "/gestao/grupos" },
+          {
+            title: group?.name || "Detalhes do grupo",
+            href: `/gestao/grupos/${groupId}/detalhe`,
+          },
           { title: "Editar" },
         ]}
       />
-      <UserForm user={user} />
+      <GroupsForm group={group} />
     </main>
   );
 }

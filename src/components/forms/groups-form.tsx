@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { AlertCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -30,11 +31,10 @@ const groupFormSchema = z.object({
 type GroupFormData = z.infer<typeof groupFormSchema>;
 
 interface GroupsFormProps {
-  setToogleSheet: (value: boolean) => void;
   group?: Group | null;
 }
 
-export function GroupsForm({ setToogleSheet, group }: GroupsFormProps) {
+export function GroupsForm({ group }: GroupsFormProps) {
   const {
     register,
     handleSubmit,
@@ -47,6 +47,7 @@ export function GroupsForm({ setToogleSheet, group }: GroupsFormProps) {
     },
   });
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { mutateAsync, isError, isPending } = useMutation({
     mutationFn: async (data: GroupFormData) => {
@@ -57,7 +58,7 @@ export function GroupsForm({ setToogleSheet, group }: GroupsFormProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["groups"] });
-      setToogleSheet(false);
+      navigate({ to: "/gestao/grupos" });
     },
   });
 
@@ -70,7 +71,9 @@ export function GroupsForm({ setToogleSheet, group }: GroupsFormProps) {
         {isError && (
           <Alert variant="destructive">
             <AlertCircle className="size-4" />
-            <AlertDescription>Erro ao atualizar grupo</AlertDescription>
+            <AlertDescription>
+              Erro ao {group?.id ? "atualizar" : "criar"} grupo
+            </AlertDescription>
           </Alert>
         )}
 
@@ -98,7 +101,7 @@ export function GroupsForm({ setToogleSheet, group }: GroupsFormProps) {
         </Field>
 
         <Button type="submit" isLoading={isPending}>
-          Atualizar Grupo
+          {group?.id ? "Atualizar grupo" : "Criar grupo"}
         </Button>
       </FieldGroup>
     </form>

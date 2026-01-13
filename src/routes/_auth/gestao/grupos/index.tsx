@@ -1,8 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Eye, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { GroupsForm } from "@/components/forms/groups-form";
 import { Alert } from "@/components/ui/alert";
 import {
   AlertDialog,
@@ -25,13 +24,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -50,11 +42,9 @@ export const Route = createFileRoute("/_auth/gestao/grupos/")({
 
 function Grupos() {
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [toogleSheet, setToogleSheet] = useState(false);
   const [toogleAlert, setToogleAlert] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
 
@@ -97,8 +87,11 @@ function Grupos() {
         <Skeleton className="mb-4 h-8 w-1/3" />
         <div className="space-y-2">
           {[...Array(5)].map((_, index) => (
-            <Skeleton key={`skeleton-${// biome-ignore lint/suspicious/noArrayIndexKey: id is unique
-              index}`} className="h-10 w-full" />
+            <Skeleton
+              key={`skeleton-${// biome-ignore lint/suspicious/noArrayIndexKey: id is unique
+                index}`}
+              className="h-10 w-full"
+            />
           ))}
         </div>
       </div>
@@ -205,12 +198,11 @@ function Grupos() {
               className="pl-9"
             />
           </div>
-          <Button onClick={() => {
-            setToogleSheet(true)
-            setSelectedGroup(null)
-          }}>
-            <Plus className="size-4" />
-            Novo grupo
+          <Button asChild>
+            <Link to="/gestao/grupos/novo">
+              <Plus className="size-4" />
+              Novo grupo
+            </Link>
           </Button>
         </div>
 
@@ -240,24 +232,21 @@ function Grupos() {
                     <TableCell>{group.description || "-"}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          onClick={() => {
-                            navigate({ to: "/gestao/grupos/$groupId", params: { groupId: group.id } });
-                          }}
-                        >
-                          <Eye className="size-4" />
+                        <Button variant="ghost" size="icon-sm" asChild>
+                          <Link
+                            to="/gestao/grupos/$groupId/detalhe"
+                            params={{ groupId: group.id }}
+                          >
+                            <Eye className="size-4" />
+                          </Link>
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          onClick={() => {
-                            setSelectedGroup(group);
-                            setToogleSheet(true);
-                          }}
-                        >
-                          <Pencil className="size-4" />
+                        <Button variant="ghost" size="icon-sm" asChild>
+                          <Link
+                            to="/gestao/grupos/$groupId/editar"
+                            params={{ groupId: group.id }}
+                          >
+                            <Pencil className="size-4" />
+                          </Link>
                         </Button>
                         <Button
                           variant="ghost"
@@ -305,21 +294,6 @@ function Grupos() {
             </Pagination>
           </div>
         )}
-
-        <Sheet open={toogleSheet} onOpenChange={setToogleSheet}>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>Editar Grupo</SheetTitle>
-              <SheetDescription>
-                Atualize as informações do grupo.
-              </SheetDescription>
-            </SheetHeader>
-            <GroupsForm
-              group={selectedGroup}
-              setToogleSheet={setToogleSheet}
-            />
-          </SheetContent>
-        </Sheet>
 
         <AlertDialogContent>
           <AlertDialogHeader>
