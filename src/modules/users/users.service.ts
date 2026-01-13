@@ -17,6 +17,11 @@ export async function listUsers(
 	return response.data;
 }
 
+export async function getUserById(id: string): Promise<User> {
+	const response = await authApi.get<User>(`/users/${id}`);
+	return response.data;
+}
+
 export async function createUser(data: CreateUserData): Promise<User> {
 	const response = await authApi.post<User>("/users", data);
 	return response.data;

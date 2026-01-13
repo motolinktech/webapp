@@ -14,7 +14,6 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthDashboardRouteImport } from './routes/_auth/dashboard'
-import { Route as AuthRhColaboradoresRouteImport } from './routes/_auth/rh/colaboradores'
 import { Route as AuthRhColaboradoresIndexRouteImport } from './routes/_auth/rh/colaboradores/index'
 import { Route as AuthGestaoRegiaoIndexRouteImport } from './routes/_auth/gestao/regiao/index'
 import { Route as AuthGestaoGruposIndexRouteImport } from './routes/_auth/gestao/grupos/index'
@@ -25,6 +24,8 @@ import { Route as AuthGestaoRegiaoRegionIdRouteImport } from './routes/_auth/ges
 import { Route as AuthGestaoGruposGroupIdRouteImport } from './routes/_auth/gestao/grupos/$groupId'
 import { Route as AuthGestaoEntregadoresDeliverymanIdRouteImport } from './routes/_auth/gestao/entregadores/$deliverymanId'
 import { Route as AuthGestaoClientesClientIdRouteImport } from './routes/_auth/gestao/clientes/$clientId'
+import { Route as AuthRhColaboradoresUserIdEditarRouteImport } from './routes/_auth/rh/colaboradores/$userId.editar'
+import { Route as AuthRhColaboradoresUserIdDetalheRouteImport } from './routes/_auth/rh/colaboradores/$userId.detalhe'
 
 const TrocarSenhaRoute = TrocarSenhaRouteImport.update({
   id: '/trocar-senha',
@@ -50,16 +51,11 @@ const AuthDashboardRoute = AuthDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthRoute,
 } as any)
-const AuthRhColaboradoresRoute = AuthRhColaboradoresRouteImport.update({
-  id: '/rh/colaboradores',
-  path: '/rh/colaboradores',
-  getParentRoute: () => AuthRoute,
-} as any)
 const AuthRhColaboradoresIndexRoute =
   AuthRhColaboradoresIndexRouteImport.update({
-    id: '/',
-    path: '/',
-    getParentRoute: () => AuthRhColaboradoresRoute,
+    id: '/rh/colaboradores/',
+    path: '/rh/colaboradores/',
+    getParentRoute: () => AuthRoute,
   } as any)
 const AuthGestaoRegiaoIndexRoute = AuthGestaoRegiaoIndexRouteImport.update({
   id: '/gestao/regiao/',
@@ -83,9 +79,9 @@ const AuthGestaoClientesIndexRoute = AuthGestaoClientesIndexRouteImport.update({
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthRhColaboradoresNovoRoute = AuthRhColaboradoresNovoRouteImport.update({
-  id: '/novo',
-  path: '/novo',
-  getParentRoute: () => AuthRhColaboradoresRoute,
+  id: '/rh/colaboradores/novo',
+  path: '/rh/colaboradores/novo',
+  getParentRoute: () => AuthRoute,
 } as any)
 const AuthGestaoRegiaoRegionIdRoute =
   AuthGestaoRegiaoRegionIdRouteImport.update({
@@ -110,13 +106,24 @@ const AuthGestaoClientesClientIdRoute =
     path: '/gestao/clientes/$clientId',
     getParentRoute: () => AuthRoute,
   } as any)
+const AuthRhColaboradoresUserIdEditarRoute =
+  AuthRhColaboradoresUserIdEditarRouteImport.update({
+    id: '/rh/colaboradores/$userId/editar',
+    path: '/rh/colaboradores/$userId/editar',
+    getParentRoute: () => AuthRoute,
+  } as any)
+const AuthRhColaboradoresUserIdDetalheRoute =
+  AuthRhColaboradoresUserIdDetalheRouteImport.update({
+    id: '/rh/colaboradores/$userId/detalhe',
+    path: '/rh/colaboradores/$userId/detalhe',
+    getParentRoute: () => AuthRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/trocar-senha': typeof TrocarSenhaRoute
   '/dashboard': typeof AuthDashboardRoute
-  '/rh/colaboradores': typeof AuthRhColaboradoresRouteWithChildren
   '/gestao/clientes/$clientId': typeof AuthGestaoClientesClientIdRoute
   '/gestao/entregadores/$deliverymanId': typeof AuthGestaoEntregadoresDeliverymanIdRoute
   '/gestao/grupos/$groupId': typeof AuthGestaoGruposGroupIdRoute
@@ -126,7 +133,9 @@ export interface FileRoutesByFullPath {
   '/gestao/entregadores': typeof AuthGestaoEntregadoresIndexRoute
   '/gestao/grupos': typeof AuthGestaoGruposIndexRoute
   '/gestao/regiao': typeof AuthGestaoRegiaoIndexRoute
-  '/rh/colaboradores/': typeof AuthRhColaboradoresIndexRoute
+  '/rh/colaboradores': typeof AuthRhColaboradoresIndexRoute
+  '/rh/colaboradores/$userId/detalhe': typeof AuthRhColaboradoresUserIdDetalheRoute
+  '/rh/colaboradores/$userId/editar': typeof AuthRhColaboradoresUserIdEditarRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -143,6 +152,8 @@ export interface FileRoutesByTo {
   '/gestao/grupos': typeof AuthGestaoGruposIndexRoute
   '/gestao/regiao': typeof AuthGestaoRegiaoIndexRoute
   '/rh/colaboradores': typeof AuthRhColaboradoresIndexRoute
+  '/rh/colaboradores/$userId/detalhe': typeof AuthRhColaboradoresUserIdDetalheRoute
+  '/rh/colaboradores/$userId/editar': typeof AuthRhColaboradoresUserIdEditarRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -151,7 +162,6 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/trocar-senha': typeof TrocarSenhaRoute
   '/_auth/dashboard': typeof AuthDashboardRoute
-  '/_auth/rh/colaboradores': typeof AuthRhColaboradoresRouteWithChildren
   '/_auth/gestao/clientes/$clientId': typeof AuthGestaoClientesClientIdRoute
   '/_auth/gestao/entregadores/$deliverymanId': typeof AuthGestaoEntregadoresDeliverymanIdRoute
   '/_auth/gestao/grupos/$groupId': typeof AuthGestaoGruposGroupIdRoute
@@ -162,6 +172,8 @@ export interface FileRoutesById {
   '/_auth/gestao/grupos/': typeof AuthGestaoGruposIndexRoute
   '/_auth/gestao/regiao/': typeof AuthGestaoRegiaoIndexRoute
   '/_auth/rh/colaboradores/': typeof AuthRhColaboradoresIndexRoute
+  '/_auth/rh/colaboradores/$userId/detalhe': typeof AuthRhColaboradoresUserIdDetalheRoute
+  '/_auth/rh/colaboradores/$userId/editar': typeof AuthRhColaboradoresUserIdEditarRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -170,7 +182,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/trocar-senha'
     | '/dashboard'
-    | '/rh/colaboradores'
     | '/gestao/clientes/$clientId'
     | '/gestao/entregadores/$deliverymanId'
     | '/gestao/grupos/$groupId'
@@ -180,7 +191,9 @@ export interface FileRouteTypes {
     | '/gestao/entregadores'
     | '/gestao/grupos'
     | '/gestao/regiao'
-    | '/rh/colaboradores/'
+    | '/rh/colaboradores'
+    | '/rh/colaboradores/$userId/detalhe'
+    | '/rh/colaboradores/$userId/editar'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -197,6 +210,8 @@ export interface FileRouteTypes {
     | '/gestao/grupos'
     | '/gestao/regiao'
     | '/rh/colaboradores'
+    | '/rh/colaboradores/$userId/detalhe'
+    | '/rh/colaboradores/$userId/editar'
   id:
     | '__root__'
     | '/'
@@ -204,7 +219,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/trocar-senha'
     | '/_auth/dashboard'
-    | '/_auth/rh/colaboradores'
     | '/_auth/gestao/clientes/$clientId'
     | '/_auth/gestao/entregadores/$deliverymanId'
     | '/_auth/gestao/grupos/$groupId'
@@ -215,6 +229,8 @@ export interface FileRouteTypes {
     | '/_auth/gestao/grupos/'
     | '/_auth/gestao/regiao/'
     | '/_auth/rh/colaboradores/'
+    | '/_auth/rh/colaboradores/$userId/detalhe'
+    | '/_auth/rh/colaboradores/$userId/editar'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -261,19 +277,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthDashboardRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/rh/colaboradores': {
-      id: '/_auth/rh/colaboradores'
-      path: '/rh/colaboradores'
-      fullPath: '/rh/colaboradores'
-      preLoaderRoute: typeof AuthRhColaboradoresRouteImport
-      parentRoute: typeof AuthRoute
-    }
     '/_auth/rh/colaboradores/': {
       id: '/_auth/rh/colaboradores/'
-      path: '/'
-      fullPath: '/rh/colaboradores/'
+      path: '/rh/colaboradores'
+      fullPath: '/rh/colaboradores'
       preLoaderRoute: typeof AuthRhColaboradoresIndexRouteImport
-      parentRoute: typeof AuthRhColaboradoresRoute
+      parentRoute: typeof AuthRoute
     }
     '/_auth/gestao/regiao/': {
       id: '/_auth/gestao/regiao/'
@@ -305,10 +314,10 @@ declare module '@tanstack/react-router' {
     }
     '/_auth/rh/colaboradores/novo': {
       id: '/_auth/rh/colaboradores/novo'
-      path: '/novo'
+      path: '/rh/colaboradores/novo'
       fullPath: '/rh/colaboradores/novo'
       preLoaderRoute: typeof AuthRhColaboradoresNovoRouteImport
-      parentRoute: typeof AuthRhColaboradoresRoute
+      parentRoute: typeof AuthRoute
     }
     '/_auth/gestao/regiao/$regionId': {
       id: '/_auth/gestao/regiao/$regionId'
@@ -338,47 +347,54 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthGestaoClientesClientIdRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/rh/colaboradores/$userId/editar': {
+      id: '/_auth/rh/colaboradores/$userId/editar'
+      path: '/rh/colaboradores/$userId/editar'
+      fullPath: '/rh/colaboradores/$userId/editar'
+      preLoaderRoute: typeof AuthRhColaboradoresUserIdEditarRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/rh/colaboradores/$userId/detalhe': {
+      id: '/_auth/rh/colaboradores/$userId/detalhe'
+      path: '/rh/colaboradores/$userId/detalhe'
+      fullPath: '/rh/colaboradores/$userId/detalhe'
+      preLoaderRoute: typeof AuthRhColaboradoresUserIdDetalheRouteImport
+      parentRoute: typeof AuthRoute
+    }
   }
 }
 
-interface AuthRhColaboradoresRouteChildren {
-  AuthRhColaboradoresNovoRoute: typeof AuthRhColaboradoresNovoRoute
-  AuthRhColaboradoresIndexRoute: typeof AuthRhColaboradoresIndexRoute
-}
-
-const AuthRhColaboradoresRouteChildren: AuthRhColaboradoresRouteChildren = {
-  AuthRhColaboradoresNovoRoute: AuthRhColaboradoresNovoRoute,
-  AuthRhColaboradoresIndexRoute: AuthRhColaboradoresIndexRoute,
-}
-
-const AuthRhColaboradoresRouteWithChildren =
-  AuthRhColaboradoresRoute._addFileChildren(AuthRhColaboradoresRouteChildren)
-
 interface AuthRouteChildren {
   AuthDashboardRoute: typeof AuthDashboardRoute
-  AuthRhColaboradoresRoute: typeof AuthRhColaboradoresRouteWithChildren
   AuthGestaoClientesClientIdRoute: typeof AuthGestaoClientesClientIdRoute
   AuthGestaoEntregadoresDeliverymanIdRoute: typeof AuthGestaoEntregadoresDeliverymanIdRoute
   AuthGestaoGruposGroupIdRoute: typeof AuthGestaoGruposGroupIdRoute
   AuthGestaoRegiaoRegionIdRoute: typeof AuthGestaoRegiaoRegionIdRoute
+  AuthRhColaboradoresNovoRoute: typeof AuthRhColaboradoresNovoRoute
   AuthGestaoClientesIndexRoute: typeof AuthGestaoClientesIndexRoute
   AuthGestaoEntregadoresIndexRoute: typeof AuthGestaoEntregadoresIndexRoute
   AuthGestaoGruposIndexRoute: typeof AuthGestaoGruposIndexRoute
   AuthGestaoRegiaoIndexRoute: typeof AuthGestaoRegiaoIndexRoute
+  AuthRhColaboradoresIndexRoute: typeof AuthRhColaboradoresIndexRoute
+  AuthRhColaboradoresUserIdDetalheRoute: typeof AuthRhColaboradoresUserIdDetalheRoute
+  AuthRhColaboradoresUserIdEditarRoute: typeof AuthRhColaboradoresUserIdEditarRoute
 }
 
 const AuthRouteChildren: AuthRouteChildren = {
   AuthDashboardRoute: AuthDashboardRoute,
-  AuthRhColaboradoresRoute: AuthRhColaboradoresRouteWithChildren,
   AuthGestaoClientesClientIdRoute: AuthGestaoClientesClientIdRoute,
   AuthGestaoEntregadoresDeliverymanIdRoute:
     AuthGestaoEntregadoresDeliverymanIdRoute,
   AuthGestaoGruposGroupIdRoute: AuthGestaoGruposGroupIdRoute,
   AuthGestaoRegiaoRegionIdRoute: AuthGestaoRegiaoRegionIdRoute,
+  AuthRhColaboradoresNovoRoute: AuthRhColaboradoresNovoRoute,
   AuthGestaoClientesIndexRoute: AuthGestaoClientesIndexRoute,
   AuthGestaoEntregadoresIndexRoute: AuthGestaoEntregadoresIndexRoute,
   AuthGestaoGruposIndexRoute: AuthGestaoGruposIndexRoute,
   AuthGestaoRegiaoIndexRoute: AuthGestaoRegiaoIndexRoute,
+  AuthRhColaboradoresIndexRoute: AuthRhColaboradoresIndexRoute,
+  AuthRhColaboradoresUserIdDetalheRoute: AuthRhColaboradoresUserIdDetalheRoute,
+  AuthRhColaboradoresUserIdEditarRoute: AuthRhColaboradoresUserIdEditarRoute,
 }
 
 const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)

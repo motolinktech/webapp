@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "../ui/breadcrumb";
 import { Separator } from "../ui/separator";
 import { SidebarTrigger } from "../ui/sidebar";
@@ -30,8 +31,10 @@ export function ContentHeader({
                   {isLast ? (
                     <BreadcrumbPage>{item.title}</BreadcrumbPage>
                   ) : (
-                    <BreadcrumbLink href={item.href}>
-                      {item.title}
+                    <BreadcrumbLink asChild>
+                      <Link to={item.href}>
+                        {item.title}
+                      </Link>
                     </BreadcrumbLink>
                   )}
                 </BreadcrumbItem>,

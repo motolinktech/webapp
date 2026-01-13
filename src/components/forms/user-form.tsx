@@ -1,15 +1,26 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
+import dayjs from "dayjs";
 import { AlertCircle, ChevronDown } from "lucide-react";
-import { useForm, Controller } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   Field,
   FieldError,
   FieldGroup,
   FieldLabel,
+  FieldLegend,
+  FieldSet,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,16 +30,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { Badge } from "@/components/ui/badge";
-import { createUser, updateUser } from "@/modules/users/users.service";
+import { clearMask } from "@/lib/masks/clear-mask";
+import { cpfMask } from "@/lib/masks/cpf-mask";
 import { dateMask } from "@/lib/masks/date-mask";
+import { dateToISO } from "@/lib/services/date";
 import { userPermissions } from "@/modules/users/users.constants";
-import dayjs from "dayjs";
+import { createUser, updateUser } from "@/modules/users/users.service";
 import type { User } from "@/modules/users/users.types";
 
 const userFormSchema = z.object({
@@ -39,34 +46,31 @@ const userFormSchema = z.object({
   email: z.email("Email inválido"),
   birthDate: z
     .string()
-    .regex(/^\d{2}\/\d{2}\/\d{4}$/, "Data deve estar no formato DD/MM/YYYY")
-    .refine((date) => {
-      const birthDate = new Date(date);
-      const today = new Date();
-      const age = today.getFullYear() - birthDate.getFullYear();
-      return age >= 18 && age <= 120;
-    }, "Usuário deve ter entre 18 e 120 anos"),
+    .regex(/^\d{2}\/\d{2}\/\d{4}$/, "Data deve estar no formato DD/MM/YYYY"),
   role: z.enum(["ADMIN", "USER"], {
-    message: "Selecione um tipo de usuário"
+    message: "Selecione um tipo de usuário",
   }),
+  document: z
+    .string()
+    .min(11, "Documento deve ter pelo menos 11 caracteres")
+    .max(14, "Documento deve ter no máximo 14 caracteres"),
   permissions: z.array(z.string()).optional(),
 });
 
 type UserFormData = z.infer<typeof userFormSchema>;
 
 interface UserFormProps {
-  setToogleSheet: React.Dispatch<React.SetStateAction<boolean>>;
   user?: User | null;
 }
 
-export function UserForm({ setToogleSheet, user }: UserFormProps) {
+export function UserForm({ user }: UserFormProps) {
   const {
     register,
     handleSubmit,
     formState: { errors },
     control,
     watch,
-    setValue
+    setValue,
   } = useForm<UserFormData>({
     resolver: zodResolver(userFormSchema),
     defaultValues: {
@@ -75,16 +79,21 @@ export function UserForm({ setToogleSheet, user }: UserFormProps) {
       birthDate: dayjs(user?.birthDate).format("DD/MM/YYYY") || "",
       role: user?.role || "USER",
       permissions: user?.permissions || [],
-    }
+    },
   });
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const selectedPermissions = watch("permissions") || [];
+  const selectedRole = watch("role");
 
   const togglePermission = (permission: string) => {
     const current = selectedPermissions;
     if (current.includes(permission)) {
-      setValue("permissions", current.filter(p => p !== permission));
+      setValue(
+        "permissions",
+        current.filter((p) => p !== permission),
+      );
     } else {
       setValue("permissions", [...current, permission]);
     }
@@ -92,20 +101,32 @@ export function UserForm({ setToogleSheet, user }: UserFormProps) {
 
   const { mutateAsync, isError, isPending } = useMutation({
     mutationFn: async (data: UserFormData) => {
-      if (user?.id) {
-        return updateUser({ ...data, id: user.id });
+      const formattedData = {
+        ...data,
+        document: clearMask(data.document),
+        birthDate: await dateToISO(data.birthDate),
       }
 
-      return createUser(data);
+      if (user?.id) {
+        return updateUser({ ...formattedData, id: user.id });
+      }
+
+      return createUser(formattedData);
     },
     onSuccess: () => {
+      toast.success('Usuário salvo com sucesso!');
       queryClient.invalidateQueries({ queryKey: ["users"] });
-      setToogleSheet(false);
+      navigate({
+        to: "/rh/colaboradores",
+      });
     },
   });
 
   return (
-    <form onSubmit={handleSubmit(data => mutateAsync(data))} className="p-4 overflow-y-auto">
+    <form
+      onSubmit={handleSubmit((data) => mutateAsync(data))}
+      className="p-4 overflow-y-auto"
+    >
       <FieldGroup>
         {isError && (
           <Alert variant="destructive">
@@ -114,52 +135,96 @@ export function UserForm({ setToogleSheet, user }: UserFormProps) {
           </Alert>
         )}
 
-        <Field>
-          <FieldLabel htmlFor="name">Nome</FieldLabel>
-          <Input
-            id="name"
-            type="text"
-            placeholder="João Silva"
-            aria-invalid={!!errors.name}
-            {...register("name")}
-          />
-          <FieldError errors={[errors.name]} />
-        </Field>
-
-        <Field>
-          <FieldLabel htmlFor="email">Email</FieldLabel>
-          <Input
-            id="email"
-            type="email"
-            placeholder="email@example.com"
-            aria-invalid={!!errors.email}
-            {...register("email")}
-          />
-          <FieldError errors={[errors.email]} />
-        </Field>
-
-        <Field>
-          <FieldLabel htmlFor="birthDate">Data de Nascimento</FieldLabel>
-          <Input
-            id="birthDate"
-            type="text"
-            aria-invalid={!!errors.birthDate}
-            {...register("birthDate", {
-              onChange: (e) => {
-                let value = e.target.value;
-
-                e.target.value = dateMask(value);
-              },
-            })}
-          />
-          <FieldError errors={[errors.birthDate]} />
-        </Field>
-
-        <Controller
-          control={control}
-          name="role"
-          render={({ field: { onChange, value } }) => (
+        <FieldSet>
+          <FieldLegend>Informações Pessoais</FieldLegend>
+          <FieldGroup className="grid md:grid-cols-2 gap-4">
             <Field>
+              <FieldLabel htmlFor="name">Nome</FieldLabel>
+              <Input
+                id="name"
+                type="text"
+                placeholder="João Silva"
+                aria-invalid={!!errors.name}
+                {...register("name")}
+              />
+              <FieldError errors={[errors.name]} />
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="email">Email</FieldLabel>
+              <Input
+                id="email"
+                type="email"
+                placeholder="email@example.com"
+                aria-invalid={!!errors.email}
+                {...register("email")}
+              />
+              <FieldError errors={[errors.email]} />
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="birthDate">Data de Nascimento</FieldLabel>
+              <Input
+                id="birthDate"
+                type="text"
+                aria-invalid={!!errors.birthDate}
+                {...register("birthDate", {
+                  onChange: (e) => {
+                    const value = e.target.value;
+
+                    e.target.value = dateMask(value);
+                  },
+                })}
+              />
+              <FieldError errors={[errors.birthDate]} />
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="document">Documento</FieldLabel>
+              <Input
+                id="document"
+                type="text"
+                aria-invalid={!!errors.document}
+                {...register("document", {
+                  onChange: (e) => {
+                    const value = e.target.value;
+
+                    e.target.value = cpfMask(value);
+                  },
+                })}
+              />
+              <FieldError errors={[errors.document]} />
+            </Field>
+          </FieldGroup>
+        </FieldSet>
+
+        <FieldSet>
+          <FieldLegend>Informações do Sistema</FieldLegend>
+          <FieldGroup>
+            <Controller
+              control={control}
+              name="role"
+              render={({ field: { onChange, value } }) => (
+                <Field>
+                  <FieldLabel htmlFor="role">Tipo</FieldLabel>
+                  <Select
+                    onValueChange={onChange}
+                    value={value}
+                    defaultValue={value}
+                  >
+                    <SelectTrigger id="role" aria-invalid={!!errors.role}>
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ADMIN">Administrador</SelectItem>
+                      <SelectItem value="USER">Usuário</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FieldError errors={[errors.role]} />
+                </Field>
+              )}
+            />
+            {selectedRole === "USER" && (
               <Field>
                 <FieldLabel>Permissões</FieldLabel>
                 <div className="space-y-2">
@@ -167,7 +232,9 @@ export function UserForm({ setToogleSheet, user }: UserFormProps) {
                     <Collapsible key={group.type}>
                       <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-secondary rounded-lg hover:bg-secondary/80 transition-colors">
                         <div className="flex flex-col items-start">
-                          <span className="font-medium text-sm">{group.type}</span>
+                          <span className="font-medium text-sm">
+                            {group.type}
+                          </span>
                           <span className="text-xs text-muted-foreground">
                             {group.description}
                           </span>
@@ -178,7 +245,11 @@ export function UserForm({ setToogleSheet, user }: UserFormProps) {
                         {group.rules.map((rule) => (
                           <Badge
                             key={rule.permission}
-                            variant={selectedPermissions.includes(rule.permission) ? "default" : "outline"}
+                            variant={
+                              selectedPermissions.includes(rule.permission)
+                                ? "default"
+                                : "outline"
+                            }
                             className="cursor-pointer hover:opacity-80 transition-opacity py-1.5 px-3"
                             onClick={() => togglePermission(rule.permission)}
                             asChild={false}
@@ -191,20 +262,9 @@ export function UserForm({ setToogleSheet, user }: UserFormProps) {
                   ))}
                 </div>
               </Field>
-              <FieldLabel htmlFor="role">Tipo</FieldLabel>
-              <Select onValueChange={onChange} value={value} defaultValue={value}>
-                <SelectTrigger id="role" aria-invalid={!!errors.role}>
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ADMIN">Administrador</SelectItem>
-                  <SelectItem value="USER">Usuário</SelectItem>
-                </SelectContent>
-              </Select>
-              <FieldError errors={[errors.role]} />
-            </Field>
-          )} />
-
+            )}
+          </FieldGroup>
+        </FieldSet>
 
         <Button type="submit" isLoading={isPending}>
           {user?.id ? "Atualizar Usuário" : "Criar Usuário"}

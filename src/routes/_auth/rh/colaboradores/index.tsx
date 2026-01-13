@@ -1,13 +1,11 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import dayjs from "dayjs";
-import { Eye, Link, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { Link as CopyLink, Eye, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ContentHeader } from "@/components/composite/content-header";
-import { UserForm } from "@/components/forms/user-form";
 import { Alert } from "@/components/ui/alert";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,17 +17,9 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Text } from "@/components/ui/text";
-import { userPermissions, userStatusTranslations } from "@/modules/users/users.constants";
+import { userStatusTranslations } from "@/modules/users/users.constants";
 import { deleteUser, listUsers } from "@/modules/users/users.service";
 import type { User } from "@/modules/users/users.types";
 
@@ -48,10 +38,8 @@ function Colaboradores() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [toogleSheet, setToogleSheet] = useState(false);
   const [toogleAlert, setToogleAlert] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [sheetType, setSheetType] = useState<"form" | "detail">("form");
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["users", debouncedSearch, page],
@@ -80,18 +68,21 @@ function Colaboradores() {
   }
 
   const handleDeleteUser = async () => {
-    await deleteUser(selectedUser?.id);
-    setToogleAlert(false);
-    queryClient.invalidateQueries({ queryKey: ["users"] });
+    if (selectedUser?.id) {
+      await deleteUser(selectedUser.id);
+      setToogleAlert(false);
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    }
   }
 
   if (isLoading) {
     return (
-      <div className="p-6">
+      <div>
         <Skeleton className="mb-4 h-8 w-1/3" />
         <div className="space-y-2">
           {[...Array(5)].map((_, index) => (
-            <Skeleton key={index} className="h-10 w-full" />
+            // biome-ignore lint/suspicious/noArrayIndexKey: pode ignorar por ser array estático
+            <Skeleton key={`skeleton-${index}`} className="h-10 w-full" />
           ))}
         </div>
       </div>
@@ -187,7 +178,7 @@ function Colaboradores() {
   };
 
   return (
-    <div className="p-6">
+    <div>
       <AlertDialog open={toogleAlert} onOpenChange={setToogleAlert}>
         <ContentHeader breadcrumbItems={[{ title: `Colaboradores` }]} />
 
@@ -203,7 +194,7 @@ function Colaboradores() {
             />
           </div>
           <Button asChild>
-            <Link>
+            <Link to={"/rh/colaboradores/novo"}>
               <Plus className="size-4" />
               Novo usuário
             </Link>
@@ -256,29 +247,26 @@ function Colaboradores() {
 
                             }}
                           >
-                            <Link className="size-4" />
+                            <CopyLink className="size-4" />
                           </Button>
                         )}
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          onClick={() => {
-                            setSelectedUser(user)
-                            setSheetType("detail")
-                            setToogleSheet(true)
-                          }}
+                          asChild
                         >
-                          <Eye className="size-4" />
+                          <Link to={`/rh/colaboradores/$userId/detalhe`} params={{ userId: user.id }}>
+                            <Eye className="size-4" />
+                          </Link>
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          onClick={() => {
-                            setSelectedUser(user)
-                            setToogleSheet(true)
-                          }}
+                          asChild
                         >
-                          <Pencil className="size-4" />
+                          <Link to={`/rh/colaboradores/$userId/editar`} params={{ userId: user.id }}>
+                            <Pencil className="size-4" />
+                          </Link>
                         </Button>
                         <Button
                           variant="ghost"
@@ -318,90 +306,6 @@ function Colaboradores() {
             </Pagination>
           </div>
         )}
-
-        <Sheet open={toogleSheet} onOpenChange={setToogleSheet}>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>{selectedUser ? "Editar Usuário" : "Novo Usuário"}</SheetTitle>
-              <SheetDescription>
-                {selectedUser
-                  ? "Atualize as informações do colaborador."
-                  : "Preencha as informações para criar um novo colaborador."}
-              </SheetDescription>
-            </SheetHeader>
-            {sheetType === "form" && (
-              <UserForm
-                user={selectedUser || undefined}
-                setToogleSheet={() => setToogleSheet(false)}
-              />
-            )}
-            {sheetType === "detail" && selectedUser && (
-              <div className="p-4 flex flex-col gap-4">
-                <div className="space-y-1">
-                  <Text variant="muted">Nome</Text>
-                  <Text variant="large">
-                    {selectedUser.name}
-                  </Text>
-                </div>
-                <div className="space-y-1">
-                  <Text variant="muted">Email</Text>
-                  <Text variant="large">
-                    {selectedUser.email}
-                  </Text>
-                </div>
-                {selectedUser.birthDate && (<div className="space-y-1">
-                  <Text variant="muted">Data de Nascimento</Text>
-                  <Text variant="large">
-                    {selectedUser.birthDate}
-                  </Text>
-                </div>)}
-                <div className="space-y-1">
-                  <Text variant="muted">Função</Text>
-                  <Text variant="large">
-                    {selectedUser.role}
-                  </Text>
-                </div>
-                <div className="space-y-2">
-                  <Text variant="muted">Permissões</Text>
-                  {selectedUser.permissions && selectedUser.permissions.length > 0 ? (
-                    <div className="space-y-3">
-                      {userPermissions.map((group) => {
-                        const groupPermissions = group.rules.filter((rule) =>
-                          selectedUser.permissions?.includes(rule.permission)
-                        );
-
-                        if (groupPermissions.length === 0) return null;
-
-                        return (
-                          <div key={group.type} className="space-y-1.5">
-                            <Text variant="small" className="font-medium">
-                              {group.type}
-                            </Text>
-                            <div className="flex flex-wrap gap-1.5">
-                              {groupPermissions.map((rule) => (
-                                <Badge
-                                  key={rule.permission}
-                                  variant="secondary"
-                                  className="text-xs"
-                                >
-                                  {rule.description}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <Text variant="small" className="text-muted-foreground">
-                      Nenhuma permissão atribuída
-                    </Text>
-                  )}
-                </div>
-              </div>
-            )}
-          </SheetContent>
-        </Sheet>
 
         <AlertDialogContent>
           <AlertDialogHeader>
