@@ -1,8 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Eye, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { ClientsForm } from "@/components/forms/clients-form";
 import { Alert } from "@/components/ui/alert";
 import {
   AlertDialog,
@@ -25,13 +24,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -50,11 +42,9 @@ export const Route = createFileRoute("/_auth/gestao/clientes/")({
 
 function Clientes() {
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [toogleSheet, setToogleSheet] = useState(false);
   const [toogleAlert, setToogleAlert] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
 
@@ -98,8 +88,10 @@ function Clientes() {
         <div className="space-y-2">
           {[...Array(5)].map((_, index) => (
             <Skeleton
-              key={`skeleton-${// biome-ignore lint/suspicious/noArrayIndexKey: id is unique
-                index}`}
+              key={`skeleton-${
+                // biome-ignore lint/suspicious/noArrayIndexKey: id is unique
+                index
+              }`}
               className="h-10 w-full"
             />
           ))}
@@ -174,10 +166,7 @@ function Clientes() {
 
       items.push(
         <PaginationItem key={totalPages}>
-          <PaginationLink
-            isActive={page === totalPages}
-            onClick={() => setPage(totalPages)}
-          >
+          <PaginationLink isActive={page === totalPages} onClick={() => setPage(totalPages)}>
             {totalPages}
           </PaginationLink>
         </PaginationItem>,
@@ -192,9 +181,7 @@ function Clientes() {
       <AlertDialog open={toogleAlert} onOpenChange={setToogleAlert}>
         <div className="mb-6">
           <h1 className="text-2xl font-bold">Clientes ({totalClients})</h1>
-          <p className="text-muted-foreground mt-2">
-            Gerencie os clientes.
-          </p>
+          <p className="text-muted-foreground mt-2">Gerencie os clientes.</p>
         </div>
 
         <div className="mb-4 flex items-center gap-4">
@@ -208,14 +195,11 @@ function Clientes() {
               className="pl-9"
             />
           </div>
-          <Button
-            onClick={() => {
-              setToogleSheet(true);
-              setSelectedClient(null);
-            }}
-          >
-            <Plus className="size-4" />
-            Novo cliente
+          <Button asChild>
+            <Link to="/gestao/clientes/novo">
+              <Plus className="size-4" />
+              Novo cliente
+            </Link>
           </Button>
         </div>
 
@@ -233,10 +217,7 @@ function Clientes() {
             <TableBody>
               {clients.length === 0 ? (
                 <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className="text-center text-muted-foreground"
-                  >
+                  <TableCell colSpan={5} className="text-center text-muted-foreground">
                     Nenhum cliente encontrado
                   </TableCell>
                 </TableRow>
@@ -251,27 +232,21 @@ function Clientes() {
                     <TableCell>{client.region?.name || "-"}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          onClick={() => {
-                            navigate({
-                              to: "/gestao/clientes/$clientId",
-                              params: { clientId: client.id },
-                            });
-                          }}
-                        >
-                          <Eye className="size-4" />
+                        <Button variant="ghost" size="icon-sm" asChild>
+                          <Link
+                            to="/gestao/clientes/$clientId/detalhe"
+                            params={{ clientId: client.id }}
+                          >
+                            <Eye className="size-4" />
+                          </Link>
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          onClick={() => {
-                            setSelectedClient(client);
-                            setToogleSheet(true);
-                          }}
-                        >
-                          <Pencil className="size-4" />
+                        <Button variant="ghost" size="icon-sm" asChild>
+                          <Link
+                            to="/gestao/clientes/$clientId/editar"
+                            params={{ clientId: client.id }}
+                          >
+                            <Pencil className="size-4" />
+                          </Link>
                         </Button>
                         <Button
                           variant="ghost"
@@ -297,11 +272,7 @@ function Clientes() {
                 <PaginationItem>
                   <PaginationPrevious
                     onClick={() => setPage(Math.max(1, page - 1))}
-                    className={
-                      page === 1
-                        ? "pointer-events-none opacity-50"
-                        : "cursor-pointer"
-                    }
+                    className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                   />
                 </PaginationItem>
                 {renderPaginationItems()}
@@ -309,9 +280,7 @@ function Clientes() {
                   <PaginationNext
                     onClick={() => setPage(Math.min(totalPages, page + 1))}
                     className={
-                      page === totalPages
-                        ? "pointer-events-none opacity-50"
-                        : "cursor-pointer"
+                      page === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"
                     }
                   />
                 </PaginationItem>
@@ -320,31 +289,11 @@ function Clientes() {
           </div>
         )}
 
-        <Sheet open={toogleSheet} onOpenChange={setToogleSheet}>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>
-                {selectedClient ? "Editar Cliente" : "Novo Cliente"}
-              </SheetTitle>
-              <SheetDescription>
-                {selectedClient
-                  ? "Atualize as informações do cliente."
-                  : "Crie um novo cliente."}
-              </SheetDescription>
-            </SheetHeader>
-            <ClientsForm
-              client={selectedClient}
-              setToogleSheet={setToogleSheet}
-            />
-          </SheetContent>
-        </Sheet>
-
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Deseja excluir o cliente?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação excluirá o cliente permanentemente. Tem certeza que
-              deseja prosseguir?
+              Esta ação excluirá o cliente permanentemente. Tem certeza que deseja prosseguir?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
