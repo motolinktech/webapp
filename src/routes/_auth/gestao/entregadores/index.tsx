@@ -1,8 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Eye, Lock, Pencil, Plus, Search, Trash2, Unlock } from "lucide-react";
 import { useEffect, useState } from "react";
-import { DeliverymenForm } from "@/components/forms/deliverymen-form";
 import { Alert } from "@/components/ui/alert";
 import {
   AlertDialog,
@@ -26,13 +25,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -57,15 +49,12 @@ export const Route = createFileRoute("/_auth/gestao/entregadores/")({
 
 function Deliverymen() {
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [toogleSheet, setToogleSheet] = useState(false);
   const [toogleDeleteAlert, setToogleDeleteAlert] = useState(false);
   const [toogleBlockAlert, setToogleBlockAlert] = useState(false);
-  const [selectedDeliveryman, setSelectedDeliveryman] =
-    useState<Deliveryman | null>(null);
+  const [selectedDeliveryman, setSelectedDeliveryman] = useState<Deliveryman | null>(null);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["deliverymen", debouncedSearch, page],
@@ -160,7 +149,7 @@ function Deliverymen() {
             <PaginationLink isActive={page === i} onClick={() => setPage(i)}>
               {i}
             </PaginationLink>
-          </PaginationItem>
+          </PaginationItem>,
         );
       }
     } else {
@@ -169,14 +158,14 @@ function Deliverymen() {
           <PaginationLink isActive={page === 1} onClick={() => setPage(1)}>
             1
           </PaginationLink>
-        </PaginationItem>
+        </PaginationItem>,
       );
 
       if (page > 3) {
         items.push(
           <PaginationItem key="ellipsis-1">
             <PaginationEllipsis />
-          </PaginationItem>
+          </PaginationItem>,
         );
       }
 
@@ -189,7 +178,7 @@ function Deliverymen() {
             <PaginationLink isActive={page === i} onClick={() => setPage(i)}>
               {i}
             </PaginationLink>
-          </PaginationItem>
+          </PaginationItem>,
         );
       }
 
@@ -197,19 +186,16 @@ function Deliverymen() {
         items.push(
           <PaginationItem key="ellipsis-2">
             <PaginationEllipsis />
-          </PaginationItem>
+          </PaginationItem>,
         );
       }
 
       items.push(
         <PaginationItem key={totalPages}>
-          <PaginationLink
-            isActive={page === totalPages}
-            onClick={() => setPage(totalPages)}
-          >
+          <PaginationLink isActive={page === totalPages} onClick={() => setPage(totalPages)}>
             {totalPages}
           </PaginationLink>
-        </PaginationItem>
+        </PaginationItem>,
       );
     }
 
@@ -219,12 +205,8 @@ function Deliverymen() {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">
-          Entregadores ({totalDeliverymen})
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          Gerencie os entregadores.
-        </p>
+        <h1 className="text-2xl font-bold">Entregadores ({totalDeliverymen})</h1>
+        <p className="text-muted-foreground mt-2">Gerencie os entregadores.</p>
       </div>
 
       <div className="mb-4 flex items-center gap-4">
@@ -238,14 +220,11 @@ function Deliverymen() {
             className="pl-9"
           />
         </div>
-        <Button
-          onClick={() => {
-            setToogleSheet(true);
-            setSelectedDeliveryman(null);
-          }}
-        >
-          <Plus className="size-4" />
-          Novo entregador
+        <Button asChild>
+          <Link to="/gestao/entregadores/novo">
+            <Plus className="size-4" />
+            Novo entregador
+          </Link>
         </Button>
       </div>
 
@@ -264,60 +243,46 @@ function Deliverymen() {
           <TableBody>
             {deliverymen.length === 0 ? (
               <TableRow>
-                <TableCell
-                  colSpan={6}
-                  className="text-center text-muted-foreground"
-                >
+                <TableCell colSpan={6} className="text-center text-muted-foreground">
                   Nenhum entregador encontrado
                 </TableCell>
               </TableRow>
             ) : (
               deliverymen.map((deliveryman) => (
                 <TableRow key={deliveryman.id}>
-                  <TableCell className="font-medium">
-                    {deliveryman.name}
-                  </TableCell>
+                  <TableCell className="font-medium">{deliveryman.name}</TableCell>
                   <TableCell>{cpfMask(deliveryman.document)}</TableCell>
                   <TableCell>{phoneMask(deliveryman.phone)}</TableCell>
                   <TableCell>
                     <Badge
                       variant={
-                        getStatusVariant(
-                          deliveryman.isDeleted,
-                          deliveryman.isBlocked,
-                        ) as "default" | "secondary" | "destructive"
+                        getStatusVariant(deliveryman.isDeleted, deliveryman.isBlocked) as
+                          | "default"
+                          | "secondary"
+                          | "destructive"
                       }
                     >
-                      {getStatusText(
-                        deliveryman.isDeleted,
-                        deliveryman.isBlocked,
-                      )}
+                      {getStatusText(deliveryman.isDeleted, deliveryman.isBlocked)}
                     </Badge>
                   </TableCell>
                   <TableCell>{deliveryman.region?.name || "-"}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex items-center justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => {
-                          navigate({
-                            to: "/gestao/entregadores/$deliverymanId",
-                            params: { deliverymanId: deliveryman.id },
-                          });
-                        }}
-                      >
-                        <Eye className="size-4" />
+                      <Button asChild variant="ghost" size="icon-sm">
+                        <Link
+                          to="/gestao/entregadores/$deliverymanId/detalhe"
+                          params={{ deliverymanId: deliveryman.id }}
+                        >
+                          <Eye className="size-4" />
+                        </Link>
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => {
-                          setSelectedDeliveryman(deliveryman);
-                          setToogleSheet(true);
-                        }}
-                      >
-                        <Pencil className="size-4" />
+                      <Button asChild variant="ghost" size="icon-sm">
+                        <Link
+                          to="/gestao/entregadores/$deliverymanId/editar"
+                          params={{ deliverymanId: deliveryman.id }}
+                        >
+                          <Pencil className="size-4" />
+                        </Link>
                       </Button>
                       <Button
                         variant="ghost"
@@ -354,11 +319,7 @@ function Deliverymen() {
               <PaginationItem>
                 <PaginationPrevious
                   onClick={() => setPage(Math.max(1, page - 1))}
-                  className={
-                    page === 1
-                      ? "pointer-events-none opacity-50"
-                      : "cursor-pointer"
-                  }
+                  className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                 />
               </PaginationItem>
               {renderPaginationItems()}
@@ -366,9 +327,7 @@ function Deliverymen() {
                 <PaginationNext
                   onClick={() => setPage(Math.min(totalPages, page + 1))}
                   className={
-                    page === totalPages
-                      ? "pointer-events-none opacity-50"
-                      : "cursor-pointer"
+                    page === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"
                   }
                 />
               </PaginationItem>
@@ -377,32 +336,12 @@ function Deliverymen() {
         </div>
       )}
 
-      <Sheet open={toogleSheet} onOpenChange={setToogleSheet}>
-        <SheetContent>
-          <SheetHeader>
-            <SheetTitle>
-              {selectedDeliveryman ? "Editar Entregador" : "Novo Entregador"}
-            </SheetTitle>
-            <SheetDescription>
-              {selectedDeliveryman
-                ? "Atualize as informações do entregador."
-                : "Crie um novo entregador."}
-            </SheetDescription>
-          </SheetHeader>
-          <DeliverymenForm
-            deliveryman={selectedDeliveryman}
-            setToogleSheet={setToogleSheet}
-          />
-        </SheetContent>
-      </Sheet>
-
       <AlertDialog open={toogleDeleteAlert} onOpenChange={setToogleDeleteAlert}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Deseja excluir o entregador?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação excluirá o entregador permanentemente. Tem certeza que
-              deseja prosseguir?
+              Esta ação excluirá o entregador permanentemente. Tem certeza que deseja prosseguir?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -420,9 +359,7 @@ function Deliverymen() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              Deseja{" "}
-              {selectedDeliveryman?.isBlocked ? "desbloquear" : "bloquear"} o
-              entregador?
+              Deseja {selectedDeliveryman?.isBlocked ? "desbloquear" : "bloquear"} o entregador?
             </AlertDialogTitle>
             <AlertDialogDescription>
               {selectedDeliveryman?.isBlocked
