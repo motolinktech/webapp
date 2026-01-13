@@ -3,6 +3,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Eye, Lock, Pencil, Plus, Search, Trash2, Unlock } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Alert } from "@/components/ui/alert";
+import { hasPermissions } from "@/lib/utils/has-permissions";
+import { getStoredUser } from "@/modules/auth/auth.service";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -55,6 +57,11 @@ function Deliverymen() {
   const [toogleDeleteAlert, setToogleDeleteAlert] = useState(false);
   const [toogleBlockAlert, setToogleBlockAlert] = useState(false);
   const [selectedDeliveryman, setSelectedDeliveryman] = useState<Deliveryman | null>(null);
+
+  const currentUser = getStoredUser();
+  const canCreate = currentUser ? hasPermissions(currentUser, "manager.create") : false;
+  const canEdit = currentUser ? hasPermissions(currentUser, "manager.edit") : false;
+  const canDelete = currentUser ? hasPermissions(currentUser, "manager.delete") : false;
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["deliverymen", debouncedSearch, page],
@@ -220,12 +227,14 @@ function Deliverymen() {
             className="pl-9"
           />
         </div>
-        <Button asChild>
-          <Link to="/gestao/entregadores/novo">
-            <Plus className="size-4" />
-            Novo entregador
-          </Link>
-        </Button>
+        {canCreate && (
+          <Button asChild>
+            <Link to="/gestao/entregadores/novo">
+              <Plus className="size-4" />
+              Novo entregador
+            </Link>
+          </Button>
+        )}
       </div>
 
       <div className="rounded-md border bg-card">
@@ -276,33 +285,39 @@ function Deliverymen() {
                           <Eye className="size-4" />
                         </Link>
                       </Button>
-                      <Button asChild variant="ghost" size="icon-sm">
-                        <Link
-                          to="/gestao/entregadores/$deliverymanId/editar"
-                          params={{ deliverymanId: deliveryman.id }}
+                      {canEdit && (
+                        <Button asChild variant="ghost" size="icon-sm">
+                          <Link
+                            to="/gestao/entregadores/$deliverymanId/editar"
+                            params={{ deliverymanId: deliveryman.id }}
+                          >
+                            <Pencil className="size-4" />
+                          </Link>
+                        </Button>
+                      )}
+                      {canEdit && (
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={() => openBlockAlert(deliveryman)}
                         >
-                          <Pencil className="size-4" />
-                        </Link>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={() => openBlockAlert(deliveryman)}
-                      >
-                        {deliveryman.isBlocked ? (
-                          <Unlock className="size-4" />
-                        ) : (
-                          <Lock className="size-4" />
-                        )}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => openDeleteAlert(deliveryman)}
-                      >
-                        <Trash2 className="size-4" />
-                      </Button>
+                          {deliveryman.isBlocked ? (
+                            <Unlock className="size-4" />
+                          ) : (
+                            <Lock className="size-4" />
+                          )}
+                        </Button>
+                      )}
+                      {canDelete && (
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          className="text-destructive hover:text-destructive"
+                          onClick={() => openDeleteAlert(deliveryman)}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>

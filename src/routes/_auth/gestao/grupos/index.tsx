@@ -3,6 +3,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Eye, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Alert } from "@/components/ui/alert";
+import { hasPermissions } from "@/lib/utils/has-permissions";
+import { getStoredUser } from "@/modules/auth/auth.service";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,6 +49,11 @@ function Grupos() {
   const [page, setPage] = useState(1);
   const [toogleAlert, setToogleAlert] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
+
+  const currentUser = getStoredUser();
+  const canCreate = currentUser ? hasPermissions(currentUser, "manager.create") : false;
+  const canEdit = currentUser ? hasPermissions(currentUser, "manager.edit") : false;
+  const canDelete = currentUser ? hasPermissions(currentUser, "manager.delete") : false;
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["groups", debouncedSearch, page],
@@ -195,12 +202,14 @@ function Grupos() {
               className="pl-9"
             />
           </div>
-          <Button asChild>
-            <Link to="/gestao/grupos/novo">
-              <Plus className="size-4" />
-              Novo grupo
-            </Link>
-          </Button>
+          {canCreate && (
+            <Button asChild>
+              <Link to="/gestao/grupos/novo">
+                <Plus className="size-4" />
+                Novo grupo
+              </Link>
+            </Button>
+          )}
         </div>
 
         <div className="rounded-md border bg-card">
@@ -231,19 +240,23 @@ function Grupos() {
                             <Eye className="size-4" />
                           </Link>
                         </Button>
-                        <Button variant="ghost" size="icon-sm" asChild>
-                          <Link to="/gestao/grupos/$groupId/editar" params={{ groupId: group.id }}>
-                            <Pencil className="size-4" />
-                          </Link>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => openDeleteAlert(group)}
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
+                        {canEdit && (
+                          <Button variant="ghost" size="icon-sm" asChild>
+                            <Link to="/gestao/grupos/$groupId/editar" params={{ groupId: group.id }}>
+                              <Pencil className="size-4" />
+                            </Link>
+                          </Button>
+                        )}
+                        {canDelete && (
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => openDeleteAlert(group)}
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

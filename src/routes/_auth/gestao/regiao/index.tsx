@@ -3,6 +3,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Eye, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Alert } from "@/components/ui/alert";
+import { hasPermissions } from "@/lib/utils/has-permissions";
+import { getStoredUser } from "@/modules/auth/auth.service";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,6 +49,11 @@ function Regioes() {
   const [page, setPage] = useState(1);
   const [toogleAlert, setToogleAlert] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState<Region | null>(null);
+
+  const currentUser = getStoredUser();
+  const canCreate = currentUser ? hasPermissions(currentUser, "manager.create") : false;
+  const canEdit = currentUser ? hasPermissions(currentUser, "manager.edit") : false;
+  const canDelete = currentUser ? hasPermissions(currentUser, "manager.delete") : false;
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["regions", debouncedSearch, page],
@@ -195,12 +202,14 @@ function Regioes() {
               className="pl-9"
             />
           </div>
-          <Button asChild>
-            <Link to="/gestao/regiao/novo">
-              <Plus className="size-4" />
-              Nova região
-            </Link>
-          </Button>
+          {canCreate && (
+            <Button asChild>
+              <Link to="/gestao/regiao/novo">
+                <Plus className="size-4" />
+                Nova região
+              </Link>
+            </Button>
+          )}
         </div>
 
         <div className="rounded-md border bg-card">
@@ -234,22 +243,26 @@ function Regioes() {
                             <Eye className="size-4" />
                           </Link>
                         </Button>
-                        <Button variant="ghost" size="icon-sm" asChild>
-                          <Link
-                            to="/gestao/regiao/$regionId/editar"
-                            params={{ regionId: region.id }}
+                        {canEdit && (
+                          <Button variant="ghost" size="icon-sm" asChild>
+                            <Link
+                              to="/gestao/regiao/$regionId/editar"
+                              params={{ regionId: region.id }}
+                            >
+                              <Pencil className="size-4" />
+                            </Link>
+                          </Button>
+                        )}
+                        {canDelete && (
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => openDeleteAlert(region)}
                           >
-                            <Pencil className="size-4" />
-                          </Link>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => openDeleteAlert(region)}
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
+                            <Trash2 className="size-4" />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

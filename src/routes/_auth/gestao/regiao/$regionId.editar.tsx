@@ -1,13 +1,23 @@
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { toast } from "sonner";
 
 import { ContentHeader } from "@/components/composite/content-header";
 import { RegionForm } from "@/components/forms/region-form";
 import { Alert } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
+import { hasPermissions } from "@/lib/utils/has-permissions";
+import { getStoredUser } from "@/modules/auth/auth.service";
 import { getRegionById } from "@/modules/regions/regions.service";
 
 export const Route = createFileRoute("/_auth/gestao/regiao/$regionId/editar")({
+  beforeLoad: () => {
+    const user = getStoredUser();
+    if (!user || !hasPermissions(user, "manager.edit")) {
+      toast.error("Você não tem permissão para editar regiões.");
+      throw redirect({ to: "/dashboard" });
+    }
+  },
   component: EditarRegiao,
 });
 
