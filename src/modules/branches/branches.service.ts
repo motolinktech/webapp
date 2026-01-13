@@ -13,7 +13,14 @@ export async function listBranches(params?: BranchListParams): Promise<BranchLis
 export function getStoreBranch(): Branch | null {
   const branch = localStorage.getItem(BRANCH_KEY);
 
-  return branch ? JSON.parse(branch) : null;
+  if (!branch) return null;
+
+  try {
+    return JSON.parse(branch);
+  } catch {
+    localStorage.removeItem(BRANCH_KEY);
+    return null;
+  }
 }
 
 export function setStoreBranch(branch: Branch): void {
