@@ -3,6 +3,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Eye, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Alert } from "@/components/ui/alert";
+import { hasPermissions } from "@/lib/utils/has-permissions";
+import { getStoredUser } from "@/modules/auth/auth.service";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,6 +49,11 @@ function Clientes() {
   const [page, setPage] = useState(1);
   const [toogleAlert, setToogleAlert] = useState(false);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+
+  const currentUser = getStoredUser();
+  const canCreate = currentUser ? hasPermissions(currentUser, "client.create") : false;
+  const canEdit = currentUser ? hasPermissions(currentUser, "client.edit") : false;
+  const canDelete = currentUser ? hasPermissions(currentUser, "client.delete") : false;
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["clients", debouncedSearch, page],
@@ -195,12 +202,14 @@ function Clientes() {
               className="pl-9"
             />
           </div>
-          <Button asChild>
-            <Link to="/gestao/clientes/novo">
-              <Plus className="size-4" />
-              Novo cliente
-            </Link>
-          </Button>
+          {canCreate && (
+            <Button asChild>
+              <Link to="/gestao/clientes/novo">
+                <Plus className="size-4" />
+                Novo cliente
+              </Link>
+            </Button>
+          )}
         </div>
 
         <div className="rounded-md border bg-card">
@@ -240,22 +249,26 @@ function Clientes() {
                             <Eye className="size-4" />
                           </Link>
                         </Button>
-                        <Button variant="ghost" size="icon-sm" asChild>
-                          <Link
-                            to="/gestao/clientes/$clientId/editar"
-                            params={{ clientId: client.id }}
+                        {canEdit && (
+                          <Button variant="ghost" size="icon-sm" asChild>
+                            <Link
+                              to="/gestao/clientes/$clientId/editar"
+                              params={{ clientId: client.id }}
+                            >
+                              <Pencil className="size-4" />
+                            </Link>
+                          </Button>
+                        )}
+                        {canDelete && (
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => openDeleteAlert(client)}
                           >
-                            <Pencil className="size-4" />
-                          </Link>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => openDeleteAlert(client)}
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
+                            <Trash2 className="size-4" />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

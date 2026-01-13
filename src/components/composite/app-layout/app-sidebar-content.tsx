@@ -39,6 +39,7 @@ const items = [
       {
         title: "Clientes",
         url: "/gestao/clientes",
+        requiredPermission: "client.view",
       },
       {
         title: "Entregadores",
@@ -116,15 +117,21 @@ export function AppSidebarContent() {
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <SidebarMenuSub>
-                      {item.items.map((subItem) => (
-                        <SidebarMenuSubItem key={subItem.title}>
-                          <SidebarMenuSubButton asChild>
-                            <Link to={subItem.url}>
-                              <span>{subItem.title}</span>
-                            </Link>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
+                      {item.items
+                        .filter((subItem) => {
+                          if (!subItem.requiredPermission) return true;
+                          if (!user) return false;
+                          return hasPermissions(user, subItem.requiredPermission);
+                        })
+                        .map((subItem) => (
+                          <SidebarMenuSubItem key={subItem.title}>
+                            <SidebarMenuSubButton asChild>
+                              <Link to={subItem.url}>
+                                <span>{subItem.title}</span>
+                              </Link>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
                     </SidebarMenuSub>
                   </CollapsibleContent>
                 </SidebarMenuItem>
