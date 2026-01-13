@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { AlertCircle } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -30,11 +31,10 @@ const regionFormSchema = z.object({
 type RegionFormData = z.infer<typeof regionFormSchema>;
 
 interface RegionFormProps {
-  setToogleSheet: (value: boolean) => void;
   region?: Region | null;
 }
 
-export function RegionForm({ setToogleSheet, region }: RegionFormProps) {
+export function RegionForm({ region }: RegionFormProps) {
   const {
     register,
     handleSubmit,
@@ -47,6 +47,7 @@ export function RegionForm({ setToogleSheet, region }: RegionFormProps) {
     },
   });
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { mutateAsync, isError, isPending } = useMutation({
     mutationFn: async (data: RegionFormData) => {
@@ -57,7 +58,14 @@ export function RegionForm({ setToogleSheet, region }: RegionFormProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["regions"] });
-      setToogleSheet(false);
+      if (region?.id) {
+        navigate({
+          to: "/gestao/regiao/$regionId/detalhe",
+          params: { regionId: region.id },
+        });
+      } else {
+        navigate({ to: "/gestao/regiao" });
+      }
     },
   });
 
@@ -70,7 +78,9 @@ export function RegionForm({ setToogleSheet, region }: RegionFormProps) {
         {isError && (
           <Alert variant="destructive">
             <AlertCircle className="size-4" />
-            <AlertDescription>Erro ao atualizar região</AlertDescription>
+            <AlertDescription>
+              {region?.id ? "Erro ao atualizar região" : "Erro ao criar região"}
+            </AlertDescription>
           </Alert>
         )}
 

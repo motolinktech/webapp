@@ -20,12 +20,14 @@ import { Route as AuthGestaoGruposIndexRouteImport } from './routes/_auth/gestao
 import { Route as AuthGestaoEntregadoresIndexRouteImport } from './routes/_auth/gestao/entregadores/index'
 import { Route as AuthGestaoClientesIndexRouteImport } from './routes/_auth/gestao/clientes/index'
 import { Route as AuthRhColaboradoresNovoRouteImport } from './routes/_auth/rh/colaboradores/novo'
-import { Route as AuthGestaoRegiaoRegionIdRouteImport } from './routes/_auth/gestao/regiao/$regionId'
+import { Route as AuthGestaoRegiaoNovoRouteImport } from './routes/_auth/gestao/regiao/novo'
 import { Route as AuthGestaoGruposNovoRouteImport } from './routes/_auth/gestao/grupos/novo'
 import { Route as AuthGestaoEntregadoresDeliverymanIdRouteImport } from './routes/_auth/gestao/entregadores/$deliverymanId'
 import { Route as AuthGestaoClientesClientIdRouteImport } from './routes/_auth/gestao/clientes/$clientId'
 import { Route as AuthRhColaboradoresUserIdEditarRouteImport } from './routes/_auth/rh/colaboradores/$userId.editar'
 import { Route as AuthRhColaboradoresUserIdDetalheRouteImport } from './routes/_auth/rh/colaboradores/$userId.detalhe'
+import { Route as AuthGestaoRegiaoRegionIdEditarRouteImport } from './routes/_auth/gestao/regiao/$regionId.editar'
+import { Route as AuthGestaoRegiaoRegionIdDetalheRouteImport } from './routes/_auth/gestao/regiao/$regionId.detalhe'
 import { Route as AuthGestaoGruposGroupIdEditarRouteImport } from './routes/_auth/gestao/grupos/$groupId.editar'
 import { Route as AuthGestaoGruposGroupIdDetalheRouteImport } from './routes/_auth/gestao/grupos/$groupId.detalhe'
 
@@ -85,12 +87,11 @@ const AuthRhColaboradoresNovoRoute = AuthRhColaboradoresNovoRouteImport.update({
   path: '/rh/colaboradores/novo',
   getParentRoute: () => AuthRoute,
 } as any)
-const AuthGestaoRegiaoRegionIdRoute =
-  AuthGestaoRegiaoRegionIdRouteImport.update({
-    id: '/gestao/regiao/$regionId',
-    path: '/gestao/regiao/$regionId',
-    getParentRoute: () => AuthRoute,
-  } as any)
+const AuthGestaoRegiaoNovoRoute = AuthGestaoRegiaoNovoRouteImport.update({
+  id: '/gestao/regiao/novo',
+  path: '/gestao/regiao/novo',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthGestaoGruposNovoRoute = AuthGestaoGruposNovoRouteImport.update({
   id: '/gestao/grupos/novo',
   path: '/gestao/grupos/novo',
@@ -120,6 +121,18 @@ const AuthRhColaboradoresUserIdDetalheRoute =
     path: '/rh/colaboradores/$userId/detalhe',
     getParentRoute: () => AuthRoute,
   } as any)
+const AuthGestaoRegiaoRegionIdEditarRoute =
+  AuthGestaoRegiaoRegionIdEditarRouteImport.update({
+    id: '/gestao/regiao/$regionId/editar',
+    path: '/gestao/regiao/$regionId/editar',
+    getParentRoute: () => AuthRoute,
+  } as any)
+const AuthGestaoRegiaoRegionIdDetalheRoute =
+  AuthGestaoRegiaoRegionIdDetalheRouteImport.update({
+    id: '/gestao/regiao/$regionId/detalhe',
+    path: '/gestao/regiao/$regionId/detalhe',
+    getParentRoute: () => AuthRoute,
+  } as any)
 const AuthGestaoGruposGroupIdEditarRoute =
   AuthGestaoGruposGroupIdEditarRouteImport.update({
     id: '/gestao/grupos/$groupId/editar',
@@ -141,7 +154,7 @@ export interface FileRoutesByFullPath {
   '/gestao/clientes/$clientId': typeof AuthGestaoClientesClientIdRoute
   '/gestao/entregadores/$deliverymanId': typeof AuthGestaoEntregadoresDeliverymanIdRoute
   '/gestao/grupos/novo': typeof AuthGestaoGruposNovoRoute
-  '/gestao/regiao/$regionId': typeof AuthGestaoRegiaoRegionIdRoute
+  '/gestao/regiao/novo': typeof AuthGestaoRegiaoNovoRoute
   '/rh/colaboradores/novo': typeof AuthRhColaboradoresNovoRoute
   '/gestao/clientes': typeof AuthGestaoClientesIndexRoute
   '/gestao/entregadores': typeof AuthGestaoEntregadoresIndexRoute
@@ -150,6 +163,8 @@ export interface FileRoutesByFullPath {
   '/rh/colaboradores': typeof AuthRhColaboradoresIndexRoute
   '/gestao/grupos/$groupId/detalhe': typeof AuthGestaoGruposGroupIdDetalheRoute
   '/gestao/grupos/$groupId/editar': typeof AuthGestaoGruposGroupIdEditarRoute
+  '/gestao/regiao/$regionId/detalhe': typeof AuthGestaoRegiaoRegionIdDetalheRoute
+  '/gestao/regiao/$regionId/editar': typeof AuthGestaoRegiaoRegionIdEditarRoute
   '/rh/colaboradores/$userId/detalhe': typeof AuthRhColaboradoresUserIdDetalheRoute
   '/rh/colaboradores/$userId/editar': typeof AuthRhColaboradoresUserIdEditarRoute
 }
@@ -161,7 +176,7 @@ export interface FileRoutesByTo {
   '/gestao/clientes/$clientId': typeof AuthGestaoClientesClientIdRoute
   '/gestao/entregadores/$deliverymanId': typeof AuthGestaoEntregadoresDeliverymanIdRoute
   '/gestao/grupos/novo': typeof AuthGestaoGruposNovoRoute
-  '/gestao/regiao/$regionId': typeof AuthGestaoRegiaoRegionIdRoute
+  '/gestao/regiao/novo': typeof AuthGestaoRegiaoNovoRoute
   '/rh/colaboradores/novo': typeof AuthRhColaboradoresNovoRoute
   '/gestao/clientes': typeof AuthGestaoClientesIndexRoute
   '/gestao/entregadores': typeof AuthGestaoEntregadoresIndexRoute
@@ -170,6 +185,8 @@ export interface FileRoutesByTo {
   '/rh/colaboradores': typeof AuthRhColaboradoresIndexRoute
   '/gestao/grupos/$groupId/detalhe': typeof AuthGestaoGruposGroupIdDetalheRoute
   '/gestao/grupos/$groupId/editar': typeof AuthGestaoGruposGroupIdEditarRoute
+  '/gestao/regiao/$regionId/detalhe': typeof AuthGestaoRegiaoRegionIdDetalheRoute
+  '/gestao/regiao/$regionId/editar': typeof AuthGestaoRegiaoRegionIdEditarRoute
   '/rh/colaboradores/$userId/detalhe': typeof AuthRhColaboradoresUserIdDetalheRoute
   '/rh/colaboradores/$userId/editar': typeof AuthRhColaboradoresUserIdEditarRoute
 }
@@ -183,7 +200,7 @@ export interface FileRoutesById {
   '/_auth/gestao/clientes/$clientId': typeof AuthGestaoClientesClientIdRoute
   '/_auth/gestao/entregadores/$deliverymanId': typeof AuthGestaoEntregadoresDeliverymanIdRoute
   '/_auth/gestao/grupos/novo': typeof AuthGestaoGruposNovoRoute
-  '/_auth/gestao/regiao/$regionId': typeof AuthGestaoRegiaoRegionIdRoute
+  '/_auth/gestao/regiao/novo': typeof AuthGestaoRegiaoNovoRoute
   '/_auth/rh/colaboradores/novo': typeof AuthRhColaboradoresNovoRoute
   '/_auth/gestao/clientes/': typeof AuthGestaoClientesIndexRoute
   '/_auth/gestao/entregadores/': typeof AuthGestaoEntregadoresIndexRoute
@@ -192,6 +209,8 @@ export interface FileRoutesById {
   '/_auth/rh/colaboradores/': typeof AuthRhColaboradoresIndexRoute
   '/_auth/gestao/grupos/$groupId/detalhe': typeof AuthGestaoGruposGroupIdDetalheRoute
   '/_auth/gestao/grupos/$groupId/editar': typeof AuthGestaoGruposGroupIdEditarRoute
+  '/_auth/gestao/regiao/$regionId/detalhe': typeof AuthGestaoRegiaoRegionIdDetalheRoute
+  '/_auth/gestao/regiao/$regionId/editar': typeof AuthGestaoRegiaoRegionIdEditarRoute
   '/_auth/rh/colaboradores/$userId/detalhe': typeof AuthRhColaboradoresUserIdDetalheRoute
   '/_auth/rh/colaboradores/$userId/editar': typeof AuthRhColaboradoresUserIdEditarRoute
 }
@@ -205,7 +224,7 @@ export interface FileRouteTypes {
     | '/gestao/clientes/$clientId'
     | '/gestao/entregadores/$deliverymanId'
     | '/gestao/grupos/novo'
-    | '/gestao/regiao/$regionId'
+    | '/gestao/regiao/novo'
     | '/rh/colaboradores/novo'
     | '/gestao/clientes'
     | '/gestao/entregadores'
@@ -214,6 +233,8 @@ export interface FileRouteTypes {
     | '/rh/colaboradores'
     | '/gestao/grupos/$groupId/detalhe'
     | '/gestao/grupos/$groupId/editar'
+    | '/gestao/regiao/$regionId/detalhe'
+    | '/gestao/regiao/$regionId/editar'
     | '/rh/colaboradores/$userId/detalhe'
     | '/rh/colaboradores/$userId/editar'
   fileRoutesByTo: FileRoutesByTo
@@ -225,7 +246,7 @@ export interface FileRouteTypes {
     | '/gestao/clientes/$clientId'
     | '/gestao/entregadores/$deliverymanId'
     | '/gestao/grupos/novo'
-    | '/gestao/regiao/$regionId'
+    | '/gestao/regiao/novo'
     | '/rh/colaboradores/novo'
     | '/gestao/clientes'
     | '/gestao/entregadores'
@@ -234,6 +255,8 @@ export interface FileRouteTypes {
     | '/rh/colaboradores'
     | '/gestao/grupos/$groupId/detalhe'
     | '/gestao/grupos/$groupId/editar'
+    | '/gestao/regiao/$regionId/detalhe'
+    | '/gestao/regiao/$regionId/editar'
     | '/rh/colaboradores/$userId/detalhe'
     | '/rh/colaboradores/$userId/editar'
   id:
@@ -246,7 +269,7 @@ export interface FileRouteTypes {
     | '/_auth/gestao/clientes/$clientId'
     | '/_auth/gestao/entregadores/$deliverymanId'
     | '/_auth/gestao/grupos/novo'
-    | '/_auth/gestao/regiao/$regionId'
+    | '/_auth/gestao/regiao/novo'
     | '/_auth/rh/colaboradores/novo'
     | '/_auth/gestao/clientes/'
     | '/_auth/gestao/entregadores/'
@@ -255,6 +278,8 @@ export interface FileRouteTypes {
     | '/_auth/rh/colaboradores/'
     | '/_auth/gestao/grupos/$groupId/detalhe'
     | '/_auth/gestao/grupos/$groupId/editar'
+    | '/_auth/gestao/regiao/$regionId/detalhe'
+    | '/_auth/gestao/regiao/$regionId/editar'
     | '/_auth/rh/colaboradores/$userId/detalhe'
     | '/_auth/rh/colaboradores/$userId/editar'
   fileRoutesById: FileRoutesById
@@ -345,11 +370,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRhColaboradoresNovoRouteImport
       parentRoute: typeof AuthRoute
     }
-    '/_auth/gestao/regiao/$regionId': {
-      id: '/_auth/gestao/regiao/$regionId'
-      path: '/gestao/regiao/$regionId'
-      fullPath: '/gestao/regiao/$regionId'
-      preLoaderRoute: typeof AuthGestaoRegiaoRegionIdRouteImport
+    '/_auth/gestao/regiao/novo': {
+      id: '/_auth/gestao/regiao/novo'
+      path: '/gestao/regiao/novo'
+      fullPath: '/gestao/regiao/novo'
+      preLoaderRoute: typeof AuthGestaoRegiaoNovoRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/gestao/grupos/novo': {
@@ -387,6 +412,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRhColaboradoresUserIdDetalheRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/gestao/regiao/$regionId/editar': {
+      id: '/_auth/gestao/regiao/$regionId/editar'
+      path: '/gestao/regiao/$regionId/editar'
+      fullPath: '/gestao/regiao/$regionId/editar'
+      preLoaderRoute: typeof AuthGestaoRegiaoRegionIdEditarRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/gestao/regiao/$regionId/detalhe': {
+      id: '/_auth/gestao/regiao/$regionId/detalhe'
+      path: '/gestao/regiao/$regionId/detalhe'
+      fullPath: '/gestao/regiao/$regionId/detalhe'
+      preLoaderRoute: typeof AuthGestaoRegiaoRegionIdDetalheRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/gestao/grupos/$groupId/editar': {
       id: '/_auth/gestao/grupos/$groupId/editar'
       path: '/gestao/grupos/$groupId/editar'
@@ -409,7 +448,7 @@ interface AuthRouteChildren {
   AuthGestaoClientesClientIdRoute: typeof AuthGestaoClientesClientIdRoute
   AuthGestaoEntregadoresDeliverymanIdRoute: typeof AuthGestaoEntregadoresDeliverymanIdRoute
   AuthGestaoGruposNovoRoute: typeof AuthGestaoGruposNovoRoute
-  AuthGestaoRegiaoRegionIdRoute: typeof AuthGestaoRegiaoRegionIdRoute
+  AuthGestaoRegiaoNovoRoute: typeof AuthGestaoRegiaoNovoRoute
   AuthRhColaboradoresNovoRoute: typeof AuthRhColaboradoresNovoRoute
   AuthGestaoClientesIndexRoute: typeof AuthGestaoClientesIndexRoute
   AuthGestaoEntregadoresIndexRoute: typeof AuthGestaoEntregadoresIndexRoute
@@ -418,6 +457,8 @@ interface AuthRouteChildren {
   AuthRhColaboradoresIndexRoute: typeof AuthRhColaboradoresIndexRoute
   AuthGestaoGruposGroupIdDetalheRoute: typeof AuthGestaoGruposGroupIdDetalheRoute
   AuthGestaoGruposGroupIdEditarRoute: typeof AuthGestaoGruposGroupIdEditarRoute
+  AuthGestaoRegiaoRegionIdDetalheRoute: typeof AuthGestaoRegiaoRegionIdDetalheRoute
+  AuthGestaoRegiaoRegionIdEditarRoute: typeof AuthGestaoRegiaoRegionIdEditarRoute
   AuthRhColaboradoresUserIdDetalheRoute: typeof AuthRhColaboradoresUserIdDetalheRoute
   AuthRhColaboradoresUserIdEditarRoute: typeof AuthRhColaboradoresUserIdEditarRoute
 }
@@ -428,7 +469,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthGestaoEntregadoresDeliverymanIdRoute:
     AuthGestaoEntregadoresDeliverymanIdRoute,
   AuthGestaoGruposNovoRoute: AuthGestaoGruposNovoRoute,
-  AuthGestaoRegiaoRegionIdRoute: AuthGestaoRegiaoRegionIdRoute,
+  AuthGestaoRegiaoNovoRoute: AuthGestaoRegiaoNovoRoute,
   AuthRhColaboradoresNovoRoute: AuthRhColaboradoresNovoRoute,
   AuthGestaoClientesIndexRoute: AuthGestaoClientesIndexRoute,
   AuthGestaoEntregadoresIndexRoute: AuthGestaoEntregadoresIndexRoute,
@@ -437,6 +478,8 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthRhColaboradoresIndexRoute: AuthRhColaboradoresIndexRoute,
   AuthGestaoGruposGroupIdDetalheRoute: AuthGestaoGruposGroupIdDetalheRoute,
   AuthGestaoGruposGroupIdEditarRoute: AuthGestaoGruposGroupIdEditarRoute,
+  AuthGestaoRegiaoRegionIdDetalheRoute: AuthGestaoRegiaoRegionIdDetalheRoute,
+  AuthGestaoRegiaoRegionIdEditarRoute: AuthGestaoRegiaoRegionIdEditarRoute,
   AuthRhColaboradoresUserIdDetalheRoute: AuthRhColaboradoresUserIdDetalheRoute,
   AuthRhColaboradoresUserIdEditarRoute: AuthRhColaboradoresUserIdEditarRoute,
 }

@@ -1,8 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Eye, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { RegionForm } from "@/components/forms/region-form";
 import { Alert } from "@/components/ui/alert";
 import {
   AlertDialog,
@@ -25,13 +24,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -50,11 +42,9 @@ export const Route = createFileRoute("/_auth/gestao/regiao/")({
 
 function Regioes() {
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [toogleSheet, setToogleSheet] = useState(false);
   const [toogleAlert, setToogleAlert] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState<Region | null>(null);
 
@@ -97,7 +87,11 @@ function Regioes() {
         <Skeleton className="mb-4 h-8 w-1/3" />
         <div className="space-y-2">
           {[...Array(5)].map((_, index) => (
-            <Skeleton key={`skeleton-${index}`} className="h-10 w-full" />
+            <Skeleton
+              key={`skeleton-${// biome-ignore lint/suspicious/noArrayIndexKey: id is unique
+                index}`}
+              className="h-10 w-full"
+            />
           ))}
         </div>
       </div>
@@ -204,12 +198,11 @@ function Regioes() {
               className="pl-9"
             />
           </div>
-          <Button onClick={() => {
-            setToogleSheet(true)
-            setSelectedRegion(null)
-          }}>
-            <Plus className="size-4" />
-            Nova região
+          <Button asChild>
+            <Link to="/gestao/regiao/novo">
+              <Plus className="size-4" />
+              Nova região
+            </Link>
           </Button>
         </div>
 
@@ -239,24 +232,21 @@ function Regioes() {
                     <TableCell>{region.description || "-"}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          onClick={() => {
-                            navigate({ to: "/gestao/regiao/$regionId", params: { regionId: region.id } });
-                          }}
-                        >
-                          <Eye className="size-4" />
+                        <Button variant="ghost" size="icon-sm" asChild>
+                          <Link
+                            to="/gestao/regiao/$regionId/detalhe"
+                            params={{ regionId: region.id }}
+                          >
+                            <Eye className="size-4" />
+                          </Link>
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          onClick={() => {
-                            setSelectedRegion(region);
-                            setToogleSheet(true);
-                          }}
-                        >
-                          <Pencil className="size-4" />
+                        <Button variant="ghost" size="icon-sm" asChild>
+                          <Link
+                            to="/gestao/regiao/$regionId/editar"
+                            params={{ regionId: region.id }}
+                          >
+                            <Pencil className="size-4" />
+                          </Link>
                         </Button>
                         <Button
                           variant="ghost"
@@ -305,21 +295,6 @@ function Regioes() {
           </div>
         )}
 
-        <Sheet open={toogleSheet} onOpenChange={setToogleSheet}>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>Editar Região</SheetTitle>
-              <SheetDescription>
-                Atualize as informações da região.
-              </SheetDescription>
-            </SheetHeader>
-            <RegionForm
-              region={selectedRegion}
-              setToogleSheet={setToogleSheet}
-            />
-          </SheetContent>
-        </Sheet>
-
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Deseja excluir a região?</AlertDialogTitle>
@@ -341,3 +316,4 @@ function Regioes() {
     </div>
   );
 }
+
