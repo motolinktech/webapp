@@ -1,6 +1,6 @@
-import { Loader2Icon } from "lucide-react"
+import { Loader2Icon } from "lucide-react";
 
-import { classHelper } from "@/lib/utils/class-helper"
+import { classHelper } from "@/lib/utils/class-helper";
 
 function Spinner({ className, ...props }: React.ComponentProps<"svg">) {
   return (
@@ -10,7 +10,7 @@ function Spinner({ className, ...props }: React.ComponentProps<"svg">) {
       className={classHelper("size-4 animate-spin", className)}
       {...props}
     />
-  )
+  );
 }
 
-export { Spinner }
+export { Spinner };

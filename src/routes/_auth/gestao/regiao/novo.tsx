@@ -10,10 +10,7 @@ export function NovaRegiao() {
   return (
     <main>
       <ContentHeader
-        breadcrumbItems={[
-          { title: "Regiões", href: "/gestao/regiao" },
-          { title: "Nova Região" },
-        ]}
+        breadcrumbItems={[{ title: "Regiões", href: "/gestao/regiao" }, { title: "Nova Região" }]}
       />
       <RegionForm region={undefined} />
     </main>

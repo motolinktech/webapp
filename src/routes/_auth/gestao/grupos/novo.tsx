@@ -10,10 +10,7 @@ export function NovoGrupo() {
   return (
     <main>
       <ContentHeader
-        breadcrumbItems={[
-          { title: "Grupos", href: "/gestao/grupos" },
-          { title: "Novo Grupo" },
-        ]}
+        breadcrumbItems={[{ title: "Grupos", href: "/gestao/grupos" }, { title: "Novo Grupo" }]}
       />
       <GroupsForm group={undefined} />
     </main>

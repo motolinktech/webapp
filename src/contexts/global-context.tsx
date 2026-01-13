@@ -19,9 +19,7 @@ export function GlobalProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <GlobalContext.Provider value={{ user, setUser, logout }}>
-      {children}
-    </GlobalContext.Provider>
+    <GlobalContext.Provider value={{ user, setUser, logout }}>{children}</GlobalContext.Provider>
   );
 }
 

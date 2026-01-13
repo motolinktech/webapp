@@ -44,5 +44,4 @@ if (rootElement && !rootElement.innerHTML) {
   );
 }
 
-
 reportWebVitals();

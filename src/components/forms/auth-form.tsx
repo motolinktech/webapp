@@ -11,55 +11,55 @@ import { authenticate, saveAuth } from "@/modules/auth/auth.service";
 import type { AuthCredentials } from "@/modules/auth/auth.types";
 
 export function AuthForm() {
-	const navigate = useNavigate();
-	const { setUser } = useGlobal();
-	const { register, handleSubmit } = useForm<AuthCredentials>();
+  const navigate = useNavigate();
+  const { setUser } = useGlobal();
+  const { register, handleSubmit } = useForm<AuthCredentials>();
 
-	const mutation = useMutation({
-		mutationFn: authenticate,
-		onSuccess: (response) => {
-			saveAuth(response.token, response.user);
-			setUser(response.user);
-			navigate({ to: "/dashboard" });
-		},
-	});
+  const mutation = useMutation({
+    mutationFn: authenticate,
+    onSuccess: (response) => {
+      saveAuth(response.token, response.user);
+      setUser(response.user);
+      navigate({ to: "/dashboard" });
+    },
+  });
 
-	const onSubmit = (data: AuthCredentials) => {
-		mutation.mutate(data);
-	};
+  const onSubmit = (data: AuthCredentials) => {
+    mutation.mutate(data);
+  };
 
-	return (
-		<form onSubmit={handleSubmit(onSubmit)}>
-			<FieldGroup>
-				{mutation.isError && (
-					<Alert variant="destructive">
-						<AlertCircle className="size-4" />
-						<AlertDescription>Credenciais inválidas</AlertDescription>
-					</Alert>
-				)}
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <FieldGroup>
+        {mutation.isError && (
+          <Alert variant="destructive">
+            <AlertCircle className="size-4" />
+            <AlertDescription>Credenciais inválidas</AlertDescription>
+          </Alert>
+        )}
 
-				<Field>
-					<FieldLabel htmlFor="email">Email</FieldLabel>
-					<Input
-						type="email"
-						placeholder="email@example.com"
-						{...register("email", { required: true })}
-					/>
-				</Field>
+        <Field>
+          <FieldLabel htmlFor="email">Email</FieldLabel>
+          <Input
+            type="email"
+            placeholder="email@example.com"
+            {...register("email", { required: true })}
+          />
+        </Field>
 
-				<Field>
-					<FieldLabel htmlFor="password">Password</FieldLabel>
-					<Input
-						type="password"
-						placeholder="••••••••"
-						{...register("password", { required: true })}
-					/>
-				</Field>
+        <Field>
+          <FieldLabel htmlFor="password">Password</FieldLabel>
+          <Input
+            type="password"
+            placeholder="••••••••"
+            {...register("password", { required: true })}
+          />
+        </Field>
 
-				<Button type="submit" isLoading={mutation.isPending}>
-					Sign in
-				</Button>
-			</FieldGroup>
-		</form>
-	);
+        <Button type="submit" isLoading={mutation.isPending}>
+          Sign in
+        </Button>
+      </FieldGroup>
+    </form>
+  );
 }

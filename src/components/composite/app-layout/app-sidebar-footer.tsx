@@ -26,11 +26,11 @@ export function AppSidebarFooter() {
 
   const userInitials = user?.name
     ? user.name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2)
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2)
     : "U";
 
   return (
@@ -45,14 +45,10 @@ export function AppSidebarFooter() {
               >
                 <Avatar className="size-8 rounded-lg">
                   <AvatarImage src="" alt={user?.name || "Usuário"} />
-                  <AvatarFallback className="rounded-lg">
-                    {userInitials}
-                  </AvatarFallback>
+                  <AvatarFallback className="rounded-lg">{userInitials}</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">
-                    {user?.name || "Usuário"}
-                  </span>
+                  <span className="truncate font-medium">{user?.name || "Usuário"}</span>
                   <span className="truncate text-xs text-muted-foreground">
                     {user?.email || ""}
                   </span>

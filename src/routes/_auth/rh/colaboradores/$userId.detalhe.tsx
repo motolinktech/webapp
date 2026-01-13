@@ -87,9 +87,7 @@ function UserDetails() {
             {user.birthDate && (
               <div className="space-y-2">
                 <Text variant="muted">Data de Nascimento</Text>
-                <Text variant="large">
-                  {new Date(user.birthDate).toLocaleDateString("pt-BR")}
-                </Text>
+                <Text variant="large">{new Date(user.birthDate).toLocaleDateString("pt-BR")}</Text>
               </div>
             )}
 
@@ -116,11 +114,7 @@ function UserDetails() {
                         </Text>
                         <div className="flex flex-wrap gap-1.5">
                           {groupPermissions.map((rule) => (
-                            <Badge
-                              key={rule.permission}
-                              variant="secondary"
-                              className="text-xs"
-                            >
+                            <Badge key={rule.permission} variant="secondary" className="text-xs">
                               {rule.description}
                             </Badge>
                           ))}

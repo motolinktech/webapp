@@ -9,11 +9,7 @@ import { z } from "zod";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   Field,
   FieldError,
@@ -44,9 +40,7 @@ const userFormSchema = z.object({
     .min(3, "Nome deve ter pelo menos 3 caracteres")
     .max(100, "Nome deve ter no máximo 100 caracteres"),
   email: z.email("Email inválido"),
-  birthDate: z
-    .string()
-    .regex(/^\d{2}\/\d{2}\/\d{4}$/, "Data deve estar no formato DD/MM/YYYY"),
+  birthDate: z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, "Data deve estar no formato DD/MM/YYYY"),
   role: z.enum(["ADMIN", "USER"], {
     message: "Selecione um tipo de usuário",
   }),
@@ -105,7 +99,7 @@ export function UserForm({ user }: UserFormProps) {
         ...data,
         document: clearMask(data.document),
         birthDate: await dateToISO(data.birthDate),
-      }
+      };
 
       if (user?.id) {
         return updateUser({ ...formattedData, id: user.id });
@@ -114,7 +108,7 @@ export function UserForm({ user }: UserFormProps) {
       return createUser(formattedData);
     },
     onSuccess: () => {
-      toast.success('Usuário salvo com sucesso!');
+      toast.success("Usuário salvo com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["users"] });
       navigate({
         to: "/rh/colaboradores",
@@ -123,10 +117,7 @@ export function UserForm({ user }: UserFormProps) {
   });
 
   return (
-    <form
-      onSubmit={handleSubmit((data) => mutateAsync(data))}
-      className="p-4 overflow-y-auto"
-    >
+    <form onSubmit={handleSubmit((data) => mutateAsync(data))} className="p-4 overflow-y-auto">
       <FieldGroup>
         {isError && (
           <Alert variant="destructive">
@@ -207,11 +198,7 @@ export function UserForm({ user }: UserFormProps) {
               render={({ field: { onChange, value } }) => (
                 <Field>
                   <FieldLabel htmlFor="role">Tipo</FieldLabel>
-                  <Select
-                    onValueChange={onChange}
-                    value={value}
-                    defaultValue={value}
-                  >
+                  <Select onValueChange={onChange} value={value} defaultValue={value}>
                     <SelectTrigger id="role" aria-invalid={!!errors.role}>
                       <SelectValue placeholder="Selecione o tipo" />
                     </SelectTrigger>
@@ -232,12 +219,8 @@ export function UserForm({ user }: UserFormProps) {
                     <Collapsible key={group.type}>
                       <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-secondary rounded-lg hover:bg-secondary/80 transition-colors">
                         <div className="flex flex-col items-start">
-                          <span className="font-medium text-sm">
-                            {group.type}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {group.description}
-                          </span>
+                          <span className="font-medium text-sm">{group.type}</span>
+                          <span className="text-xs text-muted-foreground">{group.description}</span>
                         </div>
                         <ChevronDown className="size-4 transition-transform duration-200 [.data-[state=open]>&]:rotate-180" />
                       </CollapsibleTrigger>
@@ -246,9 +229,7 @@ export function UserForm({ user }: UserFormProps) {
                           <Badge
                             key={rule.permission}
                             variant={
-                              selectedPermissions.includes(rule.permission)
-                                ? "default"
-                                : "outline"
+                              selectedPermissions.includes(rule.permission) ? "default" : "outline"
                             }
                             className="cursor-pointer hover:opacity-80 transition-opacity py-1.5 px-3"
                             onClick={() => togglePermission(rule.permission)}

@@ -43,10 +43,7 @@ export function EditarRegiao() {
     return (
       <main>
         <ContentHeader
-          breadcrumbItems={[
-            { title: "Regiões", href: "/gestao/regiao" },
-            { title: "Erro" },
-          ]}
+          breadcrumbItems={[{ title: "Regiões", href: "/gestao/regiao" }, { title: "Erro" }]}
         />
         <Alert variant="destructive" className="m-6">
           Erro ao carregar região para edição.

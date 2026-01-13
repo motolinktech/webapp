@@ -3,9 +3,7 @@ export const userRoles = {
   USER: "USER",
 };
 
-export const userRolesArr = Object.keys(userRoles) as Array<
-  keyof typeof userRoles
->;
+export const userRolesArr = Object.keys(userRoles) as Array<keyof typeof userRoles>;
 
 export const userStatus = {
   ACTIVE: "ACTIVE",

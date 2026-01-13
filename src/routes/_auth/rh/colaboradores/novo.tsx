@@ -9,10 +9,13 @@ export const Route = createFileRoute("/_auth/rh/colaboradores/novo")({
 export function NovoColaborador() {
   return (
     <main>
-      <ContentHeader breadcrumbItems={[{ title: `Colaboradores`, href: '/rh/colaboradores' }, { title: `Novo Colaborador` }]} />
-      <UserForm
-        user={undefined}
+      <ContentHeader
+        breadcrumbItems={[
+          { title: `Colaboradores`, href: "/rh/colaboradores" },
+          { title: `Novo Colaborador` },
+        ]}
       />
+      <UserForm user={undefined} />
     </main>
   );
 }

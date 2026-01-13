@@ -26,10 +26,7 @@ function GroupDetails() {
     return (
       <main>
         <ContentHeader
-          breadcrumbItems={[
-            { title: "Grupos", href: "/gestao/grupos" },
-            { title: "Detalhes" },
-          ]}
+          breadcrumbItems={[{ title: "Grupos", href: "/gestao/grupos" }, { title: "Detalhes" }]}
         />
         <div className="p-6">
           <Skeleton className="mb-4 h-8 w-1/3" />
@@ -46,10 +43,7 @@ function GroupDetails() {
     return (
       <main>
         <ContentHeader
-          breadcrumbItems={[
-            { title: "Grupos", href: "/gestao/grupos" },
-            { title: "Erro" },
-          ]}
+          breadcrumbItems={[{ title: "Grupos", href: "/gestao/grupos" }, { title: "Erro" }]}
         />
         <Alert variant="destructive" className="m-6">
           Erro ao carregar detalhes do grupo.
@@ -61,10 +55,7 @@ function GroupDetails() {
   return (
     <main>
       <ContentHeader
-        breadcrumbItems={[
-          { title: "Grupos", href: "/gestao/grupos" },
-          { title: group.name },
-        ]}
+        breadcrumbItems={[{ title: "Grupos", href: "/gestao/grupos" }, { title: group.name }]}
       />
       <div className="p-6">
         <div className="rounded-md border bg-card p-6">
@@ -78,9 +69,7 @@ function GroupDetails() {
 
             <div className="space-y-2">
               <Text variant="muted">Descrição</Text>
-              <Text variant="large">
-                {group.description || "Sem descrição"}
-              </Text>
+              <Text variant="large">{group.description || "Sem descrição"}</Text>
             </div>
 
             <div className="grid grid-cols-2 gap-6">

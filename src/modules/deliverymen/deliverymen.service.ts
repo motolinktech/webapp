@@ -12,7 +12,9 @@ export async function createDeliveryman(data: CreateDeliverymanData): Promise<De
   return response.data;
 }
 
-export async function listDeliverymen(params?: DeliverymanListParams): Promise<DeliverymanListResponse> {
+export async function listDeliverymen(
+  params?: DeliverymanListParams,
+): Promise<DeliverymanListResponse> {
   const response = await authApi.get<DeliverymanListResponse>("/deliverymen", {
     params,
   });

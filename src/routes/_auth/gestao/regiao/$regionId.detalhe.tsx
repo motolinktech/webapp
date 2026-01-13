@@ -26,10 +26,7 @@ function RegionDetails() {
     return (
       <main>
         <ContentHeader
-          breadcrumbItems={[
-            { title: "Regiões", href: "/gestao/regiao" },
-            { title: "Detalhes" },
-          ]}
+          breadcrumbItems={[{ title: "Regiões", href: "/gestao/regiao" }, { title: "Detalhes" }]}
         />
         <div className="p-6">
           <Skeleton className="mb-4 h-8 w-1/3" />
@@ -46,10 +43,7 @@ function RegionDetails() {
     return (
       <main>
         <ContentHeader
-          breadcrumbItems={[
-            { title: "Regiões", href: "/gestao/regiao" },
-            { title: "Erro" },
-          ]}
+          breadcrumbItems={[{ title: "Regiões", href: "/gestao/regiao" }, { title: "Erro" }]}
         />
         <Alert variant="destructive" className="m-6">
           Erro ao carregar detalhes da região.
@@ -61,10 +55,7 @@ function RegionDetails() {
   return (
     <main>
       <ContentHeader
-        breadcrumbItems={[
-          { title: "Regiões", href: "/gestao/regiao" },
-          { title: region.name },
-        ]}
+        breadcrumbItems={[{ title: "Regiões", href: "/gestao/regiao" }, { title: region.name }]}
       />
       <div className="p-6">
         <div className="rounded-md border bg-card p-6">
@@ -78,9 +69,7 @@ function RegionDetails() {
 
             <div className="space-y-2">
               <Text variant="muted">Descrição</Text>
-              <Text variant="large">
-                {region.description || "Sem descrição"}
-              </Text>
+              <Text variant="large">{region.description || "Sem descrição"}</Text>
             </div>
 
             <div className="grid grid-cols-2 gap-6">

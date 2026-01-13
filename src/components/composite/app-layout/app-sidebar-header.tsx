@@ -68,9 +68,7 @@ export function AppSidebarHeader() {
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">Carregando...</span>
-                <span className="truncate text-xs text-muted-foreground">
-                  Filial
-                </span>
+                <span className="truncate text-xs text-muted-foreground">Filial</span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -97,9 +95,7 @@ export function AppSidebarHeader() {
                   <MapPin className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">
-                    {selectedBranch.name}
-                  </span>
+                  <span className="truncate font-medium">{selectedBranch.name}</span>
                   <span className="truncate text-xs text-muted-foreground">
                     {selectedBranch.code}
                   </span>
@@ -114,10 +110,7 @@ export function AppSidebarHeader() {
               sideOffset={4}
             >
               {availableBranches.map((branch) => (
-                <DropdownMenuItem
-                  key={branch.id}
-                  onClick={() => handleBranchChange(branch)}
-                >
+                <DropdownMenuItem key={branch.id} onClick={() => handleBranchChange(branch)}>
                   {branch.name}
                 </DropdownMenuItem>
               ))}

@@ -62,9 +62,7 @@ function Dashboard() {
       {/* Left Column */}
       <div className="lg:col-span-1">
         <h1 className="text-2xl font-bold">Olá, {user?.name || "Usuário"}</h1>
-        <p className="mt-2 text-muted-foreground">
-          Bem-vindo ao painel de controle.
-        </p>
+        <p className="mt-2 text-muted-foreground">Bem-vindo ao painel de controle.</p>
       </div>
 
       {/* Right Column: Schedule */}

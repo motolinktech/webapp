@@ -24,11 +24,7 @@ function TrocarSenha() {
         <Text variant="muted" className="absolute">
           Carregando paisagem carioca...
         </Text>
-        <img
-          src={backgroundImage}
-          alt="Rio de Janeiro"
-          className="w-full h-full object-cover"
-        />
+        <img src={backgroundImage} alt="Rio de Janeiro" className="w-full h-full object-cover" />
       </div>
 
       <div className="w-full lg:w-1/3 bg-background flex flex-col justify-center px-8 py-12">
@@ -36,9 +32,7 @@ function TrocarSenha() {
           <div className="space-y-2 text-center">
             <img src={logoImage} alt="Motolink Logo" className="w-64 mx-auto" />
 
-            <Text variant="muted">
-              Digite sua nova senha para acessar o sistema.
-            </Text>
+            <Text variant="muted">Digite sua nova senha para acessar o sistema.</Text>
           </div>
 
           <ChangePasswordForm userId={userId} token={token} />

@@ -27,10 +27,7 @@ export function EditarGrupo() {
     return (
       <main>
         <ContentHeader
-          breadcrumbItems={[
-            { title: "Grupos", href: "/gestao/grupos" },
-            { title: "Editar Grupo" },
-          ]}
+          breadcrumbItems={[{ title: "Grupos", href: "/gestao/grupos" }, { title: "Editar Grupo" }]}
         />
         <div className="p-6">
           <Skeleton className="h-96 w-full" />
@@ -43,10 +40,7 @@ export function EditarGrupo() {
     return (
       <main>
         <ContentHeader
-          breadcrumbItems={[
-            { title: "Grupos", href: "/gestao/grupos" },
-            { title: "Erro" },
-          ]}
+          breadcrumbItems={[{ title: "Grupos", href: "/gestao/grupos" }, { title: "Erro" }]}
         />
         <Alert variant="destructive" className="m-6">
           Erro ao carregar grupo para edição.

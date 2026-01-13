@@ -6,12 +6,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { createRegion, updateRegion } from "@/modules/regions/regions.service";
@@ -22,10 +17,7 @@ const regionFormSchema = z.object({
     .string()
     .min(3, "Nome deve ter pelo menos 3 caracteres")
     .max(100, "Nome deve ter no máximo 100 caracteres"),
-  description: z
-    .string()
-    .max(255, "Descrição deve ter no máximo 255 caracteres")
-    .optional(),
+  description: z.string().max(255, "Descrição deve ter no máximo 255 caracteres").optional(),
 });
 
 type RegionFormData = z.infer<typeof regionFormSchema>;
@@ -70,10 +62,7 @@ export function RegionForm({ region }: RegionFormProps) {
   });
 
   return (
-    <form
-      onSubmit={handleSubmit((data) => mutateAsync(data))}
-      className="p-4 overflow-y-auto"
-    >
+    <form onSubmit={handleSubmit((data) => mutateAsync(data))} className="p-4 overflow-y-auto">
       <FieldGroup>
         {isError && (
           <Alert variant="destructive">

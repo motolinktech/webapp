@@ -88,8 +88,10 @@ function Regioes() {
         <div className="space-y-2">
           {[...Array(5)].map((_, index) => (
             <Skeleton
-              key={`skeleton-${// biome-ignore lint/suspicious/noArrayIndexKey: id is unique
-                index}`}
+              key={`skeleton-${
+                // biome-ignore lint/suspicious/noArrayIndexKey: id is unique
+                index
+              }`}
               className="h-10 w-full"
             />
           ))}
@@ -121,7 +123,7 @@ function Regioes() {
             <PaginationLink isActive={page === i} onClick={() => setPage(i)}>
               {i}
             </PaginationLink>
-          </PaginationItem>
+          </PaginationItem>,
         );
       }
     } else {
@@ -130,14 +132,14 @@ function Regioes() {
           <PaginationLink isActive={page === 1} onClick={() => setPage(1)}>
             1
           </PaginationLink>
-        </PaginationItem>
+        </PaginationItem>,
       );
 
       if (page > 3) {
         items.push(
           <PaginationItem key="ellipsis-1">
             <PaginationEllipsis />
-          </PaginationItem>
+          </PaginationItem>,
         );
       }
 
@@ -150,7 +152,7 @@ function Regioes() {
             <PaginationLink isActive={page === i} onClick={() => setPage(i)}>
               {i}
             </PaginationLink>
-          </PaginationItem>
+          </PaginationItem>,
         );
       }
 
@@ -158,19 +160,16 @@ function Regioes() {
         items.push(
           <PaginationItem key="ellipsis-2">
             <PaginationEllipsis />
-          </PaginationItem>
+          </PaginationItem>,
         );
       }
 
       items.push(
         <PaginationItem key={totalPages}>
-          <PaginationLink
-            isActive={page === totalPages}
-            onClick={() => setPage(totalPages)}
-          >
+          <PaginationLink isActive={page === totalPages} onClick={() => setPage(totalPages)}>
             {totalPages}
           </PaginationLink>
-        </PaginationItem>
+        </PaginationItem>,
       );
     }
 
@@ -182,9 +181,7 @@ function Regioes() {
       <AlertDialog open={toogleAlert} onOpenChange={setToogleAlert}>
         <div className="mb-6">
           <h1 className="text-2xl font-bold">Regiões ({totalRegions})</h1>
-          <p className="text-muted-foreground mt-2">
-            Gerencie as regiões de clientes.
-          </p>
+          <p className="text-muted-foreground mt-2">Gerencie as regiões de clientes.</p>
         </div>
 
         <div className="mb-4 flex items-center gap-4">
@@ -218,10 +215,7 @@ function Regioes() {
             <TableBody>
               {regions.length === 0 ? (
                 <TableRow>
-                  <TableCell
-                    colSpan={3}
-                    className="text-center text-muted-foreground"
-                  >
+                  <TableCell colSpan={3} className="text-center text-muted-foreground">
                     Nenhuma região encontrada
                   </TableCell>
                 </TableRow>
@@ -272,11 +266,7 @@ function Regioes() {
                 <PaginationItem>
                   <PaginationPrevious
                     onClick={() => setPage(Math.max(1, page - 1))}
-                    className={
-                      page === 1
-                        ? "pointer-events-none opacity-50"
-                        : "cursor-pointer"
-                    }
+                    className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                   />
                 </PaginationItem>
                 {renderPaginationItems()}
@@ -284,9 +274,7 @@ function Regioes() {
                   <PaginationNext
                     onClick={() => setPage(Math.min(totalPages, page + 1))}
                     className={
-                      page === totalPages
-                        ? "pointer-events-none opacity-50"
-                        : "cursor-pointer"
+                      page === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"
                     }
                   />
                 </PaginationItem>
@@ -299,8 +287,7 @@ function Regioes() {
           <AlertDialogHeader>
             <AlertDialogTitle>Deseja excluir a região?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação excluirá a região permanentemente. Tem certeza que deseja
-              prosseguir?
+              Esta ação excluirá a região permanentemente. Tem certeza que deseja prosseguir?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -316,4 +303,3 @@ function Regioes() {
     </div>
   );
 }
-

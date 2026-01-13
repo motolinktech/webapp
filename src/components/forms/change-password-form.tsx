@@ -6,12 +6,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { changePassword } from "@/modules/users/users.service";
 
@@ -97,9 +92,7 @@ export function ChangePasswordForm({ userId, token }: ChangePasswordFormProps) {
         </Field>
 
         <Field>
-          <FieldLabel htmlFor="passwordConfirmation">
-            Confirmar Senha
-          </FieldLabel>
+          <FieldLabel htmlFor="passwordConfirmation">Confirmar Senha</FieldLabel>
           <Input
             id="passwordConfirmation"
             type="password"

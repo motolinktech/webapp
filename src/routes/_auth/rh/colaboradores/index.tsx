@@ -5,7 +5,16 @@ import { Link as CopyLink, Eye, Pencil, Plus, Search, Trash2 } from "lucide-reac
 import { useEffect, useState } from "react";
 import { ContentHeader } from "@/components/composite/content-header";
 import { Alert } from "@/components/ui/alert";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,7 +27,14 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { userStatusTranslations } from "@/modules/users/users.constants";
 import { deleteUser, listUsers } from "@/modules/users/users.service";
 import type { User } from "@/modules/users/users.types";
@@ -34,7 +50,7 @@ const statusColors = {
 };
 
 function Colaboradores() {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -44,7 +60,7 @@ function Colaboradores() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["users", debouncedSearch, page],
     queryFn: () => listUsers({ search: debouncedSearch, page, limit: 10 }),
-  })
+  });
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -65,7 +81,7 @@ function Colaboradores() {
   const openDeleteAlert = (user: User) => {
     setSelectedUser(user);
     setToogleAlert(true);
-  }
+  };
 
   const handleDeleteUser = async () => {
     if (selectedUser?.id) {
@@ -73,7 +89,7 @@ function Colaboradores() {
       setToogleAlert(false);
       queryClient.invalidateQueries({ queryKey: ["users"] });
     }
-  }
+  };
 
   if (isLoading) {
     return (
@@ -97,8 +113,8 @@ function Colaboradores() {
     );
   }
 
-  const totalUsers = data?.count
-  const users = data?.data || []
+  const totalUsers = data?.count;
+  const users = data?.data || [];
   const totalPages = Math.ceil((totalUsers || 0) / 10);
 
   const renderPaginationItems = () => {
@@ -109,32 +125,26 @@ function Colaboradores() {
       for (let i = 1; i <= totalPages; i++) {
         items.push(
           <PaginationItem key={i}>
-            <PaginationLink
-              isActive={page === i}
-              onClick={() => setPage(i)}
-            >
+            <PaginationLink isActive={page === i} onClick={() => setPage(i)}>
               {i}
             </PaginationLink>
-          </PaginationItem>
+          </PaginationItem>,
         );
       }
     } else {
       items.push(
         <PaginationItem key={1}>
-          <PaginationLink
-            isActive={page === 1}
-            onClick={() => setPage(1)}
-          >
+          <PaginationLink isActive={page === 1} onClick={() => setPage(1)}>
             1
           </PaginationLink>
-        </PaginationItem>
+        </PaginationItem>,
       );
 
       if (page > 3) {
         items.push(
           <PaginationItem key="ellipsis-1">
             <PaginationEllipsis />
-          </PaginationItem>
+          </PaginationItem>,
         );
       }
 
@@ -144,13 +154,10 @@ function Colaboradores() {
       for (let i = start; i <= end; i++) {
         items.push(
           <PaginationItem key={i}>
-            <PaginationLink
-              isActive={page === i}
-              onClick={() => setPage(i)}
-            >
+            <PaginationLink isActive={page === i} onClick={() => setPage(i)}>
               {i}
             </PaginationLink>
-          </PaginationItem>
+          </PaginationItem>,
         );
       }
 
@@ -158,19 +165,16 @@ function Colaboradores() {
         items.push(
           <PaginationItem key="ellipsis-2">
             <PaginationEllipsis />
-          </PaginationItem>
+          </PaginationItem>,
         );
       }
 
       items.push(
         <PaginationItem key={totalPages}>
-          <PaginationLink
-            isActive={page === totalPages}
-            onClick={() => setPage(totalPages)}
-          >
+          <PaginationLink isActive={page === totalPages} onClick={() => setPage(totalPages)}>
             {totalPages}
           </PaginationLink>
-        </PaginationItem>
+        </PaginationItem>,
       );
     }
 
@@ -215,10 +219,7 @@ function Colaboradores() {
             <TableBody>
               {users.length === 0 ? (
                 <TableRow>
-                  <TableCell
-                    colSpan={5}
-                    className="text-center text-muted-foreground"
-                  >
+                  <TableCell colSpan={5} className="text-center text-muted-foreground">
                     Nenhum colaborador encontrado
                   </TableCell>
                 </TableRow>
@@ -244,27 +245,24 @@ function Colaboradores() {
                             onClick={() => {
                               const url = `${import.meta.env.VITE_BASE_URL}/trocar-senha?token=${user.verificationTokens?.[0].token}&userId=${user.id}`;
                               navigator.clipboard.writeText(url);
-
                             }}
                           >
                             <CopyLink className="size-4" />
                           </Button>
                         )}
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          asChild
-                        >
-                          <Link to={`/rh/colaboradores/$userId/detalhe`} params={{ userId: user.id }}>
+                        <Button variant="ghost" size="icon-sm" asChild>
+                          <Link
+                            to={`/rh/colaboradores/$userId/detalhe`}
+                            params={{ userId: user.id }}
+                          >
                             <Eye className="size-4" />
                           </Link>
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          asChild
-                        >
-                          <Link to={`/rh/colaboradores/$userId/editar`} params={{ userId: user.id }}>
+                        <Button variant="ghost" size="icon-sm" asChild>
+                          <Link
+                            to={`/rh/colaboradores/$userId/editar`}
+                            params={{ userId: user.id }}
+                          >
                             <Pencil className="size-4" />
                           </Link>
                         </Button>
@@ -299,7 +297,9 @@ function Colaboradores() {
                 <PaginationItem>
                   <PaginationNext
                     onClick={() => setPage(Math.min(totalPages, page + 1))}
-                    className={page === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                    className={
+                      page === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"
+                    }
                   />
                 </PaginationItem>
               </PaginationContent>
@@ -311,9 +311,8 @@ function Colaboradores() {
           <AlertDialogHeader>
             <AlertDialogTitle>Desejar excluir o usuário?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação desabilitará o usuário permanentemente, mas para fins de
-              auditoria, seus dados serão mantidos no sistema. Tem certeza que
-              deseja prosseguir?
+              Esta ação desabilitará o usuário permanentemente, mas para fins de auditoria, seus
+              dados serão mantidos no sistema. Tem certeza que deseja prosseguir?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

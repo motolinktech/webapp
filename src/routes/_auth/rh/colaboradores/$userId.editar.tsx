@@ -60,7 +60,10 @@ export function EditarColaborador() {
       <ContentHeader
         breadcrumbItems={[
           { title: "Colaboradores", href: "/rh/colaboradores" },
-          { title: user?.name || "Detalhes do usuário", href: `/rh/colaboradores/${userId}/detalhe` },
+          {
+            title: user?.name || "Detalhes do usuário",
+            href: `/rh/colaboradores/${userId}/detalhe`,
+          },
           { title: "Editar" },
         ]}
       />
