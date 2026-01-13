@@ -1,6 +1,6 @@
-import * as React from "react"
+import type * as React from "react"
 
-import { classHelper } from "@/lib/utils/classHelper"
+import { classHelper } from "@/lib/utils/class-helper"
 
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (

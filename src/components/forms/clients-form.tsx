@@ -22,9 +22,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cepMask } from "@/lib/masks/cepMask";
-import { cnpjMask } from "@/lib/masks/cnpjMask";
-import { phoneMask } from "@/lib/masks/phoneMask";
+import { cepMask } from "@/lib/masks/cep-mask";
+import { cnpjMask } from "@/lib/masks/cnpj-mask";
+import { phoneMask } from "@/lib/masks/phone-mask";
 import { createClient, updateClient } from "@/modules/clients/clients.service";
 import type { Client } from "@/modules/clients/clients.types";
 import { listGroups } from "@/modules/groups/groups.service";

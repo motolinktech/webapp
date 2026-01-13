@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
 import { createUser, updateUser } from "@/modules/users/users.service";
-import { dateMask } from "@/lib/masks/dateMask";
+import { dateMask } from "@/lib/masks/date-mask";
 import { userPermissions } from "@/modules/users/users.constants";
 import dayjs from "dayjs";
 import type { User } from "@/modules/users/users.types";

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import logoImage from "@/assets/motolink.png";
 import backgroundImage from "@/assets/rio-de-janeiro.jpg";
-import { AuthForm } from "@/components/forms/authForm";
+import { AuthForm } from "@/components/forms/auth-form";
 import { Text } from "@/components/ui/text";
 
 export const Route = createFileRoute("/login")({

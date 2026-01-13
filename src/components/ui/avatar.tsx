@@ -1,7 +1,7 @@
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
 import type * as React from "react";
 
-import { classHelper } from "@/lib/utils/classHelper";
+import { classHelper } from "@/lib/utils/class-helper";
 
 function Avatar({
 	className,

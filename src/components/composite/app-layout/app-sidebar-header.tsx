@@ -13,7 +13,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { useGlobal } from "@/contexts/global.context";
+import { useGlobal } from "@/contexts/global-context";
 import type { Branch } from "@/modules/branches/branches.types";
 import { useBranches } from "@/modules/branches/useBranches";
 

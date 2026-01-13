@@ -1,6 +1,6 @@
 import type * as React from "react";
 
-import { classHelper } from "@/lib/utils/classHelper";
+import { classHelper } from "@/lib/utils/class-helper";
 
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
 	return (

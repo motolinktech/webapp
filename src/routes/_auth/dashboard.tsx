@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useGlobal } from "@/contexts/global.context";
+import { useGlobal } from "@/contexts/global-context";
 
 export const Route = createFileRoute("/_auth/dashboard")({
 	component: Dashboard,

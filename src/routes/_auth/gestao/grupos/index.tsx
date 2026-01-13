@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Eye, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { GroupsForm } from "@/components/forms/groupsForm";
+import { GroupsForm } from "@/components/forms/groups-form";
 import { Alert } from "@/components/ui/alert";
 import {
   AlertDialog,

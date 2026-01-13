@@ -7,8 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Text } from "@/components/ui/text";
-import { cpfMask } from "@/lib/masks/cpfMask";
-import { phoneMask } from "@/lib/masks/phoneMask";
+import { cpfMask } from "@/lib/masks/cpf-mask";
+import { phoneMask } from "@/lib/masks/phone-mask";
 import { getDeliverymanById } from "@/modules/deliverymen/deliverymen.service";
 
 export const Route = createFileRoute("/_auth/gestao/entregadores/$deliverymanId")({

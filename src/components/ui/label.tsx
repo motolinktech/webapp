@@ -1,7 +1,7 @@
 import * as LabelPrimitive from "@radix-ui/react-label";
 import type * as React from "react";
 
-import { classHelper } from "@/lib/utils/classHelper";
+import { classHelper } from "@/lib/utils/class-helper";
 
 function Label({
 	className,

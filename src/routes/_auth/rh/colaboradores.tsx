@@ -1,9 +1,14 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
-import { Search, Plus, Trash2, Pencil, Eye, Link } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import dayjs from "dayjs";
+import { Eye, Link, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { UserForm } from "@/components/forms/user-form";
+import { Alert } from "@/components/ui/alert";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Pagination,
   PaginationContent,
@@ -16,20 +21,15 @@ import {
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
 } from "@/components/ui/sheet";
-import { UserForm } from "@/components/forms/userForm";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { deleteUser, listUsers } from "@/modules/users/users.service";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import dayjs from "dayjs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Alert } from "@/components/ui/alert";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Text } from "@/components/ui/text";
-import { userStatusTranslations, userPermissions } from "@/modules/users/users.constants";
+import { userPermissions, userStatusTranslations } from "@/modules/users/users.constants";
+import { deleteUser, listUsers } from "@/modules/users/users.service";
 import type { User } from "@/modules/users/users.types";
 
 export const Route = createFileRoute("/_auth/rh/colaboradores")({
@@ -79,7 +79,7 @@ function Colaboradores() {
   }
 
   const handleDeleteUser = async () => {
-    await deleteUser(selectedUser!.id);
+    await deleteUser(selectedUser?.id);
     setToogleAlert(false);
     queryClient.invalidateQueries({ queryKey: ["users"] });
   }
@@ -256,7 +256,7 @@ function Colaboradores() {
                             variant="ghost"
                             size="icon-sm"
                             onClick={() => {
-                              const url = `${import.meta.env.VITE_BASE_URL}/trocar-senha?token=${user.verificationTokens![0].token}&userId=${user.id}`;
+                              const url = `${import.meta.env.VITE_BASE_URL}/trocar-senha?token=${user.verificationTokens?.[0].token}&userId=${user.id}`;
                               navigator.clipboard.writeText(url);
 
                             }}

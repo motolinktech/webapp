@@ -1,4 +1,4 @@
-import { classHelper } from "@/lib/utils/classHelper";
+import { classHelper } from "@/lib/utils/class-helper";
 
 function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
 	return (

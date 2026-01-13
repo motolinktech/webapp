@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
-import { AppLayout } from "@/components/ui/appLayout";
+import { AppLayout } from "@/components/composite/app-layout";
 import { isAuthenticated } from "@/modules/auth/auth.service";
 
 export const Route = createFileRoute("/_auth")({

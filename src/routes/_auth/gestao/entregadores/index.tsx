@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Eye, Lock, Pencil, Plus, Search, Trash2, Unlock } from "lucide-react";
 import { useEffect, useState } from "react";
-import { DeliverymenForm } from "@/components/forms/deliverymenForm";
+import { DeliverymenForm } from "@/components/forms/deliverymen-form";
 import { Alert } from "@/components/ui/alert";
 import {
   AlertDialog,
@@ -42,8 +42,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cpfMask } from "@/lib/masks/cpfMask";
-import { phoneMask } from "@/lib/masks/phoneMask";
+import { cpfMask } from "@/lib/masks/cpf-mask";
+import { phoneMask } from "@/lib/masks/phone-mask";
 import {
   deleteDeliveryman,
   listDeliverymen,

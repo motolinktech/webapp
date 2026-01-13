@@ -1,8 +1,7 @@
-import * as React from "react"
 import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog"
-
-import { classHelper } from "@/lib/utils/classHelper"
+import type * as React from "react"
 import { buttonVariants } from "@/components/ui/button"
+import { classHelper } from "@/lib/utils/class-helper"
 
 function AlertDialog({
   ...props

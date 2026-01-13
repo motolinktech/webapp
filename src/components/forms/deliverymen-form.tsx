@@ -22,8 +22,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cpfMask } from "@/lib/masks/cpfMask";
-import { phoneMask } from "@/lib/masks/phoneMask";
+import { cpfMask } from "@/lib/masks/cpf-mask";
+import { phoneMask } from "@/lib/masks/phone-mask";
 import {
   createDeliveryman,
   updateDeliveryman,

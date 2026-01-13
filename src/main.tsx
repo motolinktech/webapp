@@ -2,7 +2,7 @@ import { createRouter, RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 
-import { GlobalProvider } from "./contexts/global.context.tsx";
+import { GlobalProvider } from "./contexts/global-context.tsx";
 import * as TanStackQueryProvider from "./contexts/tanstack-query/root-provider.tsx";
 
 import { routeTree } from "./routeTree.gen";

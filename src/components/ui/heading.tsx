@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from "class-variance-authority";
-import { classHelper } from "@/lib/utils/classHelper";
+import { classHelper } from "@/lib/utils/class-helper";
 
 const headingVariants = cva("", {
 	variants: {

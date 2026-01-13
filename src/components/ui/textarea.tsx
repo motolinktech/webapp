@@ -1,6 +1,6 @@
 import type * as React from "react"
 
-import { classHelper } from "@/lib/utils/classHelper"
+import { classHelper } from "@/lib/utils/class-helper"
 
 function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
   return (

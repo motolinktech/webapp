@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Eye, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { RegionForm } from "@/components/forms/regionForm";
+import { RegionForm } from "@/components/forms/region-form";
 import { Alert } from "@/components/ui/alert";
 import {
   AlertDialog,

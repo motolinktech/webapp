@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import logoImage from "@/assets/motolink.png";
 import backgroundImage from "@/assets/rio-de-janeiro.jpg";
-import { ChangePasswordForm } from "@/components/forms/changePasswordForm";
+import { ChangePasswordForm } from "@/components/forms/change-password-form";
 import { Text } from "@/components/ui/text";
 
 const searchParamsSchema = z.object({

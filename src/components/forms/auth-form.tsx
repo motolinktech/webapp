@@ -6,7 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { useGlobal } from "@/contexts/global.context";
+import { useGlobal } from "@/contexts/global-context";
 import { authenticate, saveAuth } from "@/modules/auth/auth.service";
 import type { AuthCredentials } from "@/modules/auth/auth.types";
 
