@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { BookUser, ChevronDown, CirclePlus, Home, Landmark, Target } from "lucide-react";
+import { BookUser, ChevronDown, CirclePlus, Home, Target } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   SidebarContent,
@@ -12,6 +12,8 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
+import { hasPermissions } from "@/lib/utils/has-permissions";
+import { getStoredUser } from "@/modules/auth/auth.service";
 
 const items = [
   {
@@ -52,25 +54,25 @@ const items = [
       },
     ],
   },
-  {
-    title: "Financeiro",
-    icon: Landmark,
-    requiredPermission: "financial.view",
-    items: [
-      {
-        title: "Resumo",
-        url: "/financeiro",
-      },
-      {
-        title: "Solicitação de Pagamento",
-        url: "/financeiro/solicitacao-pagamento",
-      },
-    ],
-  },
+  // {
+  //   title: "Financeiro",
+  //   icon: Landmark,
+  //   requiredPermission: "financial.view",
+  //   items: [
+  //     {
+  //       title: "Resumo",
+  //       url: "/financeiro",
+  //     },
+  //     {
+  //       title: "Solicitação de Pagamento",
+  //       url: "/financeiro/solicitacao-pagamento",
+  //     },
+  //   ],
+  // },
   {
     title: "Recursos Humanos",
     icon: BookUser,
-    requiredPermission: "hr.view",
+    requiredPermission: "employee.view",
     items: [
       {
         title: "Colaboradores",
@@ -81,6 +83,13 @@ const items = [
 ];
 
 export function AppSidebarContent() {
+  const user = getStoredUser();
+
+  const filteredItems = items.filter((item) => {
+    if (!user) return false;
+    return hasPermissions(user, item.requiredPermission);
+  });
+
   return (
     <SidebarContent>
       <SidebarGroup>
@@ -95,7 +104,7 @@ export function AppSidebarContent() {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            {items.map((item) => (
+            {filteredItems.map((item) => (
               <Collapsible key={item.title} className="group/collapsible">
                 <SidebarMenuItem>
                   <CollapsibleTrigger asChild>

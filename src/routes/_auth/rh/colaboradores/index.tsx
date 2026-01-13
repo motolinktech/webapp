@@ -5,6 +5,8 @@ import { Link as CopyLink, Eye, Pencil, Plus, Search, Trash2 } from "lucide-reac
 import { useEffect, useState } from "react";
 import { ContentHeader } from "@/components/composite/content-header";
 import { Alert } from "@/components/ui/alert";
+import { hasPermissions } from "@/lib/utils/has-permissions";
+import { getStoredUser } from "@/modules/auth/auth.service";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -56,6 +58,11 @@ function Colaboradores() {
   const [page, setPage] = useState(1);
   const [toogleAlert, setToogleAlert] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+  const currentUser = getStoredUser();
+  const canCreate = currentUser ? hasPermissions(currentUser, "employee.create") : false;
+  const canEdit = currentUser ? hasPermissions(currentUser, "employee.edit") : false;
+  const canDelete = currentUser ? hasPermissions(currentUser, "employee.delete") : false;
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["users", debouncedSearch, page],
@@ -197,12 +204,14 @@ function Colaboradores() {
               className="pl-9"
             />
           </div>
-          <Button asChild>
-            <Link to={"/rh/colaboradores/novo"}>
-              <Plus className="size-4" />
-              Novo usuário
-            </Link>
-          </Button>
+          {canCreate && (
+            <Button asChild>
+              <Link to={"/rh/colaboradores/novo"}>
+                <Plus className="size-4" />
+                Novo usuário
+              </Link>
+            </Button>
+          )}
         </div>
 
         <div className="rounded-md border bg-card">
@@ -258,22 +267,26 @@ function Colaboradores() {
                             <Eye className="size-4" />
                           </Link>
                         </Button>
-                        <Button variant="ghost" size="icon-sm" asChild>
-                          <Link
-                            to={`/rh/colaboradores/$userId/editar`}
-                            params={{ userId: user.id }}
+                        {canEdit && (
+                          <Button variant="ghost" size="icon-sm" asChild>
+                            <Link
+                              to={`/rh/colaboradores/$userId/editar`}
+                              params={{ userId: user.id }}
+                            >
+                              <Pencil className="size-4" />
+                            </Link>
+                          </Button>
+                        )}
+                        {canDelete && (
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => openDeleteAlert(user)}
                           >
-                            <Pencil className="size-4" />
-                          </Link>
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => openDeleteAlert(user)}
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
+                            <Trash2 className="size-4" />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
