@@ -26,10 +26,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useGlobal } from "@/contexts/global-context";
 import { clearMask } from "@/lib/masks/clear-mask";
 import { cpfMask } from "@/lib/masks/cpf-mask";
 import { dateMask } from "@/lib/masks/date-mask";
 import { dateToISO } from "@/lib/services/date";
+import { useBranches } from "@/modules/branches/useBranches";
 import { userPermissions } from "@/modules/users/users.constants";
 import { createUser, updateUser } from "@/modules/users/users.service";
 import type { User } from "@/modules/users/users.types";
@@ -48,6 +50,7 @@ const userFormSchema = z.object({
     .string()
     .min(11, "Documento deve ter pelo menos 11 caracteres")
     .max(14, "Documento deve ter no máximo 14 caracteres"),
+  branches: z.array(z.string()).optional(),
   permissions: z.array(z.string()).optional(),
 });
 
@@ -58,6 +61,10 @@ interface UserFormProps {
 }
 
 export function UserForm({ user }: UserFormProps) {
+  const { selectedBranch } = useGlobal();
+  const { data: branchesData, isLoading: isLoadingBranches } = useBranches();
+  const branches = branchesData?.data || [];
+
   const {
     register,
     handleSubmit,
@@ -72,6 +79,7 @@ export function UserForm({ user }: UserFormProps) {
       email: user?.email || "",
       birthDate: dayjs(user?.birthDate).format("DD/MM/YYYY") || "",
       role: user?.role || "USER",
+      branches: user?.branches || (selectedBranch ? [selectedBranch.id] : []),
       permissions: user?.permissions || [],
     },
   });
@@ -79,6 +87,7 @@ export function UserForm({ user }: UserFormProps) {
   const navigate = useNavigate();
 
   const selectedPermissions = watch("permissions") || [];
+  const selectedBranches = watch("branches") || [];
   const selectedRole = watch("role");
 
   const togglePermission = (permission: string) => {
@@ -90,6 +99,18 @@ export function UserForm({ user }: UserFormProps) {
       );
     } else {
       setValue("permissions", [...current, permission]);
+    }
+  };
+
+  const toggleBranch = (branchId: string) => {
+    const current = selectedBranches;
+    if (current.includes(branchId)) {
+      setValue(
+        "branches",
+        current.filter((b) => b !== branchId),
+      );
+    } else {
+      setValue("branches", [...current, branchId]);
     }
   };
 
@@ -211,6 +232,28 @@ export function UserForm({ user }: UserFormProps) {
                 </Field>
               )}
             />
+
+            <Field>
+              <FieldLabel>Filiais</FieldLabel>
+              {isLoadingBranches ? (
+                <div className="text-sm text-muted-foreground">Carregando filiais...</div>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {branches.map((branch) => (
+                    <Badge
+                      key={branch.id}
+                      variant={selectedBranches.includes(branch.id) ? "default" : "outline"}
+                      className="cursor-pointer hover:opacity-80 transition-opacity py-1.5 px-3"
+                      onClick={() => toggleBranch(branch.id)}
+                      asChild={false}
+                    >
+                      <span className="text-xs">{branch.name}</span>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </Field>
+
             {selectedRole === "USER" && (
               <Field>
                 <FieldLabel>Permissões</FieldLabel>

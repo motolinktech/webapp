@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getStoreBranch } from "@/modules/branches/branches.service";
 
 const baseURL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
@@ -18,7 +19,7 @@ export const authApi = axios.create({
 
 authApi.interceptors.request.use((config) => {
   const token = localStorage.getItem("motolink_token");
-  const selectedBranch = localStorage.getItem("motolink_selected_branch");
+  const selectedBranch = getStoreBranch()?.id;
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;

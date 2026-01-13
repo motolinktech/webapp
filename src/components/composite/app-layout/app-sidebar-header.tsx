@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { ChevronsUpDown, Loader2, MapPin } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,16 +14,14 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useGlobal } from "@/contexts/global-context";
+import { setStoreBranch } from "@/modules/branches/branches.service";
 import type { Branch } from "@/modules/branches/branches.types";
 import { useBranches } from "@/modules/branches/useBranches";
 
-const BRANCH_KEY = "motolink_selected_branch";
-
 export function AppSidebarHeader() {
   const queryClient = useQueryClient();
-  const { user } = useGlobal();
+  const { user, selectedBranch, setSelectedBranch } = useGlobal();
   const { data, isLoading } = useBranches();
-  const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
 
   const availableBranches = useMemo(() => {
     if (!data?.data || !user) return [];
@@ -36,24 +34,18 @@ export function AppSidebarHeader() {
   }, [data?.data, user]);
 
   useEffect(() => {
-    if (availableBranches.length === 0) return;
-
-    const storedId = localStorage.getItem(BRANCH_KEY);
-    const currentValidBranch = availableBranches.find((b) => b.id === storedId);
-
-    const newBranch = currentValidBranch || availableBranches[0];
-
-    setSelectedBranch(newBranch);
-
-    if (storedId !== newBranch.id) {
-      localStorage.setItem(BRANCH_KEY, newBranch.id);
-      queryClient.invalidateQueries();
+    if (!selectedBranch?.id && availableBranches.length > 0) {
+      setSelectedBranch(availableBranches[0]);
+      setStoreBranch(availableBranches[0]);
+      return;
     }
-  }, [availableBranches, queryClient]);
+
+    queryClient.invalidateQueries();
+  }, [availableBranches, setSelectedBranch, selectedBranch, queryClient.invalidateQueries]);
 
   const handleBranchChange = (branch: Branch) => {
     setSelectedBranch(branch);
-    localStorage.setItem(BRANCH_KEY, branch.id);
+    setStoreBranch(branch);
     queryClient.invalidateQueries();
   };
 
