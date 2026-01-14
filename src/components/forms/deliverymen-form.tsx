@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { VEHICLE_TYPES } from "@/lib/constants/vehicle-type";
 import { cpfMask } from "@/lib/masks/cpf-mask";
 import { phoneMask } from "@/lib/masks/phone-mask";
 import { storage } from "@/lib/services/firebase.service";
@@ -337,11 +338,32 @@ export function DeliverymenForm({ deliveryman }: DeliverymenFormProps) {
         <FieldSet>
           <FieldLegend>Informações do Veículo</FieldLegend>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <Field className="md:col-span-2">
-              <FieldLabel htmlFor="vehicleModel">Modelo</FieldLabel>
-              <Input id="vehicleModel" {...register("vehicleModel")} />
-              <FieldError errors={[errors.vehicleModel]} />
-            </Field>
+            <Controller
+              control={control}
+              name="vehicleModel"
+              render={({ field }) => (
+                <Field className="md:col-span-2">
+                  <FieldLabel htmlFor="vehicleModel">Modelo</FieldLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    defaultValue={field.value}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o modelo do veículo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {VEHICLE_TYPES.map((vt) => (
+                        <SelectItem key={vt} value={vt}>
+                          {vt}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FieldError errors={[errors.vehicleModel]} />
+                </Field>
+              )}
+            />
             <Field>
               <FieldLabel htmlFor="vehicleColor">Cor</FieldLabel>
               <Input id="vehicleColor" {...register("vehicleColor")} />
