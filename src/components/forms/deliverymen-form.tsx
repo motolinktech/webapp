@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { AlertCircle } from "lucide-react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
@@ -15,6 +16,7 @@ import {
   FieldLegend,
   FieldSet,
 } from "@/components/ui/field";
+import { FileUploader } from "@/components/ui/file-uploader";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -26,13 +28,22 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { cpfMask } from "@/lib/masks/cpf-mask";
 import { phoneMask } from "@/lib/masks/phone-mask";
+import { storage } from "@/lib/services/storage";
+import { cpfValidator } from "@/lib/utils/cpf-validator";
 import { createDeliveryman, updateDeliveryman } from "@/modules/deliverymen/deliverymen.service";
 import type { Deliveryman } from "@/modules/deliverymen/deliverymen.types";
 import { listRegions } from "@/modules/regions/regions.service";
 
 const deliverymanFormSchema = z.object({
   name: z.string().min(3, "Nome deve ter pelo menos 3 caracteres"),
-  document: z.string().length(14, "CPF inválido, deve ter 11 dígitos (XXX.XXX.XXX-XX)"),
+  document: z.string().length(14, "CPF inválido, deve ter 11 dígitos (XXX.XXX.XXX-XX)")
+    .superRefine((val, ctx) => {
+      try {
+        cpfValidator(val);
+      } catch (err) {
+        ctx.addIssue({ code: 'custom', message: (err as Error).message });
+      }
+    }),
   phone: z.string().min(14, "Telefone inválido (ex: (DD) XXXXX-XXXX)"),
   contractType: z.enum(["FREELANCER", "INDEPENDENT_COLLABORATOR"], {
     message: "Selecione um tipo de contrato",
@@ -46,6 +57,8 @@ const deliverymanFormSchema = z.object({
   vehiclePlate: z.string().optional(),
   vehicleColor: z.string().optional(),
   regionId: z.string().optional(),
+  documents: z.any().optional(),
+  documentUrls: z.array(z.string()).optional(),
 });
 
 type DeliverymanFormData = z.infer<typeof deliverymanFormSchema>;
@@ -78,6 +91,7 @@ export function DeliverymenForm({ deliveryman }: DeliverymenFormProps) {
       vehiclePlate: deliveryman?.vehiclePlate || "",
       vehicleColor: deliveryman?.vehicleColor || "",
       regionId: deliveryman?.regionId || undefined,
+      documents: deliveryman?.documents || [],
     },
   });
   const queryClient = useQueryClient();
@@ -101,6 +115,20 @@ export function DeliverymenForm({ deliveryman }: DeliverymenFormProps) {
   const { mutateAsync, isError, isPending } = useMutation({
     mutationFn: async (data: DeliverymanFormData) => {
       const unmaskedData = clearMasks(data);
+
+      if (data.documents && data.documents.length > 0) {
+        const documentUrls = await Promise.all(
+          data.documents.map(async (file: File) => {
+            const storageRef = ref(storage, `deliverymen-documents/${crypto.randomUUID()}`);
+            await uploadBytes(storageRef, file);
+            const downloadUrl = await getDownloadURL(storageRef);
+            return downloadUrl;
+          }),
+        );
+
+        console.log("Documentos do entregador:", documentUrls);
+        unmaskedData.documentUrls = documentUrls;
+      }
 
       if (deliveryman?.id) {
         return updateDeliveryman({ id: deliveryman.id, ...unmaskedData });
@@ -181,6 +209,24 @@ export function DeliverymenForm({ deliveryman }: DeliverymenFormProps) {
                     </SelectContent>
                   </Select>
                   <FieldError errors={[errors.contractType]} />
+                </Field>
+              )}
+            />
+            <Controller
+              control={control}
+              name="documents"
+              render={({ field }) => (
+                <Field className="md:col-span-2">
+                  <FieldLabel>Documentos</FieldLabel>
+                  <FileUploader
+                    value={field.value}
+                    onChange={field.onChange}
+                    multiple
+                    accept={{
+                      "application/pdf": [".pdf"],
+                      "image/*": [".png", ".jpg", ".jpeg"],
+                    }}
+                  />
                 </Field>
               )}
             />

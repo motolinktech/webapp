@@ -31,6 +31,7 @@ import { clearMask } from "@/lib/masks/clear-mask";
 import { cpfMask } from "@/lib/masks/cpf-mask";
 import { dateMask } from "@/lib/masks/date-mask";
 import { dateToISO } from "@/lib/services/date";
+import { cpfValidator } from "@/lib/utils/cpf-validator";
 import { useBranches } from "@/modules/branches/useBranches";
 import { userPermissions } from "@/modules/users/users.constants";
 import { createUser, updateUser } from "@/modules/users/users.service";
@@ -49,7 +50,14 @@ const userFormSchema = z.object({
   document: z
     .string()
     .min(11, "Documento deve ter pelo menos 11 caracteres")
-    .max(14, "Documento deve ter no máximo 14 caracteres"),
+    .max(14, "Documento deve ter no máximo 14 caracteres")
+    .superRefine((val, ctx) => {
+      try {
+        cpfValidator(val);
+      } catch (err) {
+        ctx.addIssue({ code: 'custom', message: (err as Error).message });
+      }
+    }),
   branches: z.array(z.string()).optional(),
   permissions: z.array(z.string()).optional(),
 });

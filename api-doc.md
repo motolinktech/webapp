@@ -663,7 +663,8 @@ Create a new client with optional commercial conditions.
 | Field | Type | Description |
 |-------|------|-------------|
 | paymentForm | string[] | Payment methods |
-| periods | string[] | Work shift periods |
+| dailyPeriods | string[] | Daily work shift periods |
+| guaranteedPeriods | string[] | Guaranteed work shift periods |
 | deliveryAreaKm | number | Delivery area in km |
 | isMotolinkCovered | boolean | Motolink coverage flag |
 | guaranteedDay | number | Guaranteed daily rate (day) |
@@ -706,7 +707,8 @@ curl -X POST http://localhost:8888/api/clients \
     },
     "commercialCondition": {
       "paymentForm": ["PIX", "Boleto"],
-      "periods": ["DAY", "NIGHT"],
+      "dailyPeriods": ["DAY", "NIGHT"],
+      "guaranteedPeriods": ["DAY"],
       "deliveryAreaKm": 10,
       "isMotolinkCovered": true,
       "clientPerDelivery": 8.50,
@@ -861,7 +863,8 @@ curl -X GET "http://localhost:8888/api/clients/complete?page=1&limit=10" \
         "id": "019012ab-1234-7000-8000-000000000031",
         "clientId": "019012ab-1234-7000-8000-000000000030",
         "paymentForm": ["PIX", "Boleto"],
-        "periods": ["DAY", "NIGHT"],
+        "dailyPeriods": ["DAY", "NIGHT"],
+        "guaranteedPeriods": ["DAY"],
         "deliveryAreaKm": 10,
         "isMotolinkCovered": true,
         "clientPerDelivery": "8.50",
@@ -1159,6 +1162,7 @@ Create a new deliveryman.
 | phone | string | Yes | - | Phone number |
 | contractType | string | Yes | - | Contract type (e.g., "CLT", "PJ", "FREELANCER") |
 | mainPixKey | string | Yes | - | Primary PIX key for payments |
+| files | string[] | No | - | Array of uploaded file URLs |
 | secondPixKey | string | No | - | Secondary PIX key |
 | thridPixKey | string | No | - | Third PIX key |
 | agency | string | No | - | Bank agency |
@@ -1183,6 +1187,7 @@ curl -X POST http://localhost:8888/api/deliverymen \
     "vehicleModel": "Honda CG 160",
     "vehiclePlate": "ABC-1234",
     "vehicleColor": "Vermelho",
+    "files": ["https://cdn.example.com/files/id1.jpg"],
     "regionId": "019012ab-1234-7000-8000-000000000020"
   }'
 ```
@@ -1203,6 +1208,7 @@ curl -X POST http://localhost:8888/api/deliverymen \
   "vehicleModel": "Honda CG 160",
   "vehiclePlate": "ABC-1234",
   "vehicleColor": "Vermelho",
+  "files": [],
   "branchId": "019012ab-1234-7000-8000-000000000010",
   "regionId": "019012ab-1234-7000-8000-000000000020",
   "isBlocked": false,
@@ -1264,6 +1270,7 @@ curl -X GET "http://localhost:8888/api/deliverymen?page=1&limit=10&isBlocked=fal
       "vehicleModel": "Honda CG 160",
       "vehiclePlate": "ABC-1234",
       "vehicleColor": "Vermelho",
+      "files": [],
       "branchId": "019012ab-1234-7000-8000-000000000010",
       "regionId": "019012ab-1234-7000-8000-000000000020",
       "isBlocked": false,
@@ -1310,7 +1317,7 @@ curl -X GET http://localhost:8888/api/deliverymen/019012ab-1234-7000-8000-000000
   -H "branch-id: 019012ab-1234-7000-8000-000000000010"
 ```
 
-**Response (200):** Returns deliveryman with branch and region relations.
+**Response (200):** Returns deliveryman with branch, region relations and `files` array.
 
 **Error Responses:**
 | Status | Message | Description |

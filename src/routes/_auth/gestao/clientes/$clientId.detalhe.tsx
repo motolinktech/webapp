@@ -7,9 +7,9 @@ import { Heading } from "@/components/ui/heading";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Text } from "@/components/ui/text";
-import { moneyMask } from "@/lib/masks/money-mask";
-import { cnpjMask } from "@/lib/masks/cnpj-mask";
 import { cepMask } from "@/lib/masks/cep-mask";
+import { cnpjMask } from "@/lib/masks/cnpj-mask";
+import { moneyMask } from "@/lib/masks/money-mask";
 import { getClientById } from "@/modules/clients/clients.service";
 
 export const Route = createFileRoute("/_auth/gestao/clientes/$clientId/detalhe")({
