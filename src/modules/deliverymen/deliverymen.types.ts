@@ -2,6 +2,7 @@ export interface Deliveryman {
   id: string;
   name: string;
   document: string;
+  files: string[];
   phone: string;
   contractType: string;
   mainPixKey: string;

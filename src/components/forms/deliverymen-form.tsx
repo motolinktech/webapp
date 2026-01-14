@@ -93,7 +93,7 @@ export function DeliverymenForm({ deliveryman }: DeliverymenFormProps) {
       vehiclePlate: deliveryman?.vehiclePlate || "",
       vehicleColor: deliveryman?.vehicleColor || "",
       regionId: deliveryman?.regionId || undefined,
-      documents: deliveryman?.documents || [],
+      documents: deliveryman?.files || [],
     },
   });
   const queryClient = useQueryClient();

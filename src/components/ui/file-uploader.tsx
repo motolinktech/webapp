@@ -1,7 +1,6 @@
-import type * as React from "react";
+import { File, Trash2, Upload } from "lucide-react";
 import { useCallback } from "react";
-import { useDropzone, type Accept } from "react-dropzone";
-import { Upload, Trash2, File } from "lucide-react";
+import { type Accept, useDropzone } from "react-dropzone";
 import { classHelper } from "@/lib/utils/class-helper";
 
 function formatFileSize(bytes: number): string {
@@ -9,7 +8,7 @@ function formatFileSize(bytes: number): string {
   const k = 1024;
   const sizes = ["Bytes", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+  return `${parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
 }
 
 interface FileUploaderProps {
