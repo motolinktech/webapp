@@ -215,10 +215,10 @@ export function ClientsForm({ client }: ClientsFormProps) {
 
     try {
       const data = await searchCnpj(unmaskedCnpj);
-      
+
       // Check if there's existing address data
       const hasAddressData = watch("street") || watch("neighborhood") || watch("city");
-      
+
       if (hasAddressData) {
         // Store data and show confirmation dialog
         setCnpjData(data);
@@ -229,7 +229,7 @@ export function ClientsForm({ client }: ClientsFormProps) {
       }
     } catch (error) {
       setCnpjError(
-        error instanceof Error 
+        error instanceof Error
           ? "Erro ao buscar CNPJ. Verifique se o número está correto."
           : "Erro ao buscar CNPJ. Tente novamente."
       );

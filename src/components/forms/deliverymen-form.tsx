@@ -27,8 +27,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { VEHICLE_TYPES } from "@/lib/constants/vehicle-type";
 import { VEHICLE_COLORS } from "@/lib/constants/colors";
+import { VEHICLE_TYPES } from "@/lib/constants/vehicle-type";
 import { cpfMask } from "@/lib/masks/cpf-mask";
 import { phoneMask } from "@/lib/masks/phone-mask";
 import { storage } from "@/lib/services/firebase.service";
