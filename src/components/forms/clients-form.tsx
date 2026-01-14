@@ -53,9 +53,8 @@ const clientFormSchema = z.object({
   paymentForm: z.array(z.string()).optional(),
   dailyPeriods: z.array(z.string()).optional(),
   guaranteedPeriods: z.array(z.string()).optional(),
-  deliveryAreaKm: z.coerce.number().min(0).optional(),
+  deliveryAreaKm: z.number().min(0).optional(),
   isMotolinkCovered: z.boolean().optional(),
-  // Daily fields (money values as strings with mask)
   clientDailyDay: z.string().optional(),
   clientDailyNight: z.string().optional(),
   clientDailyDayWknd: z.string().optional(),
@@ -64,12 +63,10 @@ const clientFormSchema = z.object({
   courierDailyNight: z.string().optional(),
   courierDailyDayWknd: z.string().optional(),
   courierDailyNightWknd: z.string().optional(),
-  // Guaranteed fields (number values min 1)
-  guaranteedDay: z.coerce.number().min(1, "Valor mínimo é 1").optional(),
-  guaranteedNight: z.coerce.number().min(1, "Valor mínimo é 1").optional(),
-  guaranteedDayWeekend: z.coerce.number().min(1, "Valor mínimo é 1").optional(),
-  guaranteedNightWeekend: z.coerce.number().min(1, "Valor mínimo é 1").optional(),
-  // Delivery area fields (money values as strings with mask)
+  guaranteedDay: z.number().min(1, "Valor mínimo é 1").optional(),
+  guaranteedNight: z.number().min(1, "Valor mínimo é 1").optional(),
+  guaranteedDayWeekend: z.number().min(1, "Valor mínimo é 1").optional(),
+  guaranteedNightWeekend: z.number().min(1, "Valor mínimo é 1").optional(),
   clientPerDelivery: z.string().optional(),
   clientAdditionalKm: z.string().optional(),
   courierPerDelivery: z.string().optional(),
