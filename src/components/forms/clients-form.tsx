@@ -30,6 +30,7 @@ import { cepMask } from "@/lib/masks/cep-mask";
 import { cnpjMask } from "@/lib/masks/cnpj-mask";
 import { clearMoneyMask, moneyMask } from "@/lib/masks/money-mask";
 import { phoneMask } from "@/lib/masks/phone-mask";
+import { BRAZIL_STATES } from "@/lib/utils/states";
 import { createClient, updateClient } from "@/modules/clients/clients.service";
 import type { Client } from "@/modules/clients/clients.types";
 import { listGroups } from "@/modules/groups/groups.service";
@@ -373,11 +374,32 @@ export function ClientsForm({ client }: ClientsFormProps) {
               <FieldError errors={[errors.city]} />
             </Field>
 
-            <Field className="md:col-span-1">
-              <FieldLabel htmlFor="uf">UF</FieldLabel>
-              <Input id="uf" {...register("uf")} />
-              <FieldError errors={[errors.uf]} />
-            </Field>
+            <Controller
+              control={control}
+              name="uf"
+              render={({ field }) => (
+                <Field className="md:col-span-1">
+                  <FieldLabel htmlFor="uf">UF</FieldLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    defaultValue={field.value}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o estado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {BRAZIL_STATES.map((s) => (
+                        <SelectItem key={s.uf} value={s.uf}>
+                          {s.uf} - {s.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FieldError errors={[errors.uf]} />
+                </Field>
+              )}
+            />
           </div>
         </FieldSet>
 
