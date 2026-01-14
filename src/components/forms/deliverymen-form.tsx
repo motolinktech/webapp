@@ -2,7 +2,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, ExternalLink, FileText, Trash2 } from "lucide-react";
+import { useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
@@ -28,7 +29,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { cpfMask } from "@/lib/masks/cpf-mask";
 import { phoneMask } from "@/lib/masks/phone-mask";
-import { storage } from "@/lib/services/storage";
+import { storage } from "@/lib/services/firebase.service";
 import { cpfValidator } from "@/lib/utils/cpf-validator";
 import { createDeliveryman, updateDeliveryman } from "@/modules/deliverymen/deliverymen.service";
 import type { Deliveryman } from "@/modules/deliverymen/deliverymen.types";
@@ -58,7 +59,7 @@ const deliverymanFormSchema = z.object({
   vehicleColor: z.string().optional(),
   regionId: z.string().optional(),
   documents: z.any().optional(),
-  documentUrls: z.array(z.string()).optional(),
+  files: z.array(z.string()).optional(),
 });
 
 type DeliverymanFormData = z.infer<typeof deliverymanFormSchema>;
@@ -96,6 +97,8 @@ export function DeliverymenForm({ deliveryman }: DeliverymenFormProps) {
   });
   const queryClient = useQueryClient();
 
+  const [existingFiles, setExistingFiles] = useState<string[]>(deliveryman?.files || []);
+
   const mainPixKey = useWatch({ control, name: "mainPixKey" });
   const secondPixKey = useWatch({ control, name: "secondPixKey" });
 
@@ -112,22 +115,44 @@ export function DeliverymenForm({ deliveryman }: DeliverymenFormProps) {
     };
   };
 
+  const removeExistingFile = (index: number) => {
+    setExistingFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const getFileNameFromUrl = (url: string) => {
+    try {
+      const decodedUrl = decodeURIComponent(url);
+      const matches = decodedUrl.match(/[^/]+(?=\?|$)/);
+      if (matches) {
+        const fullName = matches[0];
+        const nameParts = fullName.split("-");
+        return nameParts.length > 1 ? nameParts.slice(1).join("-") : fullName;
+      }
+      return "Documento";
+    } catch {
+      return "Documento";
+    }
+  };
+
   const { mutateAsync, isError, isPending } = useMutation({
     mutationFn: async (data: DeliverymanFormData) => {
       const unmaskedData = clearMasks(data);
 
+      let newUploadedFiles: string[] = [];
       if (data.documents && data.documents.length > 0) {
-        const documentUrls = await Promise.all(
+        newUploadedFiles = await Promise.all(
           data.documents.map(async (file: File) => {
-            const storageRef = ref(storage, `deliverymen-documents/${crypto.randomUUID()}`);
+            const storageRef = ref(storage, `deliverymen-documents/${crypto.randomUUID()}-${file.name}`);
             await uploadBytes(storageRef, file);
             const downloadUrl = await getDownloadURL(storageRef);
             return downloadUrl;
           }),
         );
+      }
 
-        console.log("Documentos do entregador:", documentUrls);
-        unmaskedData.documentUrls = documentUrls;
+      const allFiles = [...existingFiles, ...newUploadedFiles];
+      if (allFiles.length > 0) {
+        unmaskedData.files = allFiles;
       }
 
       if (deliveryman?.id) {
@@ -227,6 +252,47 @@ export function DeliverymenForm({ deliveryman }: DeliverymenFormProps) {
                       "image/*": [".png", ".jpg", ".jpeg"],
                     }}
                   />
+                  {existingFiles.length > 0 && (
+                    <div className="mt-3 space-y-2">
+                      <p className="text-sm font-medium text-muted-foreground">
+                        Arquivos existentes
+                      </p>
+                      <ul className="space-y-2">
+                        {existingFiles.map((fileUrl, index) => (
+                          <li
+                            key={fileUrl}
+                            className="flex items-center justify-between gap-3 rounded-lg border bg-background p-3"
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <FileText className="size-5 shrink-0 text-muted-foreground" />
+                              <span className="truncate text-sm font-medium">
+                                {getFileNameFromUrl(fileUrl)}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <a
+                                href={fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                              >
+                                <ExternalLink className="size-4" />
+                                <span className="sr-only">Abrir arquivo</span>
+                              </a>
+                              <button
+                                type="button"
+                                onClick={() => removeExistingFile(index)}
+                                className="shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                              >
+                                <Trash2 className="size-4" />
+                                <span className="sr-only">Remover arquivo</span>
+                              </button>
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </Field>
               )}
             />
