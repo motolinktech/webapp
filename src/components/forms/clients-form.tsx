@@ -1,11 +1,22 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, X } from "lucide-react";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -26,10 +37,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Spinner } from "@/components/ui/spinner";
 import { cepMask } from "@/lib/masks/cep-mask";
+import { clearMask } from "@/lib/masks/clear-mask";
 import { cnpjMask } from "@/lib/masks/cnpj-mask";
 import { clearMoneyMask, moneyMask } from "@/lib/masks/money-mask";
 import { phoneMask } from "@/lib/masks/phone-mask";
+import { searchCnpj } from "@/lib/services/brazil-api";
 import { BRAZIL_STATES } from "@/lib/utils/states";
 import { createClient, updateClient } from "@/modules/clients/clients.service";
 import type { Client } from "@/modules/clients/clients.types";
@@ -78,6 +92,16 @@ const clientFormSchema = z.object({
 import { Textarea } from "../ui/textarea";
 import { PAYMENT_TYPES, PERIOD_TYPES } from "./clients.constants";
 
+interface CnpjData {
+  cep?: string;
+  logradouro?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
+  municipio?: string;
+  uf?: string;
+}
+
 type ClientFormData = z.infer<typeof clientFormSchema>;
 
 interface ClientsFormProps {
@@ -85,6 +109,11 @@ interface ClientsFormProps {
 }
 
 export function ClientsForm({ client }: ClientsFormProps) {
+  const [isCnpjLoading, setIsCnpjLoading] = useState(false);
+  const [cnpjError, setCnpjError] = useState<string | null>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [cnpjData, setCnpjData] = useState<CnpjData | null>(null);
+
   const {
     register,
     handleSubmit,
@@ -173,6 +202,60 @@ export function ClientsForm({ client }: ClientsFormProps) {
       setValue(fieldName, [...current, periodType]);
     }
   };
+
+  const handleCnpjLookup = async () => {
+    const cnpjValue = watch("cnpj");
+    if (!cnpjValue || cnpjValue.length < 18) return;
+
+    const unmaskedCnpj = clearMask(cnpjValue);
+    if (unmaskedCnpj.length !== 14) return;
+
+    setIsCnpjLoading(true);
+    setCnpjError(null);
+
+    try {
+      const data = await searchCnpj(unmaskedCnpj);
+      
+      // Check if there's existing address data
+      const hasAddressData = watch("street") || watch("neighborhood") || watch("city");
+      
+      if (hasAddressData) {
+        // Store data and show confirmation dialog
+        setCnpjData(data);
+        setShowConfirmDialog(true);
+      } else {
+        // Directly update fields
+        updateAddressFields(data);
+      }
+    } catch (error) {
+      setCnpjError(
+        error instanceof Error 
+          ? "Erro ao buscar CNPJ. Verifique se o número está correto."
+          : "Erro ao buscar CNPJ. Tente novamente."
+      );
+    } finally {
+      setIsCnpjLoading(false);
+    }
+  };
+
+  const updateAddressFields = (data: CnpjData) => {
+    if (data.cep) setValue("cep", cepMask(data.cep));
+    if (data.logradouro) setValue("street", data.logradouro);
+    if (data.numero) setValue("number", data.numero);
+    if (data.complemento) setValue("complement", data.complemento);
+    if (data.bairro) setValue("neighborhood", data.bairro);
+    if (data.municipio) setValue("city", data.municipio);
+    if (data.uf) setValue("uf", data.uf);
+  };
+
+  const handleConfirmOverwrite = () => {
+    if (cnpjData) {
+      updateAddressFields(cnpjData);
+    }
+    setShowConfirmDialog(false);
+    setCnpjData(null);
+  };
+
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -286,6 +369,23 @@ export function ClientsForm({ client }: ClientsFormProps) {
           </Alert>
         )}
 
+        {cnpjError && (
+          <Alert variant="destructive">
+            <AlertCircle className="size-4" />
+            <AlertDescription className="flex items-center justify-between gap-2">
+              <span>{cnpjError}</span>
+              <button
+                type="button"
+                onClick={() => setCnpjError(null)}
+                className="shrink-0 rounded-sm opacity-70 transition-opacity hover:opacity-100"
+              >
+                <X className="size-4" />
+                <span className="sr-only">Fechar</span>
+              </button>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <FieldSet>
           <FieldLegend>Informações Gerais</FieldLegend>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -297,14 +397,23 @@ export function ClientsForm({ client }: ClientsFormProps) {
 
             <Field>
               <FieldLabel htmlFor="cnpj">CNPJ</FieldLabel>
-              <Input
-                id="cnpj"
-                {...register("cnpj", {
-                  onChange: (e) => {
-                    e.target.value = cnpjMask(e.target.value);
-                  },
-                })}
-              />
+              <div className="relative">
+                <Input
+                  id="cnpj"
+                  disabled={isCnpjLoading}
+                  {...register("cnpj", {
+                    onChange: (e) => {
+                      e.target.value = cnpjMask(e.target.value);
+                    },
+                    onBlur: handleCnpjLookup,
+                  })}
+                />
+                {isCnpjLoading && (
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                    <Spinner className="size-4" />
+                  </div>
+                )}
+              </div>
               <FieldError errors={[errors.cnpj]} />
             </Field>
 
@@ -823,6 +932,28 @@ export function ClientsForm({ client }: ClientsFormProps) {
           {client?.id ? "Atualizar Cliente" : "Criar Cliente"}
         </Button>
       </FieldGroup>
+
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Substituir dados de endereço?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Já existem dados de endereço preenchidos. Deseja substituí-los pelos dados retornados do CNPJ?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setShowConfirmDialog(false);
+              setCnpjData(null);
+            }}>
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmOverwrite}>
+              Substituir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </form>
   );
 }
