@@ -27,7 +27,7 @@ const items = [
       },
       {
         title: "Monitoramento",
-        url: "/operacional/monitoramento",
+        url: "/operacional/monitoramento/diario",
       },
     ],
   },

@@ -21,6 +21,7 @@ import { Route as AuthGestaoGruposIndexRouteImport } from './routes/_auth/gestao
 import { Route as AuthGestaoEntregadoresIndexRouteImport } from './routes/_auth/gestao/entregadores/index'
 import { Route as AuthGestaoClientesIndexRouteImport } from './routes/_auth/gestao/clientes/index'
 import { Route as AuthRhColaboradoresNovoRouteImport } from './routes/_auth/rh/colaboradores/novo'
+import { Route as AuthOperacionalMonitoramentoDiarioRouteImport } from './routes/_auth/operacional/monitoramento/diario'
 import { Route as AuthGestaoRegiaoNovoRouteImport } from './routes/_auth/gestao/regiao/novo'
 import { Route as AuthGestaoGruposNovoRouteImport } from './routes/_auth/gestao/grupos/novo'
 import { Route as AuthGestaoEntregadoresNovoRouteImport } from './routes/_auth/gestao/entregadores/novo'
@@ -98,6 +99,12 @@ const AuthRhColaboradoresNovoRoute = AuthRhColaboradoresNovoRouteImport.update({
   path: '/rh/colaboradores/novo',
   getParentRoute: () => AuthRoute,
 } as any)
+const AuthOperacionalMonitoramentoDiarioRoute =
+  AuthOperacionalMonitoramentoDiarioRouteImport.update({
+    id: '/operacional/monitoramento/diario',
+    path: '/operacional/monitoramento/diario',
+    getParentRoute: () => AuthRoute,
+  } as any)
 const AuthGestaoRegiaoNovoRoute = AuthGestaoRegiaoNovoRouteImport.update({
   id: '/gestao/regiao/novo',
   path: '/gestao/regiao/novo',
@@ -189,6 +196,7 @@ export interface FileRoutesByFullPath {
   '/gestao/entregadores/novo': typeof AuthGestaoEntregadoresNovoRoute
   '/gestao/grupos/novo': typeof AuthGestaoGruposNovoRoute
   '/gestao/regiao/novo': typeof AuthGestaoRegiaoNovoRoute
+  '/operacional/monitoramento/diario': typeof AuthOperacionalMonitoramentoDiarioRoute
   '/rh/colaboradores/novo': typeof AuthRhColaboradoresNovoRoute
   '/gestao/clientes': typeof AuthGestaoClientesIndexRoute
   '/gestao/entregadores': typeof AuthGestaoEntregadoresIndexRoute
@@ -216,6 +224,7 @@ export interface FileRoutesByTo {
   '/gestao/entregadores/novo': typeof AuthGestaoEntregadoresNovoRoute
   '/gestao/grupos/novo': typeof AuthGestaoGruposNovoRoute
   '/gestao/regiao/novo': typeof AuthGestaoRegiaoNovoRoute
+  '/operacional/monitoramento/diario': typeof AuthOperacionalMonitoramentoDiarioRoute
   '/rh/colaboradores/novo': typeof AuthRhColaboradoresNovoRoute
   '/gestao/clientes': typeof AuthGestaoClientesIndexRoute
   '/gestao/entregadores': typeof AuthGestaoEntregadoresIndexRoute
@@ -245,6 +254,7 @@ export interface FileRoutesById {
   '/_auth/gestao/entregadores/novo': typeof AuthGestaoEntregadoresNovoRoute
   '/_auth/gestao/grupos/novo': typeof AuthGestaoGruposNovoRoute
   '/_auth/gestao/regiao/novo': typeof AuthGestaoRegiaoNovoRoute
+  '/_auth/operacional/monitoramento/diario': typeof AuthOperacionalMonitoramentoDiarioRoute
   '/_auth/rh/colaboradores/novo': typeof AuthRhColaboradoresNovoRoute
   '/_auth/gestao/clientes/': typeof AuthGestaoClientesIndexRoute
   '/_auth/gestao/entregadores/': typeof AuthGestaoEntregadoresIndexRoute
@@ -274,6 +284,7 @@ export interface FileRouteTypes {
     | '/gestao/entregadores/novo'
     | '/gestao/grupos/novo'
     | '/gestao/regiao/novo'
+    | '/operacional/monitoramento/diario'
     | '/rh/colaboradores/novo'
     | '/gestao/clientes'
     | '/gestao/entregadores'
@@ -301,6 +312,7 @@ export interface FileRouteTypes {
     | '/gestao/entregadores/novo'
     | '/gestao/grupos/novo'
     | '/gestao/regiao/novo'
+    | '/operacional/monitoramento/diario'
     | '/rh/colaboradores/novo'
     | '/gestao/clientes'
     | '/gestao/entregadores'
@@ -329,6 +341,7 @@ export interface FileRouteTypes {
     | '/_auth/gestao/entregadores/novo'
     | '/_auth/gestao/grupos/novo'
     | '/_auth/gestao/regiao/novo'
+    | '/_auth/operacional/monitoramento/diario'
     | '/_auth/rh/colaboradores/novo'
     | '/_auth/gestao/clientes/'
     | '/_auth/gestao/entregadores/'
@@ -441,6 +454,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRhColaboradoresNovoRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/operacional/monitoramento/diario': {
+      id: '/_auth/operacional/monitoramento/diario'
+      path: '/operacional/monitoramento/diario'
+      fullPath: '/operacional/monitoramento/diario'
+      preLoaderRoute: typeof AuthOperacionalMonitoramentoDiarioRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/gestao/regiao/novo': {
       id: '/_auth/gestao/regiao/novo'
       path: '/gestao/regiao/novo'
@@ -548,6 +568,7 @@ interface AuthRouteChildren {
   AuthGestaoEntregadoresNovoRoute: typeof AuthGestaoEntregadoresNovoRoute
   AuthGestaoGruposNovoRoute: typeof AuthGestaoGruposNovoRoute
   AuthGestaoRegiaoNovoRoute: typeof AuthGestaoRegiaoNovoRoute
+  AuthOperacionalMonitoramentoDiarioRoute: typeof AuthOperacionalMonitoramentoDiarioRoute
   AuthRhColaboradoresNovoRoute: typeof AuthRhColaboradoresNovoRoute
   AuthGestaoClientesIndexRoute: typeof AuthGestaoClientesIndexRoute
   AuthGestaoEntregadoresIndexRoute: typeof AuthGestaoEntregadoresIndexRoute
@@ -573,6 +594,8 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthGestaoEntregadoresNovoRoute: AuthGestaoEntregadoresNovoRoute,
   AuthGestaoGruposNovoRoute: AuthGestaoGruposNovoRoute,
   AuthGestaoRegiaoNovoRoute: AuthGestaoRegiaoNovoRoute,
+  AuthOperacionalMonitoramentoDiarioRoute:
+    AuthOperacionalMonitoramentoDiarioRoute,
   AuthRhColaboradoresNovoRoute: AuthRhColaboradoresNovoRoute,
   AuthGestaoClientesIndexRoute: AuthGestaoClientesIndexRoute,
   AuthGestaoEntregadoresIndexRoute: AuthGestaoEntregadoresIndexRoute,
