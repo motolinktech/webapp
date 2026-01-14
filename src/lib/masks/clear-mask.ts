@@ -1,3 +1,1 @@
-export function clearMask(value: string): string {
-  return value.replace(/\D/g, "");
-}
+export const clearMask = (value: string): string => value.replace(/\D/g, "");

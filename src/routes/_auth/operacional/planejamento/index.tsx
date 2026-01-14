@@ -1,11 +1,20 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { Eye, Info, Pencil } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Check, ChevronLeft, ChevronRight, ChevronsUpDown, Info, Loader2, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ContentHeader } from "@/components/composite/content-header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -23,8 +32,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { classHelper } from "@/lib/utils/class-helper";
-import { listClients } from "@/modules/clients/clients.service";
+import { getStoreBranch } from "@/modules/branches/branches.service";
+import { getClientById, listClients } from "@/modules/clients/clients.service";
 import { listGroups } from "@/modules/groups/groups.service";
+import { createPlanning, listPlannings, updatePlanning } from "@/modules/planning/planning.service";
+import type { Planning } from "@/modules/planning/planning.types";
 
 export const Route = createFileRoute("/_auth/operacional/planejamento/")({
   component: Planejamento,
@@ -32,13 +44,13 @@ export const Route = createFileRoute("/_auth/operacional/planejamento/")({
 
 const WEEKDAY_LABELS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sab", "Dom"];
 
-function getWeekDates(): Date[] {
+function getWeekDates(weekOffset = 0): Date[] {
   const today = new Date();
   const dayOfWeek = today.getDay();
   const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
 
   const monday = new Date(today);
-  monday.setDate(today.getDate() + mondayOffset);
+  monday.setDate(today.getDate() + mondayOffset + weekOffset * 7);
   monday.setHours(0, 0, 0, 0);
 
   const weekDates: Date[] = [];
@@ -49,6 +61,12 @@ function getWeekDates(): Date[] {
   }
 
   return weekDates;
+}
+
+function isPastDay(date: Date): boolean {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return date < today;
 }
 
 function formatDate(date: Date): string {
@@ -64,24 +82,211 @@ function isToday(date: Date): boolean {
   );
 }
 
-function Planejamento() {
-  const [selectedGroupId, setSelectedGroupId] = useState<string>("");
+function toDateKey(date: Date): string {
+  return date.toISOString().split("T")[0];
+}
 
-  const weekDates = useMemo(() => getWeekDates(), []);
+function getCellKey(clientId: string, date: Date): string {
+  return `${clientId}-${toDateKey(date)}`;
+}
+
+function Planejamento() {
+  const queryClient = useQueryClient();
+  const [selectedGroupId, setSelectedGroupId] = useState<string>("");
+  const [selectedClientId, setSelectedClientId] = useState<string>("");
+  const [clientSearchOpen, setClientSearchOpen] = useState(false);
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [inputValues, setInputValues] = useState<Map<string, string>>(new Map());
+  const [savingCells, setSavingCells] = useState<Set<string>>(new Set());
+  const [savedCells, setSavedCells] = useState<Set<string>>(new Set());
+
+  const weekDates = useMemo(() => getWeekDates(weekOffset), [weekOffset]);
+
+  const goToPreviousWeek = () => {
+    setWeekOffset((prev) => prev - 1);
+    setInputValues(new Map());
+  };
+
+  const goToNextWeek = () => {
+    setWeekOffset((prev) => prev + 1);
+    setInputValues(new Map());
+  };
+
+  const weekRangeLabel = useMemo(() => {
+    const start = formatDate(weekDates[0]);
+    const end = formatDate(weekDates[6]);
+    return `${start} - ${end}`;
+  }, [weekDates]);
+  const startDate = weekDates[0]?.toISOString();
+  const endDate = weekDates[6]?.toISOString();
 
   const { data: groupsData, isLoading: isLoadingGroups } = useQuery({
     queryKey: ["groups"],
     queryFn: () => listGroups({ limit: 100 }),
   });
 
+  const { data: searchClientsData } = useQuery({
+    queryKey: ["clients-search"],
+    queryFn: () => listClients({ limit: 20 }),
+    enabled: clientSearchOpen,
+  });
+
+  const { data: selectedClientData, isLoading: isLoadingSelectedClient } = useQuery({
+    queryKey: ["client", selectedClientId],
+    queryFn: () => getClientById(selectedClientId),
+    enabled: !!selectedClientId,
+  });
+
   const { data: clientsData, isLoading: isLoadingClients } = useQuery({
     queryKey: ["clients", selectedGroupId],
     queryFn: () => listClients({ groupId: selectedGroupId, limit: 100 }),
-    enabled: !!selectedGroupId,
+    enabled: !!selectedGroupId && !selectedClientId,
+  });
+
+  const clientIds = useMemo(() => {
+    if (selectedClientId) return [selectedClientId];
+    return clientsData?.data?.map((c) => c.id) || [];
+  }, [selectedClientId, clientsData?.data]);
+
+  const hasActiveFilter = !!selectedGroupId || !!selectedClientId;
+
+  const { data: planningsData } = useQuery({
+    queryKey: ["plannings", selectedGroupId, selectedClientId, startDate, endDate],
+    queryFn: () =>
+      listPlannings({
+        startDate,
+        endDate,
+        clientId: selectedClientId || undefined,
+        limit: 1000,
+      }),
+    enabled: hasActiveFilter && clientIds.length > 0,
   });
 
   const groups = groupsData?.data || [];
-  const clients = clientsData?.data || [];
+  const clients = useMemo(() => {
+    if (selectedClientId && selectedClientData) {
+      return [selectedClientData];
+    }
+    return clientsData?.data || [];
+  }, [selectedClientId, selectedClientData, clientsData?.data]);
+
+  const planningMap = useMemo(() => {
+    const map = new Map<string, Planning>();
+    const plannings = planningsData?.data || [];
+    for (const planning of plannings) {
+      const dateKey = planning.plannedDate.split("T")[0];
+      const key = `${planning.clientId}-${dateKey}`;
+      map.set(key, planning);
+    }
+    return map;
+  }, [planningsData?.data]);
+
+  useEffect(() => {
+    if (planningMap.size === 0) return;
+    setInputValues((prev) => {
+      const newMap = new Map(prev);
+      for (const [key, planning] of planningMap) {
+        if (!newMap.has(key)) {
+          newMap.set(key, String(planning.plannedCount));
+        }
+      }
+      return newMap;
+    });
+  }, [planningMap]);
+
+  const saveMutation = useMutation({
+    mutationFn: async ({
+      clientId,
+      date,
+      value,
+    }: {
+      clientId: string;
+      date: Date;
+      value: number;
+    }) => {
+      const cellKey = getCellKey(clientId, date);
+      const existing = planningMap.get(cellKey);
+      const branchId = getStoreBranch()?.id;
+
+      if (!branchId) throw new Error("Branch not selected");
+
+      if (existing) {
+        return updatePlanning({
+          id: existing.id,
+          plannedCount: value,
+        });
+      }
+      return createPlanning({
+        clientId,
+        branchId,
+        plannedDate: date.toISOString(),
+        plannedCount: value,
+      });
+    },
+    onSuccess: (_, variables) => {
+      const cellKey = getCellKey(variables.clientId, variables.date);
+      setSavingCells((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(cellKey);
+        return newSet;
+      });
+      setSavedCells((prev) => new Set(prev).add(cellKey));
+      setTimeout(() => {
+        setSavedCells((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(cellKey);
+          return newSet;
+        });
+      }, 2000);
+      queryClient.invalidateQueries({
+        queryKey: ["plannings", selectedGroupId, startDate, endDate],
+      });
+    },
+    onError: (_, variables) => {
+      const cellKey = getCellKey(variables.clientId, variables.date);
+      setSavingCells((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(cellKey);
+        return newSet;
+      });
+    },
+  });
+
+  const handleInputChange = useCallback((clientId: string, date: Date, value: string) => {
+    const cellKey = getCellKey(clientId, date);
+    setInputValues((prev) => new Map(prev).set(cellKey, value));
+  }, []);
+
+  const handleBlur = useCallback(
+    (clientId: string, date: Date) => {
+      const cellKey = getCellKey(clientId, date);
+      const currentValue = inputValues.get(cellKey) ?? "";
+      const existing = planningMap.get(cellKey);
+      const originalValue = existing ? String(existing.plannedCount) : "";
+
+      if (currentValue === "" && !existing) return;
+
+      const numValue = Math.max(0, Number.parseInt(currentValue, 10) || 0);
+
+      if (String(numValue) === originalValue) return;
+
+      setSavingCells((prev) => new Set(prev).add(cellKey));
+      saveMutation.mutate({ clientId, date, value: numValue });
+    },
+    [inputValues, planningMap, saveMutation],
+  );
+
+  const getInputValue = useCallback(
+    (clientId: string, date: Date): string => {
+      const cellKey = getCellKey(clientId, date);
+      if (inputValues.has(cellKey)) {
+        return inputValues.get(cellKey) ?? "";
+      }
+      const planning = planningMap.get(cellKey);
+      return planning ? String(planning.plannedCount) : "";
+    },
+    [inputValues, planningMap],
+  );
 
   return (
     <div className="flex flex-1 flex-col">
@@ -100,10 +305,16 @@ function Planejamento() {
           </p>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="w-72">
-            <Select value={selectedGroupId} onValueChange={setSelectedGroupId}>
-              <SelectTrigger className="w-full">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <Select
+              value={selectedGroupId}
+              onValueChange={(value) => {
+                setSelectedGroupId(value);
+                setSelectedClientId("");
+              }}
+            >
+              <SelectTrigger className="w-56">
                 <SelectValue placeholder="Selecione um grupo" />
               </SelectTrigger>
               <SelectContent>
@@ -120,39 +331,106 @@ function Planejamento() {
                 )}
               </SelectContent>
             </Select>
+
+            <Popover open={clientSearchOpen} onOpenChange={setClientSearchOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={clientSearchOpen}
+                  className="w-56 justify-between"
+                >
+                  <span className="truncate">
+                    {selectedClientId && selectedClientData
+                      ? selectedClientData.name
+                      : "Buscar cliente..."}
+                  </span>
+                  {selectedClientId ? (
+                    <X
+                      className="ml-2 size-4 shrink-0 opacity-50 hover:opacity-100"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedClientId("");
+                      }}
+                    />
+                  ) : (
+                    <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-56 p-0">
+                <Command>
+                  <CommandInput placeholder="Buscar cliente..." />
+                  <CommandList>
+                    <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
+                    <CommandGroup>
+                      {searchClientsData?.data?.map((client) => (
+                        <CommandItem
+                          key={client.id}
+                          value={client.name}
+                          onSelect={() => {
+                            setSelectedClientId(client.id);
+                            setSelectedGroupId("");
+                            setClientSearchOpen(false);
+                          }}
+                        >
+                          {client.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="icon" onClick={goToPreviousWeek}>
+              <ChevronLeft className="size-4" />
+            </Button>
+            <span className="min-w-[120px] text-center text-sm font-medium">{weekRangeLabel}</span>
+            <Button variant="outline" size="icon" onClick={goToNextWeek}>
+              <ChevronRight className="size-4" />
+            </Button>
           </div>
         </div>
 
-        {!selectedGroupId && (
+        {!hasActiveFilter && (
           <Alert className="w-full">
             <Info className="size-4" />
-            <AlertTitle>Nenhum grupo selecionado</AlertTitle>
+            <AlertTitle>Nenhum filtro selecionado</AlertTitle>
             <AlertDescription>
-              Selecione um grupo para visualizar os clientes e gerenciar o planejamento semanal.
+              Selecione um grupo ou busque um cliente para visualizar e gerenciar o planejamento
+              semanal.
             </AlertDescription>
           </Alert>
         )}
 
-        {selectedGroupId && !isLoadingClients && clients.length === 0 && (
-          <Alert className="w-full">
-            <Info className="size-4" />
-            <AlertTitle>Nenhum cliente encontrado</AlertTitle>
-            <AlertDescription>
-              Não há clientes cadastrados neste grupo. Adicione clientes para começar o planejamento.
-            </AlertDescription>
-          </Alert>
-        )}
+        {hasActiveFilter &&
+          !isLoadingClients &&
+          !isLoadingSelectedClient &&
+          clients.length === 0 && (
+            <Alert className="w-full">
+              <Info className="size-4" />
+              <AlertTitle>Nenhum cliente encontrado</AlertTitle>
+              <AlertDescription>
+                {selectedGroupId
+                  ? "Não há clientes cadastrados neste grupo. Adicione clientes para começar o planejamento."
+                  : "Cliente não encontrado. Verifique se o cliente existe."}
+              </AlertDescription>
+            </Alert>
+          )}
 
-        {selectedGroupId && (isLoadingClients || clients.length > 0) && (
+        {hasActiveFilter && (isLoadingClients || isLoadingSelectedClient || clients.length > 0) && (
           <div className="rounded-md border bg-card">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="min-w-[200px]">Cliente</TableHead>
+                  <TableHead className="min-w-[150px]">Cliente</TableHead>
                   {weekDates.map((date, index) => (
                     <TableHead
                       key={date.toISOString()}
-                      className={classHelper("w-24 text-center", isToday(date) && "bg-primary/10")}
+                      className={classHelper("w-36 text-center", isToday(date) && "bg-primary/10")}
                     >
                       <div className="flex flex-col items-center">
                         <span className="text-xs font-medium">{WEEKDAY_LABELS[index]}</span>
@@ -171,57 +449,71 @@ function Planejamento() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {isLoadingClients ? (
-                  [...Array(5)].map((_, index) => (
-                    <TableRow
-                      key={`skeleton-${
-                        // biome-ignore lint/suspicious/noArrayIndexKey: skeleton rows
-                        index
+                {isLoadingClients
+                  ? [...Array(5)].map((_, index) => (
+                      <TableRow
+                        key={`skeleton-${
+                          // biome-ignore lint/suspicious/noArrayIndexKey: skeleton rows
+                          index
                         }`}
-                    >
-                      <TableCell>
-                        <Skeleton className="h-8 w-full" />
-                      </TableCell>
-                      {weekDates.map((date) => (
-                        <TableCell key={date.toISOString()}>
+                      >
+                        <TableCell>
                           <Skeleton className="h-8 w-full" />
                         </TableCell>
-                      ))}
-                      <TableCell>
-                        <Skeleton className="h-8 w-16" />
-                      </TableCell>
-                    </TableRow>
-                  ))
-                ) : (
-                  clients.map((client) => (
-                    <TableRow key={client.id}>
-                      <TableCell className="font-medium">{client.name}</TableCell>
-                      {weekDates.map((date) => (
-                        <TableCell
-                          key={date.toISOString()}
-                          className={classHelper("text-center", isToday(date) && "bg-primary/5")}
-                        >
-                          <Input
-                            type="number"
-                            min={0}
-                            className="h-8 w-16 text-center mx-auto"
-                            placeholder="0"
-                          />
+                        {weekDates.map((date) => (
+                          <TableCell key={date.toISOString()}>
+                            <Skeleton className="h-8 w-full" />
+                          </TableCell>
+                        ))}
+                        <TableCell>
+                          <Skeleton className="h-8 w-16" />
                         </TableCell>
-                      ))}
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button variant="ghost" size="icon-sm">
-                            <Eye className="size-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon-sm">
-                            <Pencil className="size-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
+                      </TableRow>
+                    ))
+                  : clients.map((client) => (
+                      <TableRow key={client.id}>
+                        <TableCell className="font-medium text-sm">{client.name}</TableCell>
+                        {weekDates.map((date) => {
+                          const cellKey = getCellKey(client.id, date);
+                          const isSaving = savingCells.has(cellKey);
+                          const isSaved = savedCells.has(cellKey);
+                          const isPast = isPastDay(date);
+
+                          return (
+                            <TableCell
+                              key={date.toISOString()}
+                              className={classHelper(
+                                "text-center w-36",
+                                isToday(date) && "bg-primary/5",
+                                isPast && "bg-muted/50",
+                              )}
+                            >
+                              <div className="relative flex items-center justify-center">
+                                <Input
+                                  type="number"
+                                  min={0}
+                                  className="h-8 w-20 text-center"
+                                  placeholder="0"
+                                  value={getInputValue(client.id, date)}
+                                  onChange={(e) =>
+                                    handleInputChange(client.id, date, e.target.value)
+                                  }
+                                  onBlur={() => handleBlur(client.id, date)}
+                                  disabled={isSaving || isPast}
+                                />
+                                {isSaving && (
+                                  <Loader2 className="absolute right-1 size-3 animate-spin text-muted-foreground" />
+                                )}
+                                {isSaved && !isSaving && (
+                                  <Check className="absolute right-1 size-3 text-green-500" />
+                                )}
+                              </div>
+                            </TableCell>
+                          );
+                        })}
+                        <TableCell />
+                      </TableRow>
+                    ))}
               </TableBody>
             </Table>
           </div>
