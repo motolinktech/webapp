@@ -73,17 +73,7 @@ const clientFormSchema = z.object({
   deliverymanAdditionalKm: z.string().optional(),
 });
 
-const PAYMENT_TYPES = [
-  { value: "DAILY", label: "Diária" },
-  { value: "GUARANTEED", label: "Qt. Garantida" },
-];
-
-const PERIOD_TYPES = [
-  { value: "WEEK_DAY", label: "Semanal (Dia)" },
-  { value: "WEEK_NIGHT", label: "Semanal (Noite)" },
-  { value: "WEEKEND_DAY", label: "Fim de Semana (Dia)" },
-  { value: "WEEKEND_NIGHT", label: "Fim de Semana (Noite)" },
-];
+import { PAYMENT_TYPES, PERIOD_TYPES } from "./clients.constants";
 
 type ClientFormData = z.infer<typeof clientFormSchema>;
 
@@ -601,7 +591,6 @@ export function ClientsForm({ client }: ClientsFormProps) {
               </div>
             )}
 
-            {/* Dynamic inputs for GUARANTEED payment type - shown second */}
             {selectedPaymentForm.includes("GUARANTEED") && selectedGuaranteedPeriods.length > 0 && (
               <div className="col-span-2 grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg bg-muted/30">
                 <FieldLegend className="col-span-1 md:col-span-4 mb-0">Valores - Qt. Garantida</FieldLegend>

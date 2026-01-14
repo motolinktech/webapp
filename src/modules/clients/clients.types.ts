@@ -2,7 +2,8 @@ export interface CommercialCondition {
   id: string;
   clientId: string;
   paymentForm: string[];
-  paymentTermDays: number;
+  dailyPeriods: string[];
+  guaranteedPeriods: string[];
   deliveryAreaKm: number;
   isMotolinkCovered: boolean;
   guaranteedDay: number;

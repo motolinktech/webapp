@@ -663,7 +663,7 @@ Create a new client with optional commercial conditions.
 | Field | Type | Description |
 |-------|------|-------------|
 | paymentForm | string[] | Payment methods |
-| paymentTermDays | number | Payment term in days |
+| periods | string[] | Work shift periods |
 | deliveryAreaKm | number | Delivery area in km |
 | isMotolinkCovered | boolean | Motolink coverage flag |
 | guaranteedDay | number | Guaranteed daily rate (day) |
@@ -706,7 +706,7 @@ curl -X POST http://localhost:8888/api/clients \
     },
     "commercialCondition": {
       "paymentForm": ["PIX", "Boleto"],
-      "paymentTermDays": 30,
+      "periods": ["DAY", "NIGHT"],
       "deliveryAreaKm": 10,
       "isMotolinkCovered": true,
       "clientPerDelivery": 8.50,
@@ -861,7 +861,7 @@ curl -X GET "http://localhost:8888/api/clients/complete?page=1&limit=10" \
         "id": "019012ab-1234-7000-8000-000000000031",
         "clientId": "019012ab-1234-7000-8000-000000000030",
         "paymentForm": ["PIX", "Boleto"],
-        "paymentTermDays": 30,
+        "periods": ["DAY", "NIGHT"],
         "deliveryAreaKm": 10,
         "isMotolinkCovered": true,
         "clientPerDelivery": "8.50",
