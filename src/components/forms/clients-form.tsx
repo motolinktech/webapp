@@ -49,6 +49,7 @@ const clientFormSchema = z.object({
   neighborhood: z.string(),
   city: z.string(),
   uf: z.string(),
+  observations: z.string().optional(),
   regionId: z.string().optional(),
   groupId: z.string().optional(),
   paymentForm: z.array(z.string()).optional(),
@@ -74,6 +75,7 @@ const clientFormSchema = z.object({
   deliverymanAdditionalKm: z.string().optional(),
 });
 
+import { Textarea } from "../ui/textarea";
 import { PAYMENT_TYPES, PERIOD_TYPES } from "./clients.constants";
 
 type ClientFormData = z.infer<typeof clientFormSchema>;
@@ -95,16 +97,17 @@ export function ClientsForm({ client }: ClientsFormProps) {
     shouldUnregister: true,
     defaultValues: {
       name: client?.name || "",
-      cnpj: client?.cnpj || "",
+      cnpj: client?.cnpj ? cnpjMask(client.cnpj) : "",
       contactName: client?.contactName || "",
-      contactPhone: client?.contactPhone || "",
-      cep: client?.cep || "",
+      contactPhone: client?.contactPhone ? phoneMask(client.contactPhone) : "",
+      cep: client?.cep ? cepMask(client.cep) : "",
       street: client?.street || "",
       number: client?.number || "",
       complement: client?.complement || "",
       neighborhood: client?.neighborhood || "",
       city: client?.city || "",
       uf: client?.uf || "",
+      observations: client?.observations || "",
       regionId: client?.regionId || undefined,
       groupId: client?.groupId || undefined,
       paymentForm: client?.commercialCondition?.paymentForm || [],
@@ -804,6 +807,17 @@ export function ClientsForm({ client }: ClientsFormProps) {
           </div>
         </FieldSet>
 
+        <Separator />
+
+        <Field>
+          <FieldLabel htmlFor="observations">Observações</FieldLabel>
+          <Textarea
+            id="observations"
+            {...register("observations")}
+            placeholder="Adicione observações sobre o cliente..."
+          />
+          <FieldError errors={[errors.observations]} />
+        </Field>
 
         <Button type="submit" isLoading={isPending} className="md:w-fit mt-8">
           {client?.id ? "Atualizar Cliente" : "Criar Cliente"}

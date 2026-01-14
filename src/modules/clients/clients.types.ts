@@ -37,6 +37,7 @@ export interface Client {
   uf: string;
   contactName: string;
   contactPhone?: string;
+  observations?: string;
   branchId: string;
   regionId: string | null;
   groupId: string | null;
@@ -78,6 +79,7 @@ export interface CreateClientPayload {
   uf: string;
   contactName: string;
   contactPhone: string;
+  observations?: string;
   regionId?: string;
   groupId?: string;
 }

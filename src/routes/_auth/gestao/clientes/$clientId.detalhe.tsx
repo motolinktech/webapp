@@ -10,6 +10,7 @@ import { Text } from "@/components/ui/text";
 import { cepMask } from "@/lib/masks/cep-mask";
 import { cnpjMask } from "@/lib/masks/cnpj-mask";
 import { moneyMask } from "@/lib/masks/money-mask";
+import { phoneMask } from "@/lib/masks/phone-mask";
 import { getClientById } from "@/modules/clients/clients.service";
 
 export const Route = createFileRoute("/_auth/gestao/clientes/$clientId/detalhe")({
@@ -108,7 +109,7 @@ function ClientDetails() {
 
                 <div className="space-y-2">
                   <Text variant="muted">Telefone do Contato</Text>
-                  <Text variant="large">{client.contactPhone || "N/A"}</Text>
+                  <Text variant="large">{client.contactPhone ? phoneMask(client.contactPhone) : "N/A"}</Text>
                 </div>
 
                 <div className="space-y-2">
@@ -119,6 +120,11 @@ function ClientDetails() {
                 <div className="space-y-2">
                   <Text variant="muted">Grupo</Text>
                   <Text variant="large">{client.group?.name || "N/A"}</Text>
+                </div>
+
+                <div className="space-y-2 col-span-1 md:col-span-2 lg:col-span-3">
+                  <Text variant="muted">Observações</Text>
+                  <Text variant="large">{client.observations || "N/A"}</Text>
                 </div>
               </div>
             </div>
