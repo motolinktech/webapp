@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { VEHICLE_TYPES } from "@/lib/constants/vehicle-type";
+import { VEHICLE_COLORS } from "@/lib/constants/colors";
 import { cpfMask } from "@/lib/masks/cpf-mask";
 import { phoneMask } from "@/lib/masks/phone-mask";
 import { storage } from "@/lib/services/firebase.service";
@@ -337,12 +338,12 @@ export function DeliverymenForm({ deliveryman }: DeliverymenFormProps) {
 
         <FieldSet>
           <FieldLegend>Informações do Veículo</FieldLegend>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <Controller
               control={control}
               name="vehicleModel"
               render={({ field }) => (
-                <Field className="md:col-span-2">
+                <Field className="md:col-span-1">
                   <FieldLabel htmlFor="vehicleModel">Modelo</FieldLabel>
                   <Select
                     onValueChange={field.onChange}
@@ -364,11 +365,32 @@ export function DeliverymenForm({ deliveryman }: DeliverymenFormProps) {
                 </Field>
               )}
             />
-            <Field>
-              <FieldLabel htmlFor="vehicleColor">Cor</FieldLabel>
-              <Input id="vehicleColor" {...register("vehicleColor")} />
-              <FieldError errors={[errors.vehicleColor]} />
-            </Field>
+            <Controller
+              control={control}
+              name="vehicleColor"
+              render={({ field }) => (
+                <Field>
+                  <FieldLabel htmlFor="vehicleColor">Cor</FieldLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    defaultValue={field.value}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a cor do veículo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {VEHICLE_COLORS.map((color) => (
+                        <SelectItem key={color} value={color}>
+                          {color}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FieldError errors={[errors.vehicleColor]} />
+                </Field>
+              )}
+            />
             <Field>
               <FieldLabel htmlFor="vehiclePlate">Placa</FieldLabel>
               <Input id="vehiclePlate" {...register("vehiclePlate")} />
