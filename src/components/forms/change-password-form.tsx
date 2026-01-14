@@ -15,7 +15,8 @@ const changePasswordSchema = z
     password: z
       .string()
       .min(8, "Senha deve ter pelo menos 8 caracteres")
-      .max(128, "Senha deve ter no máximo 128 caracteres"),
+      .max(128, "Senha deve ter no máximo 128 caracteres")
+      .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).+$/, "Senha deve conter pelo menos uma letra maiúscula"),
     passwordConfirmation: z.string(),
   })
   .refine((data) => data.password === data.passwordConfirmation, {
