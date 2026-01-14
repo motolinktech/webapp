@@ -59,18 +59,18 @@ const clientFormSchema = z.object({
   clientDailyNight: z.string().optional(),
   clientDailyDayWknd: z.string().optional(),
   clientDailyNightWknd: z.string().optional(),
-  courierDailyDay: z.string().optional(),
-  courierDailyNight: z.string().optional(),
-  courierDailyDayWknd: z.string().optional(),
-  courierDailyNightWknd: z.string().optional(),
+  deliverymanDailyDay: z.string().optional(),
+  deliverymanDailyNight: z.string().optional(),
+  deliverymanDailyDayWknd: z.string().optional(),
+  deliverymanDailyNightWknd: z.string().optional(),
   guaranteedDay: z.number().min(1, "Valor mínimo é 1").optional(),
   guaranteedNight: z.number().min(1, "Valor mínimo é 1").optional(),
   guaranteedDayWeekend: z.number().min(1, "Valor mínimo é 1").optional(),
   guaranteedNightWeekend: z.number().min(1, "Valor mínimo é 1").optional(),
   clientPerDelivery: z.string().optional(),
   clientAdditionalKm: z.string().optional(),
-  courierPerDelivery: z.string().optional(),
-  courierAdditionalKm: z.string().optional(),
+  deliverymanPerDelivery: z.string().optional(),
+  deliverymanAdditionalKm: z.string().optional(),
 });
 
 const PAYMENT_TYPES = [
@@ -126,10 +126,10 @@ export function ClientsForm({ client }: ClientsFormProps) {
       clientDailyNight: client?.commercialCondition?.clientDailyNight ? moneyMask(String(client.commercialCondition.clientDailyNight * 100)) : "",
       clientDailyDayWknd: client?.commercialCondition?.clientDailyDayWknd ? moneyMask(String(client.commercialCondition.clientDailyDayWknd * 100)) : "",
       clientDailyNightWknd: client?.commercialCondition?.clientDailyNightWknd ? moneyMask(String(client.commercialCondition.clientDailyNightWknd * 100)) : "",
-      courierDailyDay: client?.commercialCondition?.courierDailyDay ? moneyMask(String(client.commercialCondition.courierDailyDay * 100)) : "",
-      courierDailyNight: client?.commercialCondition?.courierDailyNight ? moneyMask(String(client.commercialCondition.courierDailyNight * 100)) : "",
-      courierDailyDayWknd: client?.commercialCondition?.courierDailyDayWknd ? moneyMask(String(client.commercialCondition.courierDailyDayWknd * 100)) : "",
-      courierDailyNightWknd: client?.commercialCondition?.courierDailyNightWknd ? moneyMask(String(client.commercialCondition.courierDailyNightWknd * 100)) : "",
+      deliverymanDailyDay: client?.commercialCondition?.deliverymanDailyDay ? moneyMask(String(client.commercialCondition.deliverymanDailyDay * 100)) : "",
+      deliverymanDailyNight: client?.commercialCondition?.deliverymanDailyNight ? moneyMask(String(client.commercialCondition.deliverymanDailyNight * 100)) : "",
+      deliverymanDailyDayWknd: client?.commercialCondition?.deliverymanDailyDayWknd ? moneyMask(String(client.commercialCondition.deliverymanDailyDayWknd * 100)) : "",
+      deliverymanDailyNightWknd: client?.commercialCondition?.deliverymanDailyNightWknd ? moneyMask(String(client.commercialCondition.deliverymanDailyNightWknd * 100)) : "",
       // Guaranteed fields
       guaranteedDay: client?.commercialCondition?.guaranteedDay || undefined,
       guaranteedNight: client?.commercialCondition?.guaranteedNight || undefined,
@@ -138,8 +138,8 @@ export function ClientsForm({ client }: ClientsFormProps) {
       // Delivery area fields
       clientPerDelivery: client?.commercialCondition?.clientPerDelivery ? moneyMask(String(Number(client.commercialCondition.clientPerDelivery) * 100)) : "",
       clientAdditionalKm: client?.commercialCondition?.clientAdditionalKm ? moneyMask(String(client.commercialCondition.clientAdditionalKm * 100)) : "",
-      courierPerDelivery: client?.commercialCondition?.courierPerDelivery ? moneyMask(String(Number(client.commercialCondition.courierPerDelivery) * 100)) : "",
-      courierAdditionalKm: client?.commercialCondition?.courierAdditionalKm ? moneyMask(String(client.commercialCondition.courierAdditionalKm * 100)) : "",
+      deliverymanPerDelivery: client?.commercialCondition?.deliverymanPerDelivery ? moneyMask(String(Number(client.commercialCondition.deliverymanPerDelivery) * 100)) : "",
+      deliverymanAdditionalKm: client?.commercialCondition?.deliverymanAdditionalKm ? moneyMask(String(client.commercialCondition.deliverymanAdditionalKm * 100)) : "",
     },
   });
 
@@ -215,10 +215,10 @@ export function ClientsForm({ client }: ClientsFormProps) {
         clientDailyNight,
         clientDailyDayWknd,
         clientDailyNightWknd,
-        courierDailyDay,
-        courierDailyNight,
-        courierDailyDayWknd,
-        courierDailyNightWknd,
+        deliverymanDailyDay,
+        deliverymanDailyNight,
+        deliverymanDailyDayWknd,
+        deliverymanDailyNightWknd,
         // Guaranteed fields (already numbers)
         guaranteedDay,
         guaranteedNight,
@@ -227,8 +227,8 @@ export function ClientsForm({ client }: ClientsFormProps) {
         // Delivery area fields
         clientPerDelivery,
         clientAdditionalKm,
-        courierPerDelivery,
-        courierAdditionalKm,
+        deliverymanPerDelivery,
+        deliverymanAdditionalKm,
         ...clientData
       } = unmaskedData;
 
@@ -246,17 +246,17 @@ export function ClientsForm({ client }: ClientsFormProps) {
           // Delivery area fields - convert money mask to number
           clientPerDelivery: clientPerDelivery ? clearMoneyMask(clientPerDelivery) : undefined,
           clientAdditionalKm: clientAdditionalKm ? clearMoneyMask(clientAdditionalKm) : undefined,
-          courierPerDelivery: courierPerDelivery ? clearMoneyMask(courierPerDelivery) : undefined,
-          courierAdditionalKm: courierAdditionalKm ? clearMoneyMask(courierAdditionalKm) : undefined,
+          deliverymanPerDelivery: deliverymanPerDelivery ? clearMoneyMask(deliverymanPerDelivery) : undefined,
+          deliverymanAdditionalKm: deliverymanAdditionalKm ? clearMoneyMask(deliverymanAdditionalKm) : undefined,
           // Daily fields - convert money mask to number
           clientDailyDay: clientDailyDay ? clearMoneyMask(clientDailyDay) : undefined,
           clientDailyNight: clientDailyNight ? clearMoneyMask(clientDailyNight) : undefined,
           clientDailyDayWknd: clientDailyDayWknd ? clearMoneyMask(clientDailyDayWknd) : undefined,
           clientDailyNightWknd: clientDailyNightWknd ? clearMoneyMask(clientDailyNightWknd) : undefined,
-          courierDailyDay: courierDailyDay ? clearMoneyMask(courierDailyDay) : undefined,
-          courierDailyNight: courierDailyNight ? clearMoneyMask(courierDailyNight) : undefined,
-          courierDailyDayWknd: courierDailyDayWknd ? clearMoneyMask(courierDailyDayWknd) : undefined,
-          courierDailyNightWknd: courierDailyNightWknd ? clearMoneyMask(courierDailyNightWknd) : undefined,
+          deliverymanDailyDay: deliverymanDailyDay ? clearMoneyMask(deliverymanDailyDay) : undefined,
+          deliverymanDailyNight: deliverymanDailyNight ? clearMoneyMask(deliverymanDailyNight) : undefined,
+          deliverymanDailyDayWknd: deliverymanDailyDayWknd ? clearMoneyMask(deliverymanDailyDayWknd) : undefined,
+          deliverymanDailyNightWknd: deliverymanDailyNightWknd ? clearMoneyMask(deliverymanDailyNightWknd) : undefined,
           // Guaranteed fields
           guaranteedDay,
           guaranteedNight,
@@ -481,7 +481,8 @@ export function ClientsForm({ client }: ClientsFormProps) {
                 type="number"
                 min={0}
                 step={1}
-                {...register("deliveryAreaKm")}
+                defaultValue={0}
+                {...register("deliveryAreaKm", { valueAsNumber: true })}
               />
               <FieldError errors={[errors.deliveryAreaKm]} />
             </Field>
@@ -560,16 +561,16 @@ export function ClientsForm({ client }: ClientsFormProps) {
                 </Field>
 
                 <Field>
-                  <FieldLabel htmlFor="courierPerDelivery">Entregador - Por Entrega</FieldLabel>
+                  <FieldLabel htmlFor="deliverymanPerDelivery">Entregador - Por Entrega</FieldLabel>
                   <Input
-                    id="courierPerDelivery"
-                    {...register("courierPerDelivery", {
+                    id="deliverymanPerDelivery"
+                    {...register("deliverymanPerDelivery", {
                       onChange: (e) => {
                         e.target.value = moneyMask(e.target.value);
                       },
                     })}
                   />
-                  <FieldError errors={[errors.courierPerDelivery]} />
+                  <FieldError errors={[errors.deliverymanPerDelivery]} />
                 </Field>
 
                 <Field>
@@ -586,16 +587,16 @@ export function ClientsForm({ client }: ClientsFormProps) {
                 </Field>
 
                 <Field>
-                  <FieldLabel htmlFor="courierAdditionalKm">Entregador - KM Adicional</FieldLabel>
+                  <FieldLabel htmlFor="deliverymanAdditionalKm">Entregador - KM Adicional</FieldLabel>
                   <Input
-                    id="courierAdditionalKm"
-                    {...register("courierAdditionalKm", {
+                    id="deliverymanAdditionalKm"
+                    {...register("deliverymanAdditionalKm", {
                       onChange: (e) => {
                         e.target.value = moneyMask(e.target.value);
                       },
                     })}
                   />
-                  <FieldError errors={[errors.courierAdditionalKm]} />
+                  <FieldError errors={[errors.deliverymanAdditionalKm]} />
                 </Field>
               </div>
             )}
@@ -613,6 +614,7 @@ export function ClientsForm({ client }: ClientsFormProps) {
                       type="number"
                       min={1}
                       step={1}
+                      defaultValue={0}
                       {...register("guaranteedDay")}
                     />
                     <FieldError errors={[errors.guaranteedDay]} />
@@ -627,6 +629,7 @@ export function ClientsForm({ client }: ClientsFormProps) {
                       type="number"
                       min={1}
                       step={1}
+                      defaultValue={0}
                       {...register("guaranteedNight")}
                     />
                     <FieldError errors={[errors.guaranteedNight]} />
@@ -641,6 +644,7 @@ export function ClientsForm({ client }: ClientsFormProps) {
                       type="number"
                       min={1}
                       step={1}
+                      defaultValue={0}
                       {...register("guaranteedDayWeekend")}
                     />
                     <FieldError errors={[errors.guaranteedDayWeekend]} />
@@ -655,6 +659,7 @@ export function ClientsForm({ client }: ClientsFormProps) {
                       type="number"
                       min={1}
                       step={1}
+                      defaultValue={0}
                       {...register("guaranteedNightWeekend")}
                     />
                     <FieldError errors={[errors.guaranteedNightWeekend]} />
@@ -683,16 +688,16 @@ export function ClientsForm({ client }: ClientsFormProps) {
                       <FieldError errors={[errors.clientDailyDay]} />
                     </Field>
                     <Field>
-                      <FieldLabel htmlFor="courierDailyDay">Entregador - Semanal (Dia)</FieldLabel>
+                      <FieldLabel htmlFor="deliverymanDailyDay">Entregador - Semanal (Dia)</FieldLabel>
                       <Input
-                        id="courierDailyDay"
-                        {...register("courierDailyDay", {
+                        id="deliverymanDailyDay"
+                        {...register("deliverymanDailyDay", {
                           onChange: (e) => {
                             e.target.value = moneyMask(e.target.value);
                           },
                         })}
                       />
-                      <FieldError errors={[errors.courierDailyDay]} />
+                      <FieldError errors={[errors.deliverymanDailyDay]} />
                     </Field>
                   </>
                 )}
@@ -712,16 +717,16 @@ export function ClientsForm({ client }: ClientsFormProps) {
                       <FieldError errors={[errors.clientDailyNight]} />
                     </Field>
                     <Field>
-                      <FieldLabel htmlFor="courierDailyNight">Entregador - Semanal (Noite)</FieldLabel>
+                      <FieldLabel htmlFor="deliverymanDailyNight">Entregador - Semanal (Noite)</FieldLabel>
                       <Input
-                        id="courierDailyNight"
-                        {...register("courierDailyNight", {
+                        id="deliverymanDailyNight"
+                        {...register("deliverymanDailyNight", {
                           onChange: (e) => {
                             e.target.value = moneyMask(e.target.value);
                           },
                         })}
                       />
-                      <FieldError errors={[errors.courierDailyNight]} />
+                      <FieldError errors={[errors.deliverymanDailyNight]} />
                     </Field>
                   </>
                 )}
@@ -741,16 +746,16 @@ export function ClientsForm({ client }: ClientsFormProps) {
                       <FieldError errors={[errors.clientDailyDayWknd]} />
                     </Field>
                     <Field>
-                      <FieldLabel htmlFor="courierDailyDayWknd">Entregador - Fim de Semana (Dia)</FieldLabel>
+                      <FieldLabel htmlFor="deliverymanDailyDayWknd">Entregador - Fim de Semana (Dia)</FieldLabel>
                       <Input
-                        id="courierDailyDayWknd"
-                        {...register("courierDailyDayWknd", {
+                        id="deliverymanDailyDayWknd"
+                        {...register("deliverymanDailyDayWknd", {
                           onChange: (e) => {
                             e.target.value = moneyMask(e.target.value);
                           },
                         })}
                       />
-                      <FieldError errors={[errors.courierDailyDayWknd]} />
+                      <FieldError errors={[errors.deliverymanDailyDayWknd]} />
                     </Field>
                   </>
                 )}
@@ -770,16 +775,16 @@ export function ClientsForm({ client }: ClientsFormProps) {
                       <FieldError errors={[errors.clientDailyNightWknd]} />
                     </Field>
                     <Field>
-                      <FieldLabel htmlFor="courierDailyNightWknd">Entregador - Fim de Semana (Noite)</FieldLabel>
+                      <FieldLabel htmlFor="deliverymanDailyNightWknd">Entregador - Fim de Semana (Noite)</FieldLabel>
                       <Input
-                        id="courierDailyNightWknd"
-                        {...register("courierDailyNightWknd", {
+                        id="deliverymanDailyNightWknd"
+                        {...register("deliverymanDailyNightWknd", {
                           onChange: (e) => {
                             e.target.value = moneyMask(e.target.value);
                           },
                         })}
                       />
-                      <FieldError errors={[errors.courierDailyNightWknd]} />
+                      <FieldError errors={[errors.deliverymanDailyNightWknd]} />
                     </Field>
                   </>
                 )}

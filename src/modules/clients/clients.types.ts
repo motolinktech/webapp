@@ -15,12 +15,12 @@ export interface CommercialCondition {
   clientDailyNightWknd: number;
   clientPerDelivery: string;
   clientAdditionalKm: number;
-  courierDailyDay: number;
-  courierDailyDayWknd: number;
-  courierDailyNight: number;
-  courierDailyNightWknd: number;
-  courierPerDelivery: string;
-  courierAdditionalKm: number;
+  deliverymanDailyDay: number;
+  deliverymanDailyDayWknd: number;
+  deliverymanDailyNight: number;
+  deliverymanDailyNightWknd: number;
+  deliverymanPerDelivery: string;
+  deliverymanAdditionalKm: number;
 }
 
 export interface Client {
@@ -96,12 +96,12 @@ export interface CreateCommercialConditionPayload {
   clientDailyNightWknd?: number;
   clientPerDelivery?: number;
   clientAdditionalKm?: number;
-  courierDailyDay?: number;
-  courierDailyDayWknd?: number;
-  courierDailyNight?: number;
-  courierDailyNightWknd?: number;
-  courierPerDelivery?: number;
-  courierAdditionalKm?: number;
+  deliverymanDailyDay?: number;
+  deliverymanDailyDayWknd?: number;
+  deliverymanDailyNight?: number;
+  deliverymanDailyNightWknd?: number;
+  deliverymanPerDelivery?: number;
+  deliverymanAdditionalKm?: number;
 }
 
 export interface CreateClientData {
