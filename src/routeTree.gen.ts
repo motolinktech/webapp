@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthDashboardRouteImport } from './routes/_auth/dashboard'
 import { Route as AuthRhColaboradoresIndexRouteImport } from './routes/_auth/rh/colaboradores/index'
+import { Route as AuthOperacionalPlanejamentoIndexRouteImport } from './routes/_auth/operacional/planejamento/index'
 import { Route as AuthGestaoRegiaoIndexRouteImport } from './routes/_auth/gestao/regiao/index'
 import { Route as AuthGestaoGruposIndexRouteImport } from './routes/_auth/gestao/grupos/index'
 import { Route as AuthGestaoEntregadoresIndexRouteImport } from './routes/_auth/gestao/entregadores/index'
@@ -63,6 +64,12 @@ const AuthRhColaboradoresIndexRoute =
   AuthRhColaboradoresIndexRouteImport.update({
     id: '/rh/colaboradores/',
     path: '/rh/colaboradores/',
+    getParentRoute: () => AuthRoute,
+  } as any)
+const AuthOperacionalPlanejamentoIndexRoute =
+  AuthOperacionalPlanejamentoIndexRouteImport.update({
+    id: '/operacional/planejamento/',
+    path: '/operacional/planejamento/',
     getParentRoute: () => AuthRoute,
   } as any)
 const AuthGestaoRegiaoIndexRoute = AuthGestaoRegiaoIndexRouteImport.update({
@@ -187,6 +194,7 @@ export interface FileRoutesByFullPath {
   '/gestao/entregadores': typeof AuthGestaoEntregadoresIndexRoute
   '/gestao/grupos': typeof AuthGestaoGruposIndexRoute
   '/gestao/regiao': typeof AuthGestaoRegiaoIndexRoute
+  '/operacional/planejamento': typeof AuthOperacionalPlanejamentoIndexRoute
   '/rh/colaboradores': typeof AuthRhColaboradoresIndexRoute
   '/gestao/clientes/$clientId/detalhe': typeof AuthGestaoClientesClientIdDetalheRoute
   '/gestao/clientes/$clientId/editar': typeof AuthGestaoClientesClientIdEditarRoute
@@ -213,6 +221,7 @@ export interface FileRoutesByTo {
   '/gestao/entregadores': typeof AuthGestaoEntregadoresIndexRoute
   '/gestao/grupos': typeof AuthGestaoGruposIndexRoute
   '/gestao/regiao': typeof AuthGestaoRegiaoIndexRoute
+  '/operacional/planejamento': typeof AuthOperacionalPlanejamentoIndexRoute
   '/rh/colaboradores': typeof AuthRhColaboradoresIndexRoute
   '/gestao/clientes/$clientId/detalhe': typeof AuthGestaoClientesClientIdDetalheRoute
   '/gestao/clientes/$clientId/editar': typeof AuthGestaoClientesClientIdEditarRoute
@@ -241,6 +250,7 @@ export interface FileRoutesById {
   '/_auth/gestao/entregadores/': typeof AuthGestaoEntregadoresIndexRoute
   '/_auth/gestao/grupos/': typeof AuthGestaoGruposIndexRoute
   '/_auth/gestao/regiao/': typeof AuthGestaoRegiaoIndexRoute
+  '/_auth/operacional/planejamento/': typeof AuthOperacionalPlanejamentoIndexRoute
   '/_auth/rh/colaboradores/': typeof AuthRhColaboradoresIndexRoute
   '/_auth/gestao/clientes/$clientId/detalhe': typeof AuthGestaoClientesClientIdDetalheRoute
   '/_auth/gestao/clientes/$clientId/editar': typeof AuthGestaoClientesClientIdEditarRoute
@@ -269,6 +279,7 @@ export interface FileRouteTypes {
     | '/gestao/entregadores'
     | '/gestao/grupos'
     | '/gestao/regiao'
+    | '/operacional/planejamento'
     | '/rh/colaboradores'
     | '/gestao/clientes/$clientId/detalhe'
     | '/gestao/clientes/$clientId/editar'
@@ -295,6 +306,7 @@ export interface FileRouteTypes {
     | '/gestao/entregadores'
     | '/gestao/grupos'
     | '/gestao/regiao'
+    | '/operacional/planejamento'
     | '/rh/colaboradores'
     | '/gestao/clientes/$clientId/detalhe'
     | '/gestao/clientes/$clientId/editar'
@@ -322,6 +334,7 @@ export interface FileRouteTypes {
     | '/_auth/gestao/entregadores/'
     | '/_auth/gestao/grupos/'
     | '/_auth/gestao/regiao/'
+    | '/_auth/operacional/planejamento/'
     | '/_auth/rh/colaboradores/'
     | '/_auth/gestao/clientes/$clientId/detalhe'
     | '/_auth/gestao/clientes/$clientId/editar'
@@ -384,6 +397,13 @@ declare module '@tanstack/react-router' {
       path: '/rh/colaboradores'
       fullPath: '/rh/colaboradores'
       preLoaderRoute: typeof AuthRhColaboradoresIndexRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/operacional/planejamento/': {
+      id: '/_auth/operacional/planejamento/'
+      path: '/operacional/planejamento'
+      fullPath: '/operacional/planejamento'
+      preLoaderRoute: typeof AuthOperacionalPlanejamentoIndexRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/gestao/regiao/': {
@@ -533,6 +553,7 @@ interface AuthRouteChildren {
   AuthGestaoEntregadoresIndexRoute: typeof AuthGestaoEntregadoresIndexRoute
   AuthGestaoGruposIndexRoute: typeof AuthGestaoGruposIndexRoute
   AuthGestaoRegiaoIndexRoute: typeof AuthGestaoRegiaoIndexRoute
+  AuthOperacionalPlanejamentoIndexRoute: typeof AuthOperacionalPlanejamentoIndexRoute
   AuthRhColaboradoresIndexRoute: typeof AuthRhColaboradoresIndexRoute
   AuthGestaoClientesClientIdDetalheRoute: typeof AuthGestaoClientesClientIdDetalheRoute
   AuthGestaoClientesClientIdEditarRoute: typeof AuthGestaoClientesClientIdEditarRoute
@@ -557,6 +578,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthGestaoEntregadoresIndexRoute: AuthGestaoEntregadoresIndexRoute,
   AuthGestaoGruposIndexRoute: AuthGestaoGruposIndexRoute,
   AuthGestaoRegiaoIndexRoute: AuthGestaoRegiaoIndexRoute,
+  AuthOperacionalPlanejamentoIndexRoute: AuthOperacionalPlanejamentoIndexRoute,
   AuthRhColaboradoresIndexRoute: AuthRhColaboradoresIndexRoute,
   AuthGestaoClientesClientIdDetalheRoute:
     AuthGestaoClientesClientIdDetalheRoute,
