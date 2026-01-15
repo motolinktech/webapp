@@ -2,10 +2,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { AlertCircle, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
-
+import { BadgeSelect } from "@/components/composite/badge-select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   AlertDialog,
@@ -17,7 +17,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -66,9 +65,6 @@ const clientFormSchema = z.object({
   observations: z.string().optional(),
   regionId: z.string().optional(),
   groupId: z.string().optional(),
-  paymentForm: z.array(z.string()).optional(),
-  dailyPeriods: z.array(z.string()).optional(),
-  guaranteedPeriods: z.array(z.string()).optional(),
   deliveryAreaKm: z.number().min(0).optional(),
   isMotolinkCovered: z.boolean().optional(),
   clientDailyDay: z.string().optional(),
@@ -113,6 +109,15 @@ export function ClientsForm({ client }: ClientsFormProps) {
   const [cnpjError, setCnpjError] = useState<string | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [cnpjData, setCnpjData] = useState<CnpjData | null>(null);
+  const [paymentForm, setPaymentForm] = useState<string[]>(
+    client?.commercialCondition?.paymentForm || []
+  );
+  const [dailyPeriods, setDailyPeriods] = useState<string[]>(
+    client?.commercialCondition?.dailyPeriods || []
+  );
+  const [guaranteedPeriods, setGuaranteedPeriods] = useState<string[]>(
+    client?.commercialCondition?.guaranteedPeriods || []
+  );
 
   const {
     register,
@@ -121,6 +126,7 @@ export function ClientsForm({ client }: ClientsFormProps) {
     control,
     watch,
     setValue,
+    reset,
   } = useForm<ClientFormData>({
     resolver: zodResolver(clientFormSchema),
     shouldUnregister: true,
@@ -139,9 +145,6 @@ export function ClientsForm({ client }: ClientsFormProps) {
       observations: client?.observations || "",
       regionId: client?.regionId || undefined,
       groupId: client?.groupId || undefined,
-      paymentForm: client?.commercialCondition?.paymentForm || [],
-      dailyPeriods: client?.commercialCondition?.dailyPeriods || [],
-      guaranteedPeriods: client?.commercialCondition?.guaranteedPeriods || [],
       deliveryAreaKm: client?.commercialCondition?.deliveryAreaKm || undefined,
       isMotolinkCovered: client?.commercialCondition?.isMotolinkCovered || false,
       // Daily fields (API stores decimal strings like "100.11")
@@ -166,41 +169,62 @@ export function ClientsForm({ client }: ClientsFormProps) {
     },
   });
 
-  console.log(errors)
+  useEffect(() => {
+    if (client) {
+      reset({
+        name: client.name || "",
+        cnpj: client.cnpj ? cnpjMask(client.cnpj) : "",
+        contactName: client.contactName || "",
+        contactPhone: client.contactPhone ? phoneMask(client.contactPhone) : "",
+        cep: client.cep ? cepMask(client.cep) : "",
+        street: client.street || "",
+        number: client.number || "",
+        complement: client.complement || "",
+        neighborhood: client.neighborhood || "",
+        city: client.city || "",
+        uf: client.uf || "",
+        observations: client.observations || "",
+        regionId: client.regionId || undefined,
+        groupId: client.groupId || undefined,
+        deliveryAreaKm: client.commercialCondition?.deliveryAreaKm || undefined,
+        isMotolinkCovered: client.commercialCondition?.isMotolinkCovered || false,
+        clientDailyDay: client.commercialCondition?.clientDailyDay ? moneyMask(String(client.commercialCondition.clientDailyDay)) : "",
+        clientDailyNight: client.commercialCondition?.clientDailyNight ? moneyMask(String(client.commercialCondition.clientDailyNight)) : "",
+        clientDailyDayWknd: client.commercialCondition?.clientDailyDayWknd ? moneyMask(String(client.commercialCondition.clientDailyDayWknd)) : "",
+        clientDailyNightWknd: client.commercialCondition?.clientDailyNightWknd ? moneyMask(String(client.commercialCondition.clientDailyNightWknd)) : "",
+        deliverymanDailyDay: client.commercialCondition?.deliverymanDailyDay ? moneyMask(String(client.commercialCondition.deliverymanDailyDay)) : "",
+        deliverymanDailyNight: client.commercialCondition?.deliverymanDailyNight ? moneyMask(String(client.commercialCondition.deliverymanDailyNight)) : "",
+        deliverymanDailyDayWknd: client.commercialCondition?.deliverymanDailyDayWknd ? moneyMask(String(client.commercialCondition.deliverymanDailyDayWknd)) : "",
+        deliverymanDailyNightWknd: client.commercialCondition?.deliverymanDailyNightWknd ? moneyMask(String(client.commercialCondition.deliverymanDailyNightWknd)) : "",
+        guaranteedDay: client.commercialCondition?.guaranteedDay || undefined,
+        guaranteedNight: client.commercialCondition?.guaranteedNight || undefined,
+        guaranteedDayWeekend: client.commercialCondition?.guaranteedDayWeekend || undefined,
+        guaranteedNightWeekend: client.commercialCondition?.guaranteedNightWeekend || undefined,
+        clientPerDelivery: client.commercialCondition?.clientPerDelivery ? moneyMask(String(client.commercialCondition.clientPerDelivery)) : "",
+        clientAdditionalKm: client.commercialCondition?.clientAdditionalKm ? moneyMask(String(client.commercialCondition.clientAdditionalKm)) : "",
+        deliverymanPerDelivery: client.commercialCondition?.deliverymanPerDelivery ? moneyMask(String(client.commercialCondition.deliverymanPerDelivery)) : "",
+        deliverymanAdditionalKm: client.commercialCondition?.deliverymanAdditionalKm ? moneyMask(String(client.commercialCondition.deliverymanAdditionalKm)) : "",
+      });
+      setPaymentForm(client.commercialCondition?.paymentForm || []);
+      setDailyPeriods(client.commercialCondition?.dailyPeriods || []);
+      setGuaranteedPeriods(client.commercialCondition?.guaranteedPeriods || []);
+    }
+  }, [client, reset]);
 
-  const selectedPaymentForm = watch("paymentForm") || [];
-  const selectedDailyPeriods = watch("dailyPeriods") || [];
-  const selectedGuaranteedPeriods = watch("guaranteedPeriods") || [];
   const deliveryAreaKmValue = watch("deliveryAreaKm");
 
-  const togglePaymentType = (paymentType: string) => {
-    const current = selectedPaymentForm;
-    if (current.includes(paymentType)) {
-      setValue(
-        "paymentForm",
-        current.filter((p) => p !== paymentType),
-      );
-      if (paymentType === "GUARANTEED") {
-        setValue("isMotolinkCovered", false);
-        setValue("guaranteedPeriods", []);
-      }
-      if (paymentType === "DAILY") {
-        setValue("dailyPeriods", []);
-      }
-    } else {
-      setValue("paymentForm", [...current, paymentType]);
-    }
-  };
+  const handlePaymentFormChange = (newPaymentForm: string[]) => {
+    const removedTypes = paymentForm.filter((p) => !newPaymentForm.includes(p));
 
-  const togglePeriod = (periodType: string, paymentType: "DAILY" | "GUARANTEED") => {
-    const fieldName = paymentType === "DAILY" ? "dailyPeriods" : "guaranteedPeriods";
-    const current = paymentType === "DAILY" ? selectedDailyPeriods : selectedGuaranteedPeriods;
-
-    if (current.includes(periodType)) {
-      setValue(fieldName, current.filter((p) => p !== periodType));
-    } else {
-      setValue(fieldName, [...current, periodType]);
+    if (removedTypes.includes("GUARANTEED")) {
+      setValue("isMotolinkCovered", false);
+      setGuaranteedPeriods([]);
     }
+    if (removedTypes.includes("DAILY")) {
+      setDailyPeriods([]);
+    }
+
+    setPaymentForm(newPaymentForm);
   };
 
   const handleCnpjLookup = async () => {
@@ -282,9 +306,6 @@ export function ClientsForm({ client }: ClientsFormProps) {
     mutationFn: async (data: ClientFormData) => {
       const unmaskedData = clearMasks(data);
       const {
-        paymentForm,
-        dailyPeriods,
-        guaranteedPeriods,
         deliveryAreaKm,
         isMotolinkCovered,
         // Daily fields (need to convert from money mask to number)
@@ -584,18 +605,11 @@ export function ClientsForm({ client }: ClientsFormProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Field className="col-span-1">
               <FieldLabel>Forma de Pagamento</FieldLabel>
-              <div className="flex flex-wrap gap-2">
-                {PAYMENT_TYPES.map((type) => (
-                  <Badge
-                    key={type.value}
-                    variant={selectedPaymentForm.includes(type.value) ? "default" : "outline"}
-                    className="cursor-pointer hover:opacity-80 transition-opacity py-1.5 px-3"
-                    onClick={() => togglePaymentType(type.value)}
-                  >
-                    <span className="text-xs">{type.label}</span>
-                  </Badge>
-                ))}
-              </div>
+              <BadgeSelect
+                options={PAYMENT_TYPES}
+                value={paymentForm}
+                onChange={handlePaymentFormChange}
+              />
             </Field>
 
             <Field className="md:w-1/3 col-span-1 justify-end">
@@ -611,7 +625,7 @@ export function ClientsForm({ client }: ClientsFormProps) {
               <FieldError errors={[errors.deliveryAreaKm]} />
             </Field>
 
-            {selectedPaymentForm.includes("GUARANTEED") && (
+            {paymentForm.includes("GUARANTEED") && (
               <Label className="col-span-2 hover:bg-accent/50 flex items-start gap-3 rounded-lg border p-3 has-[[aria-checked=true]]:border-blue-600 has-[[aria-checked=true]]:bg-blue-50 dark:has-[[aria-checked=true]]:border-blue-900 dark:has-[[aria-checked=true]]:bg-blue-950">
                 <Checkbox
                   id="toggle-2"
@@ -630,39 +644,25 @@ export function ClientsForm({ client }: ClientsFormProps) {
               </Label>
             )}
 
-            {selectedPaymentForm.includes("DAILY") && (
+            {paymentForm.includes("DAILY") && (
               <Field className="col-span-1">
                 <FieldLabel>Períodos - Diária</FieldLabel>
-                <div className="flex flex-wrap gap-2">
-                  {PERIOD_TYPES.map((period) => (
-                    <Badge
-                      key={period.value}
-                      variant={selectedDailyPeriods.includes(period.value) ? "default" : "outline"}
-                      className="cursor-pointer hover:opacity-80 transition-opacity py-1.5 px-3"
-                      onClick={() => togglePeriod(period.value, "DAILY")}
-                    >
-                      <span className="text-xs">{period.label}</span>
-                    </Badge>
-                  ))}
-                </div>
+                <BadgeSelect
+                  options={PERIOD_TYPES}
+                  value={dailyPeriods}
+                  onChange={setDailyPeriods}
+                />
               </Field>
             )}
 
-            {selectedPaymentForm.includes("GUARANTEED") && (
+            {paymentForm.includes("GUARANTEED") && (
               <Field className="col-span-1">
                 <FieldLabel>Períodos - Qt. Garantida</FieldLabel>
-                <div className="flex flex-wrap gap-2">
-                  {PERIOD_TYPES.map((period) => (
-                    <Badge
-                      key={period.value}
-                      variant={selectedGuaranteedPeriods.includes(period.value) ? "default" : "outline"}
-                      className="cursor-pointer hover:opacity-80 transition-opacity py-1.5 px-3"
-                      onClick={() => togglePeriod(period.value, "GUARANTEED")}
-                    >
-                      <span className="text-xs">{period.label}</span>
-                    </Badge>
-                  ))}
-                </div>
+                <BadgeSelect
+                  options={PERIOD_TYPES}
+                  value={guaranteedPeriods}
+                  onChange={setGuaranteedPeriods}
+                />
               </Field>
             )}
 
@@ -725,11 +725,11 @@ export function ClientsForm({ client }: ClientsFormProps) {
               </div>
             )}
 
-            {selectedPaymentForm.includes("GUARANTEED") && selectedGuaranteedPeriods.length > 0 && (
+            {paymentForm.includes("GUARANTEED") && guaranteedPeriods.length > 0 && (
               <div className="col-span-2 grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg bg-muted/30">
                 <FieldLegend className="col-span-1 md:col-span-4 mb-0">Valores - Qt. Garantida</FieldLegend>
 
-                {selectedGuaranteedPeriods.includes("WEEK_DAY") && (
+                {guaranteedPeriods.includes("WEEK_DAY") && (
                   <Field>
                     <FieldLabel htmlFor="guaranteedDay">Qt. Garantida - Semanal (Dia)</FieldLabel>
                     <Input
@@ -738,13 +738,13 @@ export function ClientsForm({ client }: ClientsFormProps) {
                       min={1}
                       step={1}
                       defaultValue={0}
-                      {...register("guaranteedDay")}
+                      {...register("guaranteedDay", { valueAsNumber: true })}
                     />
                     <FieldError errors={[errors.guaranteedDay]} />
                   </Field>
                 )}
 
-                {selectedGuaranteedPeriods.includes("WEEK_NIGHT") && (
+                {guaranteedPeriods.includes("WEEK_NIGHT") && (
                   <Field>
                     <FieldLabel htmlFor="guaranteedNight">Qt. Garantida - Semanal (Noite)</FieldLabel>
                     <Input
@@ -753,13 +753,13 @@ export function ClientsForm({ client }: ClientsFormProps) {
                       min={1}
                       step={1}
                       defaultValue={0}
-                      {...register("guaranteedNight")}
+                      {...register("guaranteedNight", { valueAsNumber: true })}
                     />
                     <FieldError errors={[errors.guaranteedNight]} />
                   </Field>
                 )}
 
-                {selectedGuaranteedPeriods.includes("WEEKEND_DAY") && (
+                {guaranteedPeriods.includes("WEEKEND_DAY") && (
                   <Field>
                     <FieldLabel htmlFor="guaranteedDayWeekend">Qt. Garantida - Fim de Semana (Dia)</FieldLabel>
                     <Input
@@ -768,13 +768,13 @@ export function ClientsForm({ client }: ClientsFormProps) {
                       min={1}
                       step={1}
                       defaultValue={0}
-                      {...register("guaranteedDayWeekend")}
+                      {...register("guaranteedDayWeekend", { valueAsNumber: true })}
                     />
                     <FieldError errors={[errors.guaranteedDayWeekend]} />
                   </Field>
                 )}
 
-                {selectedGuaranteedPeriods.includes("WEEKEND_NIGHT") && (
+                {guaranteedPeriods.includes("WEEKEND_NIGHT") && (
                   <Field>
                     <FieldLabel htmlFor="guaranteedNightWeekend">Qt. Garantida - Fim de Semana (Noite)</FieldLabel>
                     <Input
@@ -783,7 +783,7 @@ export function ClientsForm({ client }: ClientsFormProps) {
                       min={1}
                       step={1}
                       defaultValue={0}
-                      {...register("guaranteedNightWeekend")}
+                      {...register("guaranteedNightWeekend", { valueAsNumber: true })}
                     />
                     <FieldError errors={[errors.guaranteedNightWeekend]} />
                   </Field>
@@ -792,11 +792,11 @@ export function ClientsForm({ client }: ClientsFormProps) {
             )}
 
             {/* Dynamic inputs for DAILY payment type - shown last */}
-            {selectedPaymentForm.includes("DAILY") && selectedDailyPeriods.length > 0 && (
+            {paymentForm.includes("DAILY") && dailyPeriods.length > 0 && (
               <div className="col-span-2 grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg bg-muted/30">
                 <FieldLegend className="col-span-1 md:col-span-4 mb-0">Valores - Diária</FieldLegend>
 
-                {selectedDailyPeriods.includes("WEEK_DAY") && (
+                {dailyPeriods.includes("WEEK_DAY") && (
                   <>
                     <Field>
                       <FieldLabel htmlFor="clientDailyDay">Cliente - Semanal (Dia)</FieldLabel>
@@ -825,7 +825,7 @@ export function ClientsForm({ client }: ClientsFormProps) {
                   </>
                 )}
 
-                {selectedDailyPeriods.includes("WEEK_NIGHT") && (
+                {dailyPeriods.includes("WEEK_NIGHT") && (
                   <>
                     <Field>
                       <FieldLabel htmlFor="clientDailyNight">Cliente - Semanal (Noite)</FieldLabel>
@@ -854,7 +854,7 @@ export function ClientsForm({ client }: ClientsFormProps) {
                   </>
                 )}
 
-                {selectedDailyPeriods.includes("WEEKEND_DAY") && (
+                {dailyPeriods.includes("WEEKEND_DAY") && (
                   <>
                     <Field>
                       <FieldLabel htmlFor="clientDailyDayWknd">Cliente - Fim de Semana (Dia)</FieldLabel>
@@ -883,7 +883,7 @@ export function ClientsForm({ client }: ClientsFormProps) {
                   </>
                 )}
 
-                {selectedDailyPeriods.includes("WEEKEND_NIGHT") && (
+                {dailyPeriods.includes("WEEKEND_NIGHT") && (
                   <>
                     <Field>
                       <FieldLabel htmlFor="clientDailyNightWknd">Cliente - Fim de Semana (Noite)</FieldLabel>
