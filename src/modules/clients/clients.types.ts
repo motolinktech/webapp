@@ -5,6 +5,7 @@ export interface CommercialCondition {
   dailyPeriods: string[];
   guaranteedPeriods: string[];
   deliveryAreaKm: number;
+  bagsAllocated?: number;
   isMotolinkCovered: boolean;
   guaranteedDay: number;
   guaranteedDayWeekend: number;
@@ -88,6 +89,7 @@ export interface CreateCommercialConditionPayload {
   paymentForm?: string[];
   paymentTermDays?: number;
   deliveryAreaKm?: number;
+  bagsAllocated?: number;
   isMotolinkCovered?: boolean;
   guaranteedDay?: number;
   guaranteedDayWeekend?: number;

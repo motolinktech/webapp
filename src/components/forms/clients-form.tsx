@@ -66,6 +66,7 @@ const clientFormSchema = z.object({
   regionId: z.string().optional(),
   groupId: z.string().optional(),
   deliveryAreaKm: z.number().min(0).optional(),
+  bagsAllocated: z.number().min(0).optional(),
   isMotolinkCovered: z.boolean().optional(),
   clientDailyDay: z.string().optional(),
   clientDailyNight: z.string().optional(),
@@ -146,6 +147,7 @@ export function ClientsForm({ client }: ClientsFormProps) {
       regionId: client?.regionId || undefined,
       groupId: client?.groupId || undefined,
       deliveryAreaKm: client?.commercialCondition?.deliveryAreaKm || undefined,
+      bagsAllocated: client?.commercialCondition?.bagsAllocated || undefined,
       isMotolinkCovered: client?.commercialCondition?.isMotolinkCovered || false,
       // Daily fields (API stores decimal strings like "100.11")
       clientDailyDay: client?.commercialCondition?.clientDailyDay ? moneyMask(String(client.commercialCondition.clientDailyDay)) : "",
@@ -187,6 +189,7 @@ export function ClientsForm({ client }: ClientsFormProps) {
         regionId: client.regionId || undefined,
         groupId: client.groupId || undefined,
         deliveryAreaKm: client.commercialCondition?.deliveryAreaKm || undefined,
+        bagsAllocated: client.commercialCondition?.bagsAllocated || undefined,
         isMotolinkCovered: client.commercialCondition?.isMotolinkCovered || false,
         clientDailyDay: client.commercialCondition?.clientDailyDay ? moneyMask(String(client.commercialCondition.clientDailyDay)) : "",
         clientDailyNight: client.commercialCondition?.clientDailyNight ? moneyMask(String(client.commercialCondition.clientDailyNight)) : "",
@@ -307,6 +310,7 @@ export function ClientsForm({ client }: ClientsFormProps) {
       const unmaskedData = clearMasks(data);
       const {
         deliveryAreaKm,
+        bagsAllocated,
         isMotolinkCovered,
         // Daily fields (need to convert from money mask to number)
         clientDailyDay,
@@ -340,6 +344,7 @@ export function ClientsForm({ client }: ClientsFormProps) {
           dailyPeriods,
           guaranteedPeriods,
           deliveryAreaKm,
+          bagsAllocated,
           isMotolinkCovered,
           // Delivery area fields - convert money mask to number
           clientPerDelivery: clientPerDelivery ? clearMoneyMask(clientPerDelivery) : undefined,
@@ -612,18 +617,33 @@ export function ClientsForm({ client }: ClientsFormProps) {
               />
             </Field>
 
-            <Field className="md:w-1/3 col-span-1 justify-end">
-              <FieldLabel htmlFor="deliveryAreaKm">Área de Entrega (KM)</FieldLabel>
-              <Input
-                id="deliveryAreaKm"
-                type="number"
-                min={0}
-                step={1}
-                defaultValue={0}
-                {...register("deliveryAreaKm", { valueAsNumber: true })}
-              />
-              <FieldError errors={[errors.deliveryAreaKm]} />
-            </Field>
+            <div className="col-span-1 grid grid-cols-2 gap-4">
+              <Field>
+                <FieldLabel htmlFor="deliveryAreaKm">Área de Entrega (KM)</FieldLabel>
+                <Input
+                  id="deliveryAreaKm"
+                  type="number"
+                  min={0}
+                  step={1}
+                  defaultValue={0}
+                  {...register("deliveryAreaKm", { valueAsNumber: true })}
+                />
+                <FieldError errors={[errors.deliveryAreaKm]} />
+              </Field>
+
+              <Field>
+                <FieldLabel htmlFor="bagsAllocated">Bags Alocados</FieldLabel>
+                <Input
+                  id="bagsAllocated"
+                  type="number"
+                  min={0}
+                  step={1}
+                  defaultValue={0}
+                  {...register("bagsAllocated", { valueAsNumber: true })}
+                />
+                <FieldError errors={[errors.bagsAllocated]} />
+              </Field>
+            </div>
 
             {paymentForm.includes("GUARANTEED") && (
               <Label className="col-span-2 hover:bg-accent/50 flex items-start gap-3 rounded-lg border p-3 has-[[aria-checked=true]]:border-blue-600 has-[[aria-checked=true]]:bg-blue-50 dark:has-[[aria-checked=true]]:border-blue-900 dark:has-[[aria-checked=true]]:bg-blue-950">

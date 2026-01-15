@@ -188,6 +188,13 @@ function ClientDetails() {
                       </div>
                     )}
 
+                    {cc?.bagsAllocated !== undefined && (
+                      <div className="space-y-2">
+                        <Text variant="muted">Bags Alocados</Text>
+                        <Text variant="large">{cc.bagsAllocated}</Text>
+                      </div>
+                    )}
+
                     {paymentForm.includes("GUARANTEED") && (
                       <>
                         <div className="space-y-2">
