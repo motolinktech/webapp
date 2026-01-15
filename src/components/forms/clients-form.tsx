@@ -625,7 +625,6 @@ export function ClientsForm({ client }: ClientsFormProps) {
                   type="number"
                   min={0}
                   step={1}
-                  defaultValue={0}
                   {...register("deliveryAreaKm", { valueAsNumber: true })}
                 />
                 <FieldError errors={[errors.deliveryAreaKm]} />
@@ -638,14 +637,13 @@ export function ClientsForm({ client }: ClientsFormProps) {
                   type="number"
                   min={0}
                   step={1}
-                  defaultValue={0}
                   {...register("bagsAllocated", { valueAsNumber: true })}
                 />
                 <FieldError errors={[errors.bagsAllocated]} />
               </Field>
             </div>
 
-            {paymentForm.includes("GUARANTEED") && (
+            {paymentForm.includes("GUARANTEED") ? (
               <Label className="col-span-2 hover:bg-accent/50 flex items-start gap-3 rounded-lg border p-3 has-[[aria-checked=true]]:border-blue-600 has-[[aria-checked=true]]:bg-blue-50 dark:has-[[aria-checked=true]]:border-blue-900 dark:has-[[aria-checked=true]]:bg-blue-950">
                 <Controller
                   control={control}
@@ -669,9 +667,9 @@ export function ClientsForm({ client }: ClientsFormProps) {
                   </p>
                 </div>
               </Label>
-            )}
+            ) : null}
 
-            {paymentForm.includes("DAILY") && (
+            {paymentForm.includes("DAILY") ? (
               <Field className="col-span-1">
                 <FieldLabel>Períodos - Diária</FieldLabel>
                 <BadgeSelect
@@ -680,9 +678,9 @@ export function ClientsForm({ client }: ClientsFormProps) {
                   onChange={setDailyPeriods}
                 />
               </Field>
-            )}
+            ) : null}
 
-            {paymentForm.includes("GUARANTEED") && (
+            {paymentForm.includes("GUARANTEED") ? (
               <Field className="col-span-1">
                 <FieldLabel>Períodos - Qt. Garantida</FieldLabel>
                 <BadgeSelect
@@ -691,10 +689,9 @@ export function ClientsForm({ client }: ClientsFormProps) {
                   onChange={setGuaranteedPeriods}
                 />
               </Field>
-            )}
+            ) : null}
 
-            {/* Dynamic inputs for DELIVERY AREA - shown first */}
-            {deliveryAreaKmValue && deliveryAreaKmValue > 0 && (
+            {deliveryAreaKmValue && deliveryAreaKmValue > 0 ? (
               <div className="col-span-2 grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg bg-muted/30">
                 <FieldLegend className="col-span-1 md:col-span-4 mb-0">Valores - Área de Entrega</FieldLegend>
 
@@ -750,13 +747,13 @@ export function ClientsForm({ client }: ClientsFormProps) {
                   <FieldError errors={[errors.deliverymanAdditionalKm]} />
                 </Field>
               </div>
-            )}
+            ) : null}
 
-            {paymentForm.includes("GUARANTEED") && guaranteedPeriods.length > 0 && (
+            {paymentForm.includes("GUARANTEED") && guaranteedPeriods.length > 0 ? (
               <div className="col-span-2 grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg bg-muted/30">
                 <FieldLegend className="col-span-1 md:col-span-4 mb-0">Valores - Qt. Garantida</FieldLegend>
 
-                {guaranteedPeriods.includes("WEEK_DAY") && (
+                {guaranteedPeriods.includes("WEEK_DAY") ? (
                   <Field>
                     <FieldLabel htmlFor="guaranteedDay">Qt. Garantida - Semanal (Dia)</FieldLabel>
                     <Input
@@ -764,14 +761,13 @@ export function ClientsForm({ client }: ClientsFormProps) {
                       type="number"
                       min={1}
                       step={1}
-                      defaultValue={0}
                       {...register("guaranteedDay", { valueAsNumber: true })}
                     />
                     <FieldError errors={[errors.guaranteedDay]} />
                   </Field>
-                )}
+                ) : null}
 
-                {guaranteedPeriods.includes("WEEK_NIGHT") && (
+                {guaranteedPeriods.includes("WEEK_NIGHT") ? (
                   <Field>
                     <FieldLabel htmlFor="guaranteedNight">Qt. Garantida - Semanal (Noite)</FieldLabel>
                     <Input
@@ -779,14 +775,13 @@ export function ClientsForm({ client }: ClientsFormProps) {
                       type="number"
                       min={1}
                       step={1}
-                      defaultValue={0}
                       {...register("guaranteedNight", { valueAsNumber: true })}
                     />
                     <FieldError errors={[errors.guaranteedNight]} />
                   </Field>
-                )}
+                ) : null}
 
-                {guaranteedPeriods.includes("WEEKEND_DAY") && (
+                {guaranteedPeriods.includes("WEEKEND_DAY") ? (
                   <Field>
                     <FieldLabel htmlFor="guaranteedDayWeekend">Qt. Garantida - Fim de Semana (Dia)</FieldLabel>
                     <Input
@@ -794,14 +789,13 @@ export function ClientsForm({ client }: ClientsFormProps) {
                       type="number"
                       min={1}
                       step={1}
-                      defaultValue={0}
                       {...register("guaranteedDayWeekend", { valueAsNumber: true })}
                     />
                     <FieldError errors={[errors.guaranteedDayWeekend]} />
                   </Field>
-                )}
+                ) : null}
 
-                {guaranteedPeriods.includes("WEEKEND_NIGHT") && (
+                {guaranteedPeriods.includes("WEEKEND_NIGHT") ? (
                   <Field>
                     <FieldLabel htmlFor="guaranteedNightWeekend">Qt. Garantida - Fim de Semana (Noite)</FieldLabel>
                     <Input
@@ -809,21 +803,19 @@ export function ClientsForm({ client }: ClientsFormProps) {
                       type="number"
                       min={1}
                       step={1}
-                      defaultValue={0}
                       {...register("guaranteedNightWeekend", { valueAsNumber: true })}
                     />
                     <FieldError errors={[errors.guaranteedNightWeekend]} />
                   </Field>
-                )}
+                ) : null}
               </div>
-            )}
+            ) : null}
 
-            {/* Dynamic inputs for DAILY payment type - shown last */}
-            {paymentForm.includes("DAILY") && dailyPeriods.length > 0 && (
+            {paymentForm.includes("DAILY") && dailyPeriods.length > 0 ? (
               <div className="col-span-2 grid grid-cols-1 md:grid-cols-4 gap-4 p-4 border rounded-lg bg-muted/30">
                 <FieldLegend className="col-span-1 md:col-span-4 mb-0">Valores - Diária</FieldLegend>
 
-                {dailyPeriods.includes("WEEK_DAY") && (
+                {dailyPeriods.includes("WEEK_DAY") ? (
                   <>
                     <Field>
                       <FieldLabel htmlFor="clientDailyDay">Cliente - Semanal (Dia)</FieldLabel>
@@ -850,9 +842,9 @@ export function ClientsForm({ client }: ClientsFormProps) {
                       <FieldError errors={[errors.deliverymanDailyDay]} />
                     </Field>
                   </>
-                )}
+                ) : null}
 
-                {dailyPeriods.includes("WEEK_NIGHT") && (
+                {dailyPeriods.includes("WEEK_NIGHT") ? (
                   <>
                     <Field>
                       <FieldLabel htmlFor="clientDailyNight">Cliente - Semanal (Noite)</FieldLabel>
@@ -879,9 +871,9 @@ export function ClientsForm({ client }: ClientsFormProps) {
                       <FieldError errors={[errors.deliverymanDailyNight]} />
                     </Field>
                   </>
-                )}
+                ) : null}
 
-                {dailyPeriods.includes("WEEKEND_DAY") && (
+                {dailyPeriods.includes("WEEKEND_DAY") ? (
                   <>
                     <Field>
                       <FieldLabel htmlFor="clientDailyDayWknd">Cliente - Fim de Semana (Dia)</FieldLabel>
@@ -908,9 +900,9 @@ export function ClientsForm({ client }: ClientsFormProps) {
                       <FieldError errors={[errors.deliverymanDailyDayWknd]} />
                     </Field>
                   </>
-                )}
+                ) : null}
 
-                {dailyPeriods.includes("WEEKEND_NIGHT") && (
+                {dailyPeriods.includes("WEEKEND_NIGHT") ? (
                   <>
                     <Field>
                       <FieldLabel htmlFor="clientDailyNightWknd">Cliente - Fim de Semana (Noite)</FieldLabel>
@@ -937,9 +929,9 @@ export function ClientsForm({ client }: ClientsFormProps) {
                       <FieldError errors={[errors.deliverymanDailyNightWknd]} />
                     </Field>
                   </>
-                )}
+                ) : null}
               </div>
-            )}
+            ) : null}
           </div>
         </FieldSet>
 
