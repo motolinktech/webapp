@@ -1,29 +1,27 @@
 export function moneyMask(value: string) {
-  // Remove everything except digits
   let digits = value.replace(/\D/g, "");
 
-  // Remove leading zeros
   digits = digits.replace(/^0+/, "") || "0";
 
-  // Pad with zeros if less than 3 digits (for cents)
   digits = digits.padStart(3, "0");
 
-  // Split into integer and decimal parts
   const integerPart = digits.slice(0, -2);
   const decimalPart = digits.slice(-2);
 
-  // Format integer part with thousand separators
   const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
   return `R$ ${formattedInteger},${decimalPart}`;
 }
 
-export function clearMoneyMask(value: string): number {
-  // Remove "R$ " prefix and all non-digit characters except the last comma
+export function clearMoneyMask(value: string): string {
   const digits = value.replace(/\D/g, "");
 
-  if (!digits) return 0;
+  if (!digits) return "0.00";
 
-  // Convert to number (cents to reais)
-  return Number(digits) / 100;
+  const padded = digits.padStart(3, "0");
+
+  const reaisPart = padded.slice(0, -2).replace(/^0+/, "") || "0";
+  const centsPart = padded.slice(-2);
+
+  return `${reaisPart}.${centsPart}`;
 }

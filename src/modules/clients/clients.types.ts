@@ -10,18 +10,18 @@ export interface CommercialCondition {
   guaranteedDayWeekend: number;
   guaranteedNight: number;
   guaranteedNightWeekend: number;
-  clientDailyDay: number;
-  clientDailyDayWknd: number;
-  clientDailyNight: number;
-  clientDailyNightWknd: number;
+  clientDailyDay: string;
+  clientDailyDayWknd: string;
+  clientDailyNight: string;
+  clientDailyNightWknd: string;
   clientPerDelivery: string;
-  clientAdditionalKm: number;
-  deliverymanDailyDay: number;
-  deliverymanDailyDayWknd: number;
-  deliverymanDailyNight: number;
-  deliverymanDailyNightWknd: number;
+  clientAdditionalKm: string;
+  deliverymanDailyDay: string;
+  deliverymanDailyDayWknd: string;
+  deliverymanDailyNight: string;
+  deliverymanDailyNightWknd: string;
   deliverymanPerDelivery: string;
-  deliverymanAdditionalKm: number;
+  deliverymanAdditionalKm: string;
 }
 
 export interface Client {
@@ -93,18 +93,18 @@ export interface CreateCommercialConditionPayload {
   guaranteedDayWeekend?: number;
   guaranteedNight?: number;
   guaranteedNightWeekend?: number;
-  clientDailyDay?: number;
-  clientDailyDayWknd?: number;
-  clientDailyNight?: number;
-  clientDailyNightWknd?: number;
-  clientPerDelivery?: number;
-  clientAdditionalKm?: number;
-  deliverymanDailyDay?: number;
-  deliverymanDailyDayWknd?: number;
-  deliverymanDailyNight?: number;
-  deliverymanDailyNightWknd?: number;
-  deliverymanPerDelivery?: number;
-  deliverymanAdditionalKm?: number;
+  clientDailyDay?: string;
+  clientDailyDayWknd?: string;
+  clientDailyNight?: string;
+  clientDailyNightWknd?: string;
+  clientPerDelivery?: string;
+  clientAdditionalKm?: string;
+  deliverymanDailyDay?: string;
+  deliverymanDailyDayWknd?: string;
+  deliverymanDailyNight?: string;
+  deliverymanDailyNightWknd?: string;
+  deliverymanPerDelivery?: string;
+  deliverymanAdditionalKm?: string;
 }
 
 export interface CreateClientData {
