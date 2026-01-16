@@ -1,4 +1,4 @@
-export type PlanningPeriod = "diurno" | "noturno";
+export type PlanningPeriod = "daytime" | "nighttime";
 
 export interface Planning {
   id: string;

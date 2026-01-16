@@ -26,8 +26,12 @@ const items = [
         url: "/operacional/planejamento",
       },
       {
-        title: "Monitoramento",
+        title: "Monitoramento Diario",
         url: "/operacional/monitoramento/diario",
+      },
+      {
+        title: "Monitoramento Semanal",
+        url: "/operacional/monitoramento/semanal",
       },
     ],
   },

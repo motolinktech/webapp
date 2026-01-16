@@ -96,10 +96,10 @@ function formatCompactAddress(client: Client): string {
   return parts.join(" - ") || "Endereço não informado.";
 }
 
-const PERIODS: PlanningPeriod[] = ["diurno", "noturno"];
+const PERIODS: PlanningPeriod[] = ["daytime", "nighttime"];
 const PERIOD_LABELS: Record<PlanningPeriod, string> = {
-  diurno: "Diurno",
-  noturno: "Noturno",
+  daytime: "Diurno",
+  nighttime: "Noturno",
 };
 
 function Planejamento() {
