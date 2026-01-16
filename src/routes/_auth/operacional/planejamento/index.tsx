@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ContentHeader } from "@/components/composite/content-header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   Command,
   CommandEmpty,
@@ -13,6 +14,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { Heading } from "@/components/ui/heading";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
@@ -23,20 +25,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Text } from "@/components/ui/text";
 import { classHelper } from "@/lib/utils/class-helper";
 import { getStoreBranch } from "@/modules/branches/branches.service";
 import { getClientById, listClients } from "@/modules/clients/clients.service";
+import type { Client } from "@/modules/clients/clients.types";
 import { listGroups } from "@/modules/groups/groups.service";
 import { createPlanning, listPlannings, updatePlanning } from "@/modules/planning/planning.service";
-import type { Planning } from "@/modules/planning/planning.types";
+import type { Planning, PlanningPeriod } from "@/modules/planning/planning.types";
 
 export const Route = createFileRoute("/_auth/operacional/planejamento/")({
   component: Planejamento,
@@ -86,9 +82,25 @@ function toDateKey(date: Date): string {
   return date.toISOString().split("T")[0];
 }
 
-function getCellKey(clientId: string, date: Date): string {
-  return `${clientId}-${toDateKey(date)}`;
+function getCellKey(clientId: string, date: Date, period: PlanningPeriod): string {
+  return `${clientId}-${toDateKey(date)}-${period}`;
 }
+
+function formatCompactAddress(client: Client): string {
+  const streetLine = [client.street, client.number].filter(Boolean).join(", ");
+  const complement = client.complement ? `- ${client.complement}` : "";
+  const addressLine = [streetLine, complement].filter(Boolean).join(" ");
+  const cityUf = [client.city, client.uf].filter(Boolean).join("/");
+  const parts = [addressLine, client.neighborhood, cityUf].filter(Boolean);
+
+  return parts.join(" - ") || "Endereço não informado.";
+}
+
+const PERIODS: PlanningPeriod[] = ["diurno", "noturno"];
+const PERIOD_LABELS: Record<PlanningPeriod, string> = {
+  diurno: "Diurno",
+  noturno: "Noturno",
+};
 
 function Planejamento() {
   const queryClient = useQueryClient();
@@ -175,7 +187,7 @@ function Planejamento() {
     const plannings = planningsData?.data || [];
     for (const planning of plannings) {
       const dateKey = planning.plannedDate.split("T")[0];
-      const key = `${planning.clientId}-${dateKey}`;
+      const key = `${planning.clientId}-${dateKey}-${planning.period}`;
       map.set(key, planning);
     }
     return map;
@@ -199,12 +211,14 @@ function Planejamento() {
       clientId,
       date,
       value,
+      period,
     }: {
       clientId: string;
       date: Date;
       value: number;
+      period: PlanningPeriod;
     }) => {
-      const cellKey = getCellKey(clientId, date);
+      const cellKey = getCellKey(clientId, date, period);
       const existing = planningMap.get(cellKey);
       const branchId = getStoreBranch()?.id;
 
@@ -221,10 +235,11 @@ function Planejamento() {
         branchId,
         plannedDate: date.toISOString(),
         plannedCount: value,
+        period,
       });
     },
     onSuccess: (_, variables) => {
-      const cellKey = getCellKey(variables.clientId, variables.date);
+      const cellKey = getCellKey(variables.clientId, variables.date, variables.period);
       setSavingCells((prev) => {
         const newSet = new Set(prev);
         newSet.delete(cellKey);
@@ -239,11 +254,11 @@ function Planejamento() {
         });
       }, 2000);
       queryClient.invalidateQueries({
-        queryKey: ["plannings", selectedGroupId, startDate, endDate],
+        queryKey: ["plannings", selectedGroupId, selectedClientId, startDate, endDate],
       });
     },
     onError: (_, variables) => {
-      const cellKey = getCellKey(variables.clientId, variables.date);
+      const cellKey = getCellKey(variables.clientId, variables.date, variables.period);
       setSavingCells((prev) => {
         const newSet = new Set(prev);
         newSet.delete(cellKey);
@@ -252,14 +267,17 @@ function Planejamento() {
     },
   });
 
-  const handleInputChange = useCallback((clientId: string, date: Date, value: string) => {
-    const cellKey = getCellKey(clientId, date);
-    setInputValues((prev) => new Map(prev).set(cellKey, value));
-  }, []);
+  const handleInputChange = useCallback(
+    (clientId: string, date: Date, period: PlanningPeriod, value: string) => {
+      const cellKey = getCellKey(clientId, date, period);
+      setInputValues((prev) => new Map(prev).set(cellKey, value));
+    },
+    [],
+  );
 
   const handleBlur = useCallback(
-    (clientId: string, date: Date) => {
-      const cellKey = getCellKey(clientId, date);
+    (clientId: string, date: Date, period: PlanningPeriod) => {
+      const cellKey = getCellKey(clientId, date, period);
       const currentValue = inputValues.get(cellKey) ?? "";
       const existing = planningMap.get(cellKey);
       const originalValue = existing ? String(existing.plannedCount) : "";
@@ -271,14 +289,14 @@ function Planejamento() {
       if (String(numValue) === originalValue) return;
 
       setSavingCells((prev) => new Set(prev).add(cellKey));
-      saveMutation.mutate({ clientId, date, value: numValue });
+      saveMutation.mutate({ clientId, date, value: numValue, period });
     },
     [inputValues, planningMap, saveMutation],
   );
 
   const getInputValue = useCallback(
-    (clientId: string, date: Date): string => {
-      const cellKey = getCellKey(clientId, date);
+    (clientId: string, date: Date, period: PlanningPeriod): string => {
+      const cellKey = getCellKey(clientId, date, period);
       if (inputValues.has(cellKey)) {
         return inputValues.get(cellKey) ?? "";
       }
@@ -422,100 +440,129 @@ function Planejamento() {
           )}
 
         {hasActiveFilter && (isLoadingClients || isLoadingSelectedClient || clients.length > 0) && (
-          <div className="rounded-md border bg-card">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="min-w-[150px]">Cliente</TableHead>
-                  {weekDates.map((date, index) => (
-                    <TableHead
-                      key={date.toISOString()}
-                      className={classHelper("w-36 text-center", isToday(date) && "bg-primary/10")}
-                    >
-                      <div className="flex flex-col items-center">
-                        <span className="text-xs font-medium">{WEEKDAY_LABELS[index]}</span>
-                        <span
-                          className={classHelper(
-                            "text-xs",
-                            isToday(date) ? "font-bold text-primary" : "text-muted-foreground",
-                          )}
-                        >
-                          {formatDate(date)}
-                        </span>
+          <div className="flex flex-col gap-4">
+            {isLoadingClients || isLoadingSelectedClient
+              ? [...Array(3)].map((_, index) => (
+                  <Card
+                    key={`skeleton-${
+                      // biome-ignore lint/suspicious/noArrayIndexKey: skeleton rows
+                      index
+                    }`}
+                    className="p-4"
+                  >
+                    <div className="flex gap-6">
+                      <div className="w-1/4 shrink-0 space-y-2">
+                        <Skeleton className="h-5 w-4/5" />
+                        <Skeleton className="h-4 w-full" />
                       </div>
-                    </TableHead>
-                  ))}
-                  <TableHead className="w-20" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoadingClients
-                  ? [...Array(5)].map((_, index) => (
-                      <TableRow
-                        key={`skeleton-${
-                          // biome-ignore lint/suspicious/noArrayIndexKey: skeleton rows
-                          index
-                        }`}
-                      >
-                        <TableCell>
-                          <Skeleton className="h-8 w-full" />
-                        </TableCell>
-                        {weekDates.map((date) => (
-                          <TableCell key={date.toISOString()}>
-                            <Skeleton className="h-8 w-full" />
-                          </TableCell>
-                        ))}
-                        <TableCell>
-                          <Skeleton className="h-8 w-16" />
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  : clients.map((client) => (
-                      <TableRow key={client.id}>
-                        <TableCell className="font-medium text-sm">{client.name}</TableCell>
-                        {weekDates.map((date) => {
-                          const cellKey = getCellKey(client.id, date);
-                          const isSaving = savingCells.has(cellKey);
-                          const isSaved = savedCells.has(cellKey);
-                          const isPast = isPastDay(date);
+                      <div className="w-3/4 space-y-2">
+                        <div className="flex gap-2">
+                          <div className="w-16 shrink-0" />
+                          {weekDates.map((date) => (
+                            <Skeleton key={date.toISOString()} className="h-6 flex-1" />
+                          ))}
+                        </div>
+                        <div className="flex gap-2">
+                          <div className="w-16 shrink-0" />
+                          {weekDates.map((date) => (
+                            <Skeleton key={`d-${date.toISOString()}`} className="h-8 flex-1" />
+                          ))}
+                        </div>
+                        <div className="flex gap-2">
+                          <div className="w-16 shrink-0" />
+                          {weekDates.map((date) => (
+                            <Skeleton key={`n-${date.toISOString()}`} className="h-8 flex-1" />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                ))
+              : clients.map((client) => (
+                  <Card key={client.id} className="p-4">
+                    <div className="flex gap-6">
+                      <div className="w-1/4 shrink-0">
+                        <Heading variant="h4" className="text-base">
+                          {client.name}
+                        </Heading>
+                        <Text variant="muted" className="text-xs mt-1">
+                          {formatCompactAddress(client)}
+                        </Text>
+                      </div>
 
-                          return (
-                            <TableCell
+                      <div className="w-3/4">
+                        <div className="flex gap-2 mb-2">
+                          <div className="w-16 shrink-0" />
+                          {weekDates.map((date, index) => (
+                            <div
                               key={date.toISOString()}
                               className={classHelper(
-                                "text-center w-36",
-                                isToday(date) && "bg-primary/5",
-                                isPast && "bg-muted/50",
+                                "flex-1 text-center",
+                                isToday(date) && "bg-primary/10 rounded",
+                                isPastDay(date) && "opacity-50",
                               )}
                             >
-                              <div className="relative flex items-center justify-center">
-                                <Input
-                                  type="number"
-                                  min={0}
-                                  className="h-8 w-20 text-center"
-                                  placeholder="0"
-                                  value={getInputValue(client.id, date)}
-                                  onChange={(e) =>
-                                    handleInputChange(client.id, date, e.target.value)
-                                  }
-                                  onBlur={() => handleBlur(client.id, date)}
-                                  disabled={isSaving || isPast}
-                                />
-                                {isSaving && (
-                                  <Loader2 className="absolute right-1 size-3 animate-spin text-muted-foreground" />
+                              <span className="text-xs font-medium">{WEEKDAY_LABELS[index]}</span>
+                              <br />
+                              <span
+                                className={classHelper(
+                                  "text-xs",
+                                  isToday(date) ? "font-bold text-primary" : "text-muted-foreground",
                                 )}
-                                {isSaved && !isSaving && (
-                                  <Check className="absolute right-1 size-3 text-green-500" />
-                                )}
-                              </div>
-                            </TableCell>
-                          );
-                        })}
-                        <TableCell />
-                      </TableRow>
-                    ))}
-              </TableBody>
-            </Table>
+                              >
+                                {formatDate(date)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {PERIODS.map((period) => (
+                          <div key={period} className="flex gap-2 items-center mb-1">
+                            <span className="w-16 shrink-0 text-xs text-muted-foreground">
+                              {PERIOD_LABELS[period]}
+                            </span>
+                            {weekDates.map((date) => {
+                              const cellKey = getCellKey(client.id, date, period);
+                              const isSaving = savingCells.has(cellKey);
+                              const isSaved = savedCells.has(cellKey);
+                              const isPast = isPastDay(date);
+
+                              return (
+                                <div
+                                  key={date.toISOString()}
+                                  className={classHelper(
+                                    "relative flex-1",
+                                    isToday(date) && "bg-primary/5 rounded",
+                                    isPast && "opacity-50",
+                                  )}
+                                >
+                                  <Input
+                                    type="number"
+                                    min={0}
+                                    className="h-8 w-full text-center text-sm"
+                                    placeholder="0"
+                                    value={getInputValue(client.id, date, period)}
+                                    onChange={(e) =>
+                                      handleInputChange(client.id, date, period, e.target.value)
+                                    }
+                                    onBlur={() => handleBlur(client.id, date, period)}
+                                    disabled={isSaving || isPast}
+                                  />
+                                  {isSaving && (
+                                    <Loader2 className="absolute right-1 top-1/2 -translate-y-1/2 size-3 animate-spin text-muted-foreground" />
+                                  )}
+                                  {isSaved && !isSaving && (
+                                    <Check className="absolute right-1 top-1/2 -translate-y-1/2 size-3 text-green-500" />
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </Card>
+                ))}
           </div>
         )}
       </div>

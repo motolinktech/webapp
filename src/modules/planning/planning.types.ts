@@ -1,9 +1,12 @@
+export type PlanningPeriod = "diurno" | "noturno";
+
 export interface Planning {
   id: string;
   clientId: string;
   branchId: string;
   plannedDate: string;
   plannedCount: number;
+  period: PlanningPeriod;
   createdAt: string;
   updatedAt: string;
   client?: {
@@ -31,6 +34,7 @@ export interface CreatePlanningData {
   branchId: string;
   plannedDate: string;
   plannedCount: number;
+  period: PlanningPeriod;
 }
 
 export interface UpdatePlanningData {
@@ -39,4 +43,5 @@ export interface UpdatePlanningData {
   branchId?: string;
   plannedDate?: string;
   plannedCount?: number;
+  period?: PlanningPeriod;
 }
