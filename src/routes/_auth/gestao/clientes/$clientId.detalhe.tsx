@@ -11,6 +11,7 @@ import { cepMask } from "@/lib/masks/cep-mask";
 import { cnpjMask } from "@/lib/masks/cnpj-mask";
 import { moneyMask } from "@/lib/masks/money-mask";
 import { phoneMask } from "@/lib/masks/phone-mask";
+import { BAGS_STATUS, BAGS_STATUS_OPTIONS } from "@/modules/clients/clients.constants";
 import { getClientById } from "@/modules/clients/clients.service";
 
 export const Route = createFileRoute("/_auth/gestao/clientes/$clientId/detalhe")({
@@ -163,6 +164,30 @@ function ClientDetails() {
               </div>
             </div>
 
+            <Separator />
+
+            {/* Bags */}
+            <div>
+              <Heading variant="h3" className="mb-4">
+                Bags
+              </Heading>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <Text variant="muted">Status dos Bags</Text>
+                  <Text variant="large">
+                    {BAGS_STATUS_OPTIONS.find((opt) => opt.value === cc?.bagsStatus)?.label || "Sem Bags"}
+                  </Text>
+                </div>
+
+                {cc?.bagsStatus === BAGS_STATUS.COMPANY && cc?.bagsAllocated !== undefined && (
+                  <div className="space-y-2">
+                    <Text variant="muted">Bags Alocados</Text>
+                    <Text variant="large">{cc.bagsAllocated}</Text>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Condições Comerciais */}
             {client.commercialCondition && (
               <>
@@ -185,13 +210,6 @@ function ClientDetails() {
                       <div className="space-y-2">
                         <Text variant="muted">Área de Entrega (km)</Text>
                         <Text variant="large">{cc.deliveryAreaKm}</Text>
-                      </div>
-                    )}
-
-                    {cc?.bagsAllocated !== undefined && (
-                      <div className="space-y-2">
-                        <Text variant="muted">Bags Alocados</Text>
-                        <Text variant="large">{cc.bagsAllocated}</Text>
                       </div>
                     )}
 

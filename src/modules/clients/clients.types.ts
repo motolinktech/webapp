@@ -1,3 +1,5 @@
+import type { BagsStatus } from "./clients.constants";
+
 export interface CommercialCondition {
   id: string;
   clientId: string;
@@ -5,6 +7,7 @@ export interface CommercialCondition {
   dailyPeriods: string[];
   guaranteedPeriods: string[];
   deliveryAreaKm: number;
+  bagsStatus?: BagsStatus;
   bagsAllocated?: number;
   isMotolinkCovered: boolean;
   guaranteedDay: number;
@@ -89,6 +92,7 @@ export interface CreateCommercialConditionPayload {
   paymentForm?: string[];
   paymentTermDays?: number;
   deliveryAreaKm?: number;
+  bagsStatus?: BagsStatus;
   bagsAllocated?: number;
   isMotolinkCovered?: boolean;
   guaranteedDay?: number;

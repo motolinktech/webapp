@@ -44,6 +44,7 @@ import { clearMoneyMask, moneyMask } from "@/lib/masks/money-mask";
 import { phoneMask } from "@/lib/masks/phone-mask";
 import { searchCnpj } from "@/lib/services/brazil-api";
 import { BRAZIL_STATES } from "@/lib/utils/states";
+import { BAGS_STATUS, BAGS_STATUS_OPTIONS, type BagsStatus } from "@/modules/clients/clients.constants";
 import { createClient, updateClient } from "@/modules/clients/clients.service";
 import type { Client } from "@/modules/clients/clients.types";
 import { listGroups } from "@/modules/groups/groups.service";
@@ -65,6 +66,7 @@ const clientFormSchema = z.object({
   observations: z.string().optional(),
   regionId: z.string().optional(),
   groupId: z.string().optional(),
+  bagsStatus: z.string().optional(),
   deliveryAreaKm: z.number().min(0).optional(),
   bagsAllocated: z.number().min(0).optional(),
   isMotolinkCovered: z.boolean().optional(),
@@ -146,6 +148,7 @@ export function ClientsForm({ client }: ClientsFormProps) {
       observations: client?.observations || "",
       regionId: client?.regionId || undefined,
       groupId: client?.groupId || undefined,
+      bagsStatus: client?.commercialCondition?.bagsStatus || BAGS_STATUS.NONE,
       deliveryAreaKm: client?.commercialCondition?.deliveryAreaKm || undefined,
       bagsAllocated: client?.commercialCondition?.bagsAllocated || undefined,
       isMotolinkCovered: client?.commercialCondition?.isMotolinkCovered || false,
@@ -188,6 +191,7 @@ export function ClientsForm({ client }: ClientsFormProps) {
         observations: client.observations || "",
         regionId: client.regionId || undefined,
         groupId: client.groupId || undefined,
+        bagsStatus: client.commercialCondition?.bagsStatus || BAGS_STATUS.NONE,
         deliveryAreaKm: client.commercialCondition?.deliveryAreaKm || undefined,
         bagsAllocated: client.commercialCondition?.bagsAllocated || undefined,
         isMotolinkCovered: client.commercialCondition?.isMotolinkCovered || false,
@@ -215,6 +219,7 @@ export function ClientsForm({ client }: ClientsFormProps) {
   }, [client, reset]);
 
   const deliveryAreaKmValue = watch("deliveryAreaKm");
+  const bagsStatusValue = watch("bagsStatus");
 
   const handlePaymentFormChange = (newPaymentForm: string[]) => {
     const removedTypes = paymentForm.filter((p) => !newPaymentForm.includes(p));
@@ -310,6 +315,7 @@ export function ClientsForm({ client }: ClientsFormProps) {
       const unmaskedData = clearMasks(data);
       const {
         deliveryAreaKm,
+        bagsStatus,
         bagsAllocated,
         isMotolinkCovered,
         // Daily fields (need to convert from money mask to number)
@@ -344,7 +350,8 @@ export function ClientsForm({ client }: ClientsFormProps) {
           dailyPeriods,
           guaranteedPeriods,
           deliveryAreaKm,
-          bagsAllocated,
+          bagsStatus: bagsStatus as BagsStatus | undefined,
+          bagsAllocated: bagsStatus === BAGS_STATUS.COMPANY ? bagsAllocated : undefined,
           isMotolinkCovered,
           // Delivery area fields - convert money mask to number
           clientPerDelivery: clientPerDelivery ? clearMoneyMask(clientPerDelivery) : undefined,
@@ -605,6 +612,43 @@ export function ClientsForm({ client }: ClientsFormProps) {
         <Separator />
 
         <FieldSet>
+          <FieldLegend>Bags</FieldLegend>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Field className="col-span-1">
+              <FieldLabel>Status dos Bags</FieldLabel>
+              <Controller
+                control={control}
+                name="bagsStatus"
+                render={({ field }) => (
+                  <BadgeSelect
+                    options={BAGS_STATUS_OPTIONS}
+                    value={field.value ? [field.value] : []}
+                    onChange={(values) => field.onChange(values[values.length - 1] || undefined)}
+                  />
+                )}
+              />
+            </Field>
+
+            {bagsStatusValue === BAGS_STATUS.COMPANY && (
+              <Field className="col-span-1">
+                <FieldLabel htmlFor="bagsAllocated">Bags Alocados</FieldLabel>
+                <Input
+                  id="bagsAllocated"
+                  type="number"
+                  min={0}
+                  step={1}
+                  {...register("bagsAllocated", { valueAsNumber: true })}
+                />
+                <FieldError errors={[errors.bagsAllocated]} />
+              </Field>
+            )}
+          </div>
+        </FieldSet>
+
+        <Separator />
+
+        <FieldSet>
           <FieldLegend>Condições Comerciais</FieldLegend>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -617,31 +661,17 @@ export function ClientsForm({ client }: ClientsFormProps) {
               />
             </Field>
 
-            <div className="col-span-1 grid grid-cols-2 gap-4">
-              <Field>
-                <FieldLabel htmlFor="deliveryAreaKm">Área de Entrega (KM)</FieldLabel>
-                <Input
-                  id="deliveryAreaKm"
-                  type="number"
-                  min={0}
-                  step={1}
-                  {...register("deliveryAreaKm", { valueAsNumber: true })}
-                />
-                <FieldError errors={[errors.deliveryAreaKm]} />
-              </Field>
-
-              <Field>
-                <FieldLabel htmlFor="bagsAllocated">Bags Alocados</FieldLabel>
-                <Input
-                  id="bagsAllocated"
-                  type="number"
-                  min={0}
-                  step={1}
-                  {...register("bagsAllocated", { valueAsNumber: true })}
-                />
-                <FieldError errors={[errors.bagsAllocated]} />
-              </Field>
-            </div>
+            <Field className="col-span-1">
+              <FieldLabel htmlFor="deliveryAreaKm">Área de Entrega (KM)</FieldLabel>
+              <Input
+                id="deliveryAreaKm"
+                type="number"
+                min={0}
+                step={1}
+                {...register("deliveryAreaKm", { valueAsNumber: true })}
+              />
+              <FieldError errors={[errors.deliveryAreaKm]} />
+            </Field>
 
             {paymentForm.includes("GUARANTEED") ? (
               <Label className="col-span-2 hover:bg-accent/50 flex items-start gap-3 rounded-lg border p-3 has-[[aria-checked=true]]:border-blue-600 has-[[aria-checked=true]]:bg-blue-50 dark:has-[[aria-checked=true]]:border-blue-900 dark:has-[[aria-checked=true]]:bg-blue-950">
