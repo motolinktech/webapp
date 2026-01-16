@@ -86,6 +86,7 @@ export function UserForm({ user }: UserFormProps) {
       name: user?.name || "",
       email: user?.email || "",
       birthDate: dayjs(user?.birthDate).format("DD/MM/YYYY") || "",
+      document: cpfMask(user?.document || ""),
       role: user?.role || "USER",
       branches: user?.branches || (selectedBranch ? [selectedBranch.id] : []),
       permissions: user?.permissions || [],
