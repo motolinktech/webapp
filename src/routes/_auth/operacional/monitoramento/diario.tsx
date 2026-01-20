@@ -13,6 +13,7 @@ import {
   Pencil,
   Send,
   SquareCheck,
+  Trash,
   UserPlus,
   X,
   XCircle,
@@ -25,7 +26,6 @@ import {
   type AssignDeliverymanFormData,
 } from "@/components/forms/assign-deliveryman";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,6 +36,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -96,6 +97,7 @@ import {
   checkInWorkShiftSlot,
   checkOutWorkShiftSlot,
   connectTrackingWorkShiftSlot,
+  deleteWorkShiftSlot,
   listWorkShiftSlots,
   markAbsentWorkShiftSlot,
 } from "@/modules/work-shift-slots/work-shift-slots.service";
@@ -270,6 +272,7 @@ function MonitoramentoDiario() {
   const [logDialogOpen, setLogDialogOpen] = useState(false);
   const [banDialogOpen, setBanDialogOpen] = useState(false);
   const [finishServiceDialogOpen, setFinishServiceDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedSlotForAction, setSelectedSlotForAction] = useState<WorkShiftSlot | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [editModeActive, setEditModeActive] = useState(false);
@@ -378,6 +381,17 @@ function MonitoramentoDiario() {
       queryClient.invalidateQueries({ queryKey: workShiftSlotsQueryKey });
     },
     onError: (error) => toast.error("Erro ao conectar tracking", { description: error.message }),
+  });
+
+  const { mutate: deleteSlot, isPending: isDeleting } = useMutation({
+    mutationFn: (id: string) => deleteWorkShiftSlot(id),
+    onSuccess: () => {
+      toast.success("Turno excluído com sucesso!");
+      queryClient.invalidateQueries({ queryKey: workShiftSlotsQueryKey });
+      setDeleteDialogOpen(false);
+      setSelectedSlotForAction(null);
+    },
+    onError: (error) => toast.error("Erro ao excluir turno", { description: error.message }),
   });
 
   const planningsByClientList = useMemo(() => {
@@ -842,6 +856,16 @@ function MonitoramentoDiario() {
                                                 variant="destructive"
                                                 onClick={() => {
                                                   setSelectedSlotForAction(slot);
+                                                  setDeleteDialogOpen(true);
+                                                }}
+                                              >
+                                                <Trash className="size-4" />
+                                                Excluir turno
+                                              </DropdownMenuItem>
+                                              <DropdownMenuItem
+                                                variant="destructive"
+                                                onClick={() => {
+                                                  setSelectedSlotForAction(slot);
                                                   setBanDialogOpen(true);
                                                 }}
                                               >
@@ -1008,6 +1032,37 @@ function MonitoramentoDiario() {
         </AlertDialog>
 
         <AlertDialog
+          open={deleteDialogOpen}
+          onOpenChange={(open) => {
+            setDeleteDialogOpen(open);
+            if (!open) setSelectedSlotForAction(null);
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Excluir Turno</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja excluir o turno do entregador {" "}
+                <strong>{selectedSlotForAction?.deliveryman?.name || "N/A"}</strong>? Esta ação
+                não pode ser desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                disabled={isDeleting}
+                onClick={() => {
+                  if (!selectedSlotForAction?.id) return;
+                  deleteSlot(selectedSlotForAction.id);
+                }}
+              >
+                {isDeleting ? "Excluindo..." : "Confirmar"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog
           open={finishServiceDialogOpen}
           onOpenChange={(open) => {
             setFinishServiceDialogOpen(open);
@@ -1109,16 +1164,16 @@ function MonitoramentoDiario() {
                   </div>
                   {(selectedSlotForAction.deliverymanAmountDay ||
                     selectedSlotForAction.deliverymanAmountNight) && (
-                    <div className="flex justify-between">
-                      <Text variant="muted">Valor</Text>
-                      <Text>
-                        {formatMoney(
-                          selectedSlotForAction.deliverymanAmountDay ||
+                      <div className="flex justify-between">
+                        <Text variant="muted">Valor</Text>
+                        <Text>
+                          {formatMoney(
+                            selectedSlotForAction.deliverymanAmountDay ||
                             selectedSlotForAction.deliverymanAmountNight,
-                        )}
-                      </Text>
-                    </div>
-                  )}
+                          )}
+                        </Text>
+                      </div>
+                    )}
                 </div>
 
                 <Separator />
