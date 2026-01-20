@@ -231,6 +231,20 @@ function formatDeliverymanConditions(client: Client): string | null {
   return parts.length > 0 ? parts.join(" | ") : null;
 }
 
+function formatPerDeliveryInfo(client: Client): string | null {
+  const condition = client.commercialCondition;
+  if (!condition?.deliverymanPerDelivery) return null;
+
+  const perDelivery = `Por entrega: ${formatMoney(condition.deliverymanPerDelivery)}`;
+
+  if (condition.deliveryAreaKm && condition.deliveryAreaKm > 0 && condition.deliverymanAdditionalKm) {
+    const extraKm = `${formatMoney(condition.deliverymanAdditionalKm)} (> ${condition.deliveryAreaKm}km)`;
+    return `${perDelivery} | ${extraKm}`;
+  }
+
+  return perDelivery;
+}
+
 function formatTime(isoString?: string | null): string {
   if (!isoString) return "N/A";
   return new Date(isoString).toLocaleTimeString("pt-BR", {
@@ -525,6 +539,7 @@ function MonitoramentoSemanal() {
                 : clients.map((client) => {
                     const bagsInfo = formatBagsInfo(client);
                     const deliverymanConditions = formatDeliverymanConditions(client);
+                    const perDeliveryInfo = formatPerDeliveryInfo(client);
 
                     return (
                       <Card key={client.id}>
@@ -538,6 +553,9 @@ function MonitoramentoSemanal() {
                             {bagsInfo && <Text variant="muted">{bagsInfo}</Text>}
                             {deliverymanConditions && (
                               <Text variant="muted">{deliverymanConditions}</Text>
+                            )}
+                            {perDeliveryInfo && (
+                              <Text variant="muted">{perDeliveryInfo}</Text>
                             )}
                           </div>
 

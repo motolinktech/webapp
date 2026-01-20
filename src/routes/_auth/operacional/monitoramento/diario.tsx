@@ -214,6 +214,20 @@ function formatDeliverymanConditions(client: Client): string | null {
   return parts.length > 0 ? parts.join(" | ") : null;
 }
 
+function formatPerDeliveryInfo(client: Client): string | null {
+  const condition = client.commercialCondition;
+  if (!condition?.deliverymanPerDelivery) return null;
+
+  const perDelivery = `Por entrega: ${formatMoney(condition.deliverymanPerDelivery)}`;
+
+  if (condition.deliveryAreaKm && condition.deliveryAreaKm > 0 && condition.deliverymanAdditionalKm) {
+    const extraKm = `${formatMoney(condition.deliverymanAdditionalKm)} (> ${condition.deliveryAreaKm}km)`;
+    return `${perDelivery} | ${extraKm}`;
+  }
+
+  return perDelivery;
+}
+
 function startOfDay(date: Date): Date {
   const next = new Date(date);
   next.setHours(0, 0, 0, 0);
@@ -576,6 +590,9 @@ function MonitoramentoDiario() {
                           )}
                           {formatDeliverymanConditions(client) && (
                             <Text variant="muted">{formatDeliverymanConditions(client)}</Text>
+                          )}
+                          {formatPerDeliveryInfo(client) && (
+                            <Text variant="muted">{formatPerDeliveryInfo(client)}</Text>
                           )}
                         </div>
 
