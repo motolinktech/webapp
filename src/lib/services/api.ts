@@ -1,7 +1,24 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
+import type { ApiError } from "@/lib/types/api-types";
 import { getStoreBranch } from "@/modules/branches/branches.service";
 
 const baseURL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+
+export function getApiErrorMessage(
+  error: unknown,
+  fallback = "Ocorreu um erro inesperado",
+): string {
+  if (error instanceof AxiosError) {
+    const data = error.response?.data as ApiError | undefined;
+    if (data?.message) {
+      return data.message;
+    }
+  }
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+  return fallback;
+}
 
 export const publicApi = axios.create({
   baseURL,

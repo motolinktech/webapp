@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 import { BadgeSelect } from "@/components/composite/badge-select";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Text } from "@/components/ui/text";
 import { hourMask } from "@/lib/masks/hour-mask";
 import { clearMoneyMask, moneyMask } from "@/lib/masks/money-mask";
+import { getApiErrorMessage } from "@/lib/services/api";
 import { classHelper } from "@/lib/utils/class-helper";
 import { BAGS_STATUS, BAGS_STATUS_OPTIONS } from "@/modules/clients/clients.constants";
 import type { Client } from "@/modules/clients/clients.types";
@@ -442,8 +444,10 @@ export function AssignDeliverymanForm({
       onSubmit(formData);
     },
     onError: (err) => {
-      // eslint-disable-next-line no-console
-      console.error(editMode ? "Error updating work shift slot:" : "Error creating invited work shift slot:", err);
+      const errorMessage = getApiErrorMessage(err);
+      toast.error(editMode ? "Erro ao atualizar turno" : "Erro ao atribuir entregador", {
+        description: errorMessage,
+      });
     },
   });
 
@@ -474,7 +478,7 @@ export function AssignDeliverymanForm({
               >
                 {selectedDeliverymanId
                   ? sortedDeliverymen.find((d) => d.id === selectedDeliverymanId)?.name ||
-                    workShiftSlot?.deliveryman?.name
+                  workShiftSlot?.deliveryman?.name
                   : "Selecione um entregador..."}
                 {!editMode && <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />}
               </Button>

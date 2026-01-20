@@ -87,6 +87,7 @@ import { Text } from "@/components/ui/text";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { moneyMask } from "@/lib/masks/money-mask";
+import { getApiErrorMessage } from "@/lib/services/api";
 import { classHelper } from "@/lib/utils/class-helper";
 import { BAGS_STATUS, BAGS_STATUS_OPTIONS } from "@/modules/clients/clients.constants";
 import { getClientById, listClients } from "@/modules/clients/clients.service";
@@ -354,7 +355,7 @@ function MonitoramentoDiario() {
       toast.success("Check-in realizado com sucesso!");
       queryClient.invalidateQueries({ queryKey: workShiftSlotsQueryKey });
     },
-    onError: (error) => toast.error("Erro ao realizar check-in", { description: error.message }),
+    onError: (error) => toast.error("Erro ao realizar check-in", { description: getApiErrorMessage(error) }),
   });
 
   const { mutate: checkOut, isPending: isCheckingOut } = useMutation({
@@ -363,7 +364,7 @@ function MonitoramentoDiario() {
       toast.success("Check-out realizado com sucesso!");
       queryClient.invalidateQueries({ queryKey: workShiftSlotsQueryKey });
     },
-    onError: (error) => toast.error("Erro ao realizar check-out", { description: error.message }),
+    onError: (error) => toast.error("Erro ao realizar check-out", { description: getApiErrorMessage(error) }),
   });
 
   const { mutate: markAbsent, isPending: isMarkingAbsent } = useMutation({
@@ -372,7 +373,7 @@ function MonitoramentoDiario() {
       toast.success("Ausência marcada com sucesso!");
       queryClient.invalidateQueries({ queryKey: workShiftSlotsQueryKey });
     },
-    onError: (error) => toast.error("Erro ao marcar ausência", { description: error.message }),
+    onError: (error) => toast.error("Erro ao marcar ausência", { description: getApiErrorMessage(error) }),
   });
 
   const { mutate: connectTracking, isPending: isConnecting } = useMutation({
@@ -381,7 +382,7 @@ function MonitoramentoDiario() {
       toast.success("Tracking conectado com sucesso!");
       queryClient.invalidateQueries({ queryKey: workShiftSlotsQueryKey });
     },
-    onError: (error) => toast.error("Erro ao conectar tracking", { description: error.message }),
+    onError: (error) => toast.error("Erro ao conectar tracking", { description: getApiErrorMessage(error) }),
   });
 
   const { mutate: deleteSlot, isPending: isDeleting } = useMutation({
@@ -392,7 +393,7 @@ function MonitoramentoDiario() {
       setDeleteDialogOpen(false);
       setSelectedSlotForAction(null);
     },
-    onError: (error) => toast.error("Erro ao excluir turno", { description: error.message }),
+    onError: (error) => toast.error("Erro ao excluir turno", { description: getApiErrorMessage(error) }),
   });
 
   const planningsByClientList = useMemo(() => {
