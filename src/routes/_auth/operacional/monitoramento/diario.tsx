@@ -257,6 +257,13 @@ function endOfDay(date: Date): Date {
   return next;
 }
 
+function formatDateYYYYMMDD(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 // Main Component
 function MonitoramentoDiario() {
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
@@ -282,8 +289,8 @@ function MonitoramentoDiario() {
 
   const queryClient = useQueryClient();
 
-  const startDate = useMemo(() => startOfDay(selectedDate).toISOString(), [selectedDate]);
-  const endDate = useMemo(() => endOfDay(selectedDate).toISOString(), [selectedDate]);
+  const startDate = useMemo(() => formatDateYYYYMMDD(selectedDate), [selectedDate]);
+  const endDate = useMemo(() => formatDateYYYYMMDD(selectedDate), [selectedDate]);
   const dateLabel = useMemo(() => formatDateLabel(selectedDate), [selectedDate]);
 
   // Queries
