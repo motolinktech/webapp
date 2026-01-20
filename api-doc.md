@@ -32,6 +32,7 @@ See `prisma/schema.prisma` for full model definitions. Below are models that aff
 
 - `Client`
   - id, name, cnpj, address fields, contactName, contactPhone
+  - provideMeal: Boolean (default false) — indicates whether the client receives meal provision
   - branchId (relation to Branch)
   - commercialCondition: One-to-one `CommercialCondition`
   - isDeleted flag
@@ -67,6 +68,8 @@ See `prisma/schema.prisma` for full model definitions. Below are models that aff
   - updatedAt, createdAt
   - relations: `deliveryman`, `client`, `paymentRequests`
   - indexes: [clientId, shiftDate], [deliverymanId, shiftDate], [inviteToken]
+  - deliverymanPaymentType: String — (e.g. "mainPixKey" | "account" ) indicates how the deliveryman is paid
+  - deliverymenPaymentValue: String — string value representing the payment metric (matches `deliverymanPaymentType`, e.g. "150.00" for a per-shift fixed value)
 
 - `PaymentRequest`
   - id, workShiftSlotId, deliverymanId, amount (Decimal 16,2), status
@@ -189,10 +192,12 @@ Total endpoints documented: 58
 **Clients** (`/api/clients`)
 - POST `/api/clients` — Auth + branchCheck
   - Body: `{ client: ClientMutateSchema (without id, branchId), commercialCondition?: CommercialConditionSchema }`
+    - Note: `ClientMutateSchema` includes `provideMeal?: boolean` (default: false)
 - GET `/api/clients/simplified` — Auth + branchCheck
 - GET `/api/clients/complete` — Auth + branchCheck
 - GET `/api/clients/:clientId` — Auth + branchCheck
 - PUT `/api/clients/:clientId` — Auth + branchCheck
+  - Note: `ClientMutateSchema` includes `provideMeal?: boolean` (default: false)
 - DELETE `/api/clients/:clientId` — Auth + branchCheck
 
 **Client Blocks** (nested under clients)
@@ -250,7 +255,9 @@ Endpoints (detailed):
       "isFreelancer": false,
       "logs": [],
       "deliverymanAmountDay": "150.00",
-      "deliverymanAmountNight": "0"
+      "deliverymanAmountNight": "0",
+      "deliverymanPaymentType": "per_shift",
+      "deliverymenPaymentValue": "150.00"
     }
     ```
 

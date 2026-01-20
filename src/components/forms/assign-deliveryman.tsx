@@ -377,13 +377,13 @@ export function AssignDeliverymanForm({
           ...formData,
           deliverymanAmountDay: formData.serviceValueDiurno
             ? diurnoServiceValue.isMoney
-              ? Number.parseFloat(clearMoneyMask(formData.serviceValueDiurno))
-              : Number.parseFloat(formData.serviceValueDiurno)
+              ? clearMoneyMask(formData.serviceValueDiurno)
+              : formData.serviceValueDiurno
             : undefined,
           deliverymanAmountNight: formData.serviceValueNoturno
             ? noturnoServiceValue.isMoney
-              ? Number.parseFloat(clearMoneyMask(formData.serviceValueNoturno))
-              : Number.parseFloat(formData.serviceValueNoturno)
+              ? clearMoneyMask(formData.serviceValueNoturno)
+              : formData.serviceValueNoturno
             : undefined,
         };
 
