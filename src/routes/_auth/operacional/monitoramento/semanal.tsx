@@ -138,7 +138,10 @@ function isToday(date: Date): boolean {
 }
 
 function toDateKey(date: Date): string {
-  return date.toISOString().split("T")[0];
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function startOfDay(date: Date): Date {
@@ -376,7 +379,8 @@ function MonitoramentoSemanal() {
     const map = new Map<string, WorkShiftSlot[]>();
     const slots = workShiftSlotsData?.data || [];
     for (const slot of slots) {
-      const dateKey = slot.shiftDate.split("T")[0];
+      const slotDate = new Date(slot.shiftDate);
+      const dateKey = toDateKey(slotDate);
       const key = `${slot.clientId}-${dateKey}`;
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(slot);
