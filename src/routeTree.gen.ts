@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TrocarSenhaRouteImport } from './routes/trocar-senha'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as ConfirmarEscalaRouteImport } from './routes/confirmar-escala'
 import { Route as AuthRouteImport } from './routes/_auth'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthDashboardRouteImport } from './routes/_auth/dashboard'
@@ -46,6 +47,11 @@ const TrocarSenhaRoute = TrocarSenhaRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConfirmarEscalaRoute = ConfirmarEscalaRouteImport.update({
+  id: '/confirmar-escala',
+  path: '/confirmar-escala',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -196,6 +202,7 @@ const AuthGestaoClientesClientIdDetalheRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/confirmar-escala': typeof ConfirmarEscalaRoute
   '/login': typeof LoginRoute
   '/trocar-senha': typeof TrocarSenhaRoute
   '/dashboard': typeof AuthDashboardRoute
@@ -225,6 +232,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/confirmar-escala': typeof ConfirmarEscalaRoute
   '/login': typeof LoginRoute
   '/trocar-senha': typeof TrocarSenhaRoute
   '/dashboard': typeof AuthDashboardRoute
@@ -256,6 +264,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_auth': typeof AuthRouteWithChildren
+  '/confirmar-escala': typeof ConfirmarEscalaRoute
   '/login': typeof LoginRoute
   '/trocar-senha': typeof TrocarSenhaRoute
   '/_auth/dashboard': typeof AuthDashboardRoute
@@ -287,6 +296,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/confirmar-escala'
     | '/login'
     | '/trocar-senha'
     | '/dashboard'
@@ -316,6 +326,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/confirmar-escala'
     | '/login'
     | '/trocar-senha'
     | '/dashboard'
@@ -346,6 +357,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_auth'
+    | '/confirmar-escala'
     | '/login'
     | '/trocar-senha'
     | '/_auth/dashboard'
@@ -377,6 +389,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRouteWithChildren
+  ConfirmarEscalaRoute: typeof ConfirmarEscalaRoute
   LoginRoute: typeof LoginRoute
   TrocarSenhaRoute: typeof TrocarSenhaRoute
 }
@@ -395,6 +408,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/confirmar-escala': {
+      id: '/confirmar-escala'
+      path: '/confirmar-escala'
+      fullPath: '/confirmar-escala'
+      preLoaderRoute: typeof ConfirmarEscalaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_auth': {
@@ -646,6 +666,7 @@ const AuthRouteWithChildren = AuthRoute._addFileChildren(AuthRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRouteWithChildren,
+  ConfirmarEscalaRoute: ConfirmarEscalaRoute,
   LoginRoute: LoginRoute,
   TrocarSenhaRoute: TrocarSenhaRoute,
 }

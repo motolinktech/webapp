@@ -5,7 +5,7 @@ import backgroundImage from "@/assets/rio-de-janeiro.jpg";
 import { Button } from "@/components/ui/button";
 import { Text } from "@/components/ui/text";
 import { useMutation } from "@tanstack/react-query";
-import { api } from "@/lib/services/api";
+import { publicApi } from "@/lib/services/api";
 import { toast } from "sonner";
 import { Heading } from "@/components/ui/heading";
 import { useState } from "react";
@@ -30,7 +30,7 @@ async function acceptInvite({
   token: string;
   payload: AcceptInvitePayload;
 }) {
-  return api.post(`/work-shift-slots/accept-invite/${token}`, payload);
+  return publicApi.post(`/work-shift-slots/accept-invite/${token}`, payload);
 }
 
 function ConfirmarEscala() {
