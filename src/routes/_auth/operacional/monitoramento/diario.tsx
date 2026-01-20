@@ -815,6 +815,16 @@ function MonitoramentoDiario() {
                                                 <MessageSquarePlus className="size-4" />
                                                 Adicionar Log
                                               </DropdownMenuItem>
+                                              <DropdownMenuItem
+                                                onClick={() => {
+                                                  setSelectedSlotForAction(slot);
+                                                  setEditModeActive(true);
+                                                  setDetailsDialogOpen(true);
+                                                }}
+                                              >
+                                                <Pencil className="size-4" />
+                                                Editar Turno
+                                              </DropdownMenuItem>
                                               <DropdownMenuSeparator />
                                               <DropdownMenuItem
                                                 disabled={isAbsent || isMarkingAbsent}
