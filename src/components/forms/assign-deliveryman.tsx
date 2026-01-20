@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -182,7 +182,7 @@ export function AssignDeliverymanForm({
   workShiftSlot,
 }: AssignDeliverymanFormProps) {
   const [popoverOpen, setPopoverOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const queryClient = useQueryClient();
 
   const availablePaymentForms = useMemo(() => {
     return (
@@ -368,70 +368,87 @@ export function AssignDeliverymanForm({
   const bagsInfo = formatBagsInfo(client);
   const deliverymanConditions = formatDeliverymanConditions(client);
 
-  return (
-    <form
-      onSubmit={handleSubmit(async (formData) => {
-        setIsSubmitting(true);
-        // Convert monetary values from masked strings to numbers
-        const processedData = {
-          ...formData,
-          deliverymanAmountDay: formData.serviceValueDiurno
-            ? diurnoServiceValue.isMoney
-              ? clearMoneyMask(formData.serviceValueDiurno)
-              : formData.serviceValueDiurno
-            : undefined,
-          deliverymanAmountNight: formData.serviceValueNoturno
-            ? noturnoServiceValue.isMoney
-              ? clearMoneyMask(formData.serviceValueNoturno)
-              : formData.serviceValueNoturno
-            : undefined,
-        };
+  const { mutateAsync, isPending } = useMutation({
+    mutationFn: async (formData: AssignDeliverymanFormData) => {
+      // Convert monetary values from masked strings to numbers
+      const deliverymanAmountDay = formData.serviceValueDiurno
+        ? diurnoServiceValue.isMoney
+          ? Number(clearMoneyMask(formData.serviceValueDiurno))
+          : Number(formData.serviceValueDiurno)
+        : undefined;
+      const deliverymanAmountNight = formData.serviceValueNoturno
+        ? noturnoServiceValue.isMoney
+          ? Number(clearMoneyMask(formData.serviceValueNoturno))
+          : Number(formData.serviceValueNoturno)
+        : undefined;
 
-        try {
-          const [startHour, startMinute] = formData.startAt.split(":").map(Number);
-          const startTime = new Date(selectedDate);
-          startTime.setHours(startHour, startMinute);
+      // Compute payment type and value for deliveryman
+      const deliverymanPaymentType = formData.deliverymanPaymentMethod;
+      let deliverymenPaymentValue: string | undefined;
 
-          const [endHour, endMinute] = formData.endAt.split(":").map(Number);
-          const endTime = new Date(selectedDate);
-          endTime.setHours(endHour, endMinute);
-
-          if (editMode && workShiftSlot) {
-            await updateWorkShiftSlot(workShiftSlot.id, {
-              contractType: formData.contractType,
-              startTime: startTime.toISOString(),
-              endTime: endTime.toISOString(),
-              period: formData.periods,
-              isFreelancer: formData.contractType === "FREELANCER",
-              deliverymanAmountDay: processedData.deliverymanAmountDay,
-              deliverymanAmountNight: processedData.deliverymanAmountNight,
-            });
-          } else {
-            await createWorkShiftSlot({
-              clientId: client.id,
-              deliverymanId: formData.deliverymanId,
-              contractType: formData.contractType,
-              shiftDate: selectedDate.toISOString(),
-              startTime: startTime.toISOString(),
-              endTime: endTime.toISOString(),
-              period: formData.periods,
-              isFreelancer: formData.contractType === "FREELANCER",
-              auditStatus: "INVITED",
-              status: "INVITED",
-              deliverymanAmountDay: processedData.deliverymanAmountDay,
-              deliverymanAmountNight: processedData.deliverymanAmountNight,
-            });
-          }
-
-          onSubmit(processedData);
-        } catch (err) {
-          // eslint-disable-next-line no-console
-          console.error(editMode ? "Error updating work shift slot:" : "Error creating invited work shift slot:", err);
-        } finally {
-          setIsSubmitting(false);
+      if (selectedDeliveryman && formData.deliverymanPaymentMethod) {
+        if (formData.deliverymanPaymentMethod === "bankAccount") {
+          deliverymenPaymentValue = `Agência: ${selectedDeliveryman.agency}, Conta: ${selectedDeliveryman.account}`;
+        } else if (
+          formData.deliverymanPaymentMethod === "mainPixKey" ||
+          formData.deliverymanPaymentMethod === "secondPixKey" ||
+          formData.deliverymanPaymentMethod === "thridPixKey"
+        ) {
+          deliverymenPaymentValue = selectedDeliveryman[formData.deliverymanPaymentMethod] ?? undefined;
         }
-      })}
-    >
+      }
+
+      const [startHour, startMinute] = formData.startAt.split(":").map(Number);
+      const startTime = new Date(selectedDate);
+      startTime.setHours(startHour, startMinute);
+
+      const [endHour, endMinute] = formData.endAt.split(":").map(Number);
+      const endTime = new Date(selectedDate);
+      endTime.setHours(endHour, endMinute);
+
+      if (editMode && workShiftSlot) {
+        return updateWorkShiftSlot(workShiftSlot.id, {
+          contractType: formData.contractType,
+          startTime: startTime.toISOString(),
+          endTime: endTime.toISOString(),
+          period: formData.periods,
+          isFreelancer: formData.contractType === "FREELANCER",
+          deliverymanAmountDay,
+          deliverymanAmountNight,
+          deliverymanPaymentType,
+          deliverymenPaymentValue,
+        });
+      }
+
+      return createWorkShiftSlot({
+        clientId: client.id,
+        deliverymanId: formData.deliverymanId,
+        contractType: formData.contractType,
+        shiftDate: selectedDate.toISOString(),
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
+        period: formData.periods,
+        isFreelancer: formData.contractType === "FREELANCER",
+        auditStatus: "INVITED",
+        status: "INVITED",
+        deliverymanAmountDay,
+        deliverymanAmountNight,
+        deliverymanPaymentType,
+        deliverymenPaymentValue,
+      });
+    },
+    onSuccess: (_, formData) => {
+      queryClient.invalidateQueries({ queryKey: ["workShiftSlots"] });
+      onSubmit(formData);
+    },
+    onError: (err) => {
+      // eslint-disable-next-line no-console
+      console.error(editMode ? "Error updating work shift slot:" : "Error creating invited work shift slot:", err);
+    },
+  });
+
+  return (
+    <form onSubmit={handleSubmit((data) => mutateAsync(data))}>
       <FieldGroup>
         <div className="space-y-1">
           {client.observations && (
@@ -640,8 +657,8 @@ export function AssignDeliverymanForm({
           </Field>
         )}
 
-        <Button type="submit" isLoading={isSubmitting} className="w-full">
-          {editMode ? "Salvar Alteracoes" : "Atribuir Entregador"}
+        <Button type="submit" isLoading={isPending} className="w-full">
+          {editMode ? "Salvar Alterações" : "Atribuir Entregador"}
         </Button>
       </FieldGroup>
     </form>

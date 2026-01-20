@@ -29,6 +29,8 @@ export interface WorkShiftSlot {
   auditStatus: string;
   deliverymanAmountDay?: number;
   deliverymanAmountNight?: number;
+  deliverymanPaymentType?: string;
+  deliverymenPaymentValue?: string;
   logs: WorkShiftSlotLog[];
   checkInAt?: string | null;
   checkOutAt?: string | null;
@@ -78,6 +80,8 @@ export interface CreateWorkShiftSlotPayload {
   status?: string;
   deliverymanAmountDay?: number;
   deliverymanAmountNight?: number;
+  deliverymanPaymentType?: string;
+  deliverymenPaymentValue?: string;
   logs?: WorkShiftSlotLog[];
 }
 
@@ -94,6 +98,8 @@ export interface UpdateWorkShiftSlotPayload {
   auditStatus?: string;
   deliverymanAmountDay?: number;
   deliverymanAmountNight?: number;
+  deliverymanPaymentType?: string;
+  deliverymenPaymentValue?: string;
   logs?: WorkShiftSlotLog[];
 }
 
