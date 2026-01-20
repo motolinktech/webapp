@@ -251,11 +251,6 @@ function startOfDay(date: Date): Date {
   return next;
 }
 
-function endOfDay(date: Date): Date {
-  const next = new Date(date);
-  next.setHours(23, 59, 59, 999);
-  return next;
-}
 
 function formatDateYYYYMMDD(date: Date): string {
   const year = date.getFullYear();
