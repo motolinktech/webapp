@@ -273,6 +273,7 @@ function MonitoramentoDiario() {
   const [banDialogOpen, setBanDialogOpen] = useState(false);
   const [finishServiceDialogOpen, setFinishServiceDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [absentDialogOpen, setAbsentDialogOpen] = useState(false);
   const [selectedSlotForAction, setSelectedSlotForAction] = useState<WorkShiftSlot | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [editModeActive, setEditModeActive] = useState(false);
@@ -724,7 +725,12 @@ function MonitoramentoDiario() {
                                   }
 
                                   return (
-                                    <TableRow key={slot.id}>
+                                    <TableRow
+                                      key={slot.id}
+                                      className={classHelper(
+                                        isAbsent && "bg-red-100 hover:bg-red-200 dark:bg-red-950/50 dark:hover:bg-red-950/70",
+                                      )}
+                                    >
                                       <TableCell className="font-medium">
                                         <div className="flex flex-col">
                                           <span>{slot.deliveryman?.name || "N/A"}</span>
@@ -842,7 +848,10 @@ function MonitoramentoDiario() {
                                               <DropdownMenuSeparator />
                                               <DropdownMenuItem
                                                 disabled={isAbsent || isMarkingAbsent}
-                                                onClick={() => markAbsent(slot.id)}
+                                                onClick={() => {
+                                                  setSelectedSlotForAction(slot);
+                                                  setAbsentDialogOpen(true);
+                                                }}
                                               >
                                                 <XCircle
                                                   className={classHelper(
@@ -1086,6 +1095,39 @@ function MonitoramentoDiario() {
                 }}
               >
                 Confirmar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <AlertDialog
+          open={absentDialogOpen}
+          onOpenChange={(open) => {
+            setAbsentDialogOpen(open);
+            if (!open) setSelectedSlotForAction(null);
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Marcar Ausência</AlertDialogTitle>
+              <AlertDialogDescription>
+                Tem certeza que deseja marcar o entregador{" "}
+                <strong>{selectedSlotForAction?.deliveryman?.name || "N/A"}</strong> como ausente?
+                Esta ação indicará que o entregador não compareceu ao turno.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                disabled={isMarkingAbsent}
+                onClick={() => {
+                  if (!selectedSlotForAction?.id) return;
+                  markAbsent(selectedSlotForAction.id);
+                  setAbsentDialogOpen(false);
+                  setSelectedSlotForAction(null);
+                }}
+              >
+                {isMarkingAbsent ? "Marcando..." : "Confirmar Ausência"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
