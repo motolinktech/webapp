@@ -375,14 +375,16 @@ export function AssignDeliverymanForm({
         // Convert monetary values from masked strings to numbers
         const processedData = {
           ...formData,
-          deliverymanAmountDay:
-            formData.serviceValueDiurno && diurnoServiceValue.isMoney
+          deliverymanAmountDay: formData.serviceValueDiurno
+            ? diurnoServiceValue.isMoney
               ? Number.parseFloat(clearMoneyMask(formData.serviceValueDiurno))
-              : undefined,
-          deliverymanAmountNight:
-            formData.serviceValueNoturno && noturnoServiceValue.isMoney
+              : Number.parseFloat(formData.serviceValueDiurno)
+            : undefined,
+          deliverymanAmountNight: formData.serviceValueNoturno
+            ? noturnoServiceValue.isMoney
               ? Number.parseFloat(clearMoneyMask(formData.serviceValueNoturno))
-              : undefined,
+              : Number.parseFloat(formData.serviceValueNoturno)
+            : undefined,
         };
 
         try {
