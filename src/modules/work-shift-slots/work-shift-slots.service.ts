@@ -2,7 +2,6 @@ import { authApi } from "@/lib/services/api";
 import type {
   CheckInOutPayload,
   CreateWorkShiftSlotPayload,
-  MarkAbsentPayload,
   SendInvitePayload,
   SendInviteResponse,
   UpdateWorkShiftSlotPayload,
@@ -66,11 +65,8 @@ export async function checkOutWorkShiftSlot(
   return response.data;
 }
 
-export async function markAbsentWorkShiftSlot(
-  id: string,
-  data?: MarkAbsentPayload,
-): Promise<WorkShiftSlot> {
-  const response = await authApi.post<WorkShiftSlot>(`/work-shift-slots/${id}/mark-absent`, data);
+export async function markAbsentWorkShiftSlot(id: string): Promise<WorkShiftSlot> {
+  const response = await authApi.post<WorkShiftSlot>(`/work-shift-slots/${id}/mark-absent`, {});
   return response.data;
 }
 
