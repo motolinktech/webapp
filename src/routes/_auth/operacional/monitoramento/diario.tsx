@@ -101,6 +101,7 @@ import {
   deleteWorkShiftSlot,
   listWorkShiftSlots,
   markAbsentWorkShiftSlot,
+  sendInviteWorkShiftSlot,
 } from "@/modules/work-shift-slots/work-shift-slots.service";
 import type { WorkShiftSlot } from "@/modules/work-shift-slots/work-shift-slots.types";
 
@@ -394,6 +395,17 @@ function MonitoramentoDiario() {
       setSelectedSlotForAction(null);
     },
     onError: (error) => toast.error("Erro ao excluir turno", { description: getApiErrorMessage(error) }),
+  });
+
+  const { mutate: sendInvite, isPending: isSendingInvite } = useMutation({
+    mutationFn: (data: { id: string; deliverymanId: string }) =>
+      sendInviteWorkShiftSlot(data.id, { deliverymanId: data.deliverymanId }),
+    onSuccess: () => {
+      toast.success("Convite enviado com sucesso!");
+      queryClient.invalidateQueries({ queryKey: workShiftSlotsQueryKey });
+    },
+    onError: (error) =>
+      toast.error("Erro ao enviar convite", { description: getApiErrorMessage(error) }),
   });
 
   const planningsByClientList = useMemo(() => {
@@ -785,21 +797,34 @@ function MonitoramentoDiario() {
                                             </TooltipTrigger>
                                             <TooltipContent>Ver Detalhes</TooltipContent>
                                           </Tooltip>
-                                          <Tooltip>
-                                            <TooltipTrigger asChild>
-                                              <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="size-7"
-                                                onClick={() =>
-                                                  alert("Reenviar convite não implementado")
-                                                }
-                                              >
-                                                <Send className="size-4" />
-                                              </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent>Reenviar Convite</TooltipContent>
-                                          </Tooltip>
+                                          {(slot.status === "OPEN" || slot.status === "INVITED") &&
+                                            slot.deliverymanId && (
+                                              <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                  <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="size-7"
+                                                    disabled={isSendingInvite}
+                                                    onClick={() => {
+                                                      if (!slot.deliverymanId) {
+                                                        toast.error(
+                                                          "Nenhum entregador atribuído a este turno.",
+                                                        );
+                                                        return;
+                                                      }
+                                                      sendInvite({
+                                                        id: slot.id,
+                                                        deliverymanId: slot.deliverymanId,
+                                                      });
+                                                    }}
+                                                  >
+                                                    <Send className="size-4" />
+                                                  </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>Enviar Convite</TooltipContent>
+                                              </Tooltip>
+                                            )}
                                           <Tooltip>
                                             <TooltipTrigger asChild>
                                               <Button
