@@ -6,9 +6,11 @@ import {
   CheckCircle,
   ChevronsUpDown,
   CircleDotDashed,
+  Eye,
   Info,
   MessageSquarePlus,
   MoreHorizontal,
+  Pencil,
   Send,
   SquareCheck,
   UserPlus,
@@ -23,6 +25,7 @@ import {
   type AssignDeliverymanFormData,
 } from "@/components/forms/assign-deliveryman";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -68,6 +71,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -228,6 +232,15 @@ function formatPerDeliveryInfo(client: Client): string | null {
   return perDelivery;
 }
 
+function getInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
+
 function startOfDay(date: Date): Date {
   const next = new Date(date);
   next.setHours(0, 0, 0, 0);
@@ -258,6 +271,8 @@ function MonitoramentoDiario() {
   const [banDialogOpen, setBanDialogOpen] = useState(false);
   const [finishServiceDialogOpen, setFinishServiceDialogOpen] = useState(false);
   const [selectedSlotForAction, setSelectedSlotForAction] = useState<WorkShiftSlot | null>(null);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [editModeActive, setEditModeActive] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -318,6 +333,13 @@ function MonitoramentoDiario() {
     queryKey: ["plannings", { clientIds, startDate, endDate }],
     queryFn: () => listPlannings({ startDate, endDate, clientId: clientIds[0], limit: 1000 }),
     enabled: hasActiveFilter && clientIds.length > 0,
+  });
+
+  const { data: clientForDetailsDialog, isLoading: isLoadingClientForDetails } = useQuery({
+    queryKey: ["client", selectedSlotForAction?.clientId],
+    queryFn: () =>
+      selectedSlotForAction ? getClientById(selectedSlotForAction.clientId) : Promise.resolve(null),
+    enabled: !!selectedSlotForAction?.clientId && detailsDialogOpen && editModeActive,
   });
 
   // Mutations
@@ -731,6 +753,23 @@ function MonitoramentoDiario() {
                                                 variant="ghost"
                                                 size="icon"
                                                 className="size-7"
+                                                onClick={() => {
+                                                  setSelectedSlotForAction(slot);
+                                                  setEditModeActive(false);
+                                                  setDetailsDialogOpen(true);
+                                                }}
+                                              >
+                                                <Eye className="size-4" />
+                                              </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>Ver Detalhes</TooltipContent>
+                                          </Tooltip>
+                                          <Tooltip>
+                                            <TooltipTrigger asChild>
+                                              <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="size-7"
                                                 onClick={() =>
                                                   alert("Reenviar convite não implementado")
                                                 }
@@ -986,6 +1025,126 @@ function MonitoramentoDiario() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        <Dialog
+          open={detailsDialogOpen}
+          onOpenChange={(open) => {
+            setDetailsDialogOpen(open);
+            if (!open) {
+              setSelectedSlotForAction(null);
+              setEditModeActive(false);
+            }
+          }}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {editModeActive ? "Editar Turno" : "Detalhes do Turno"}
+              </DialogTitle>
+            </DialogHeader>
+            {selectedSlotForAction && !editModeActive && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <Avatar className="size-12">
+                    <AvatarImage src={undefined} />
+                    <AvatarFallback>
+                      {getInitials(selectedSlotForAction.deliveryman?.name || "?")}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <Heading variant="h4">
+                      {selectedSlotForAction.deliveryman?.name || "N/A"}
+                    </Heading>
+                    <Text variant="muted" className="text-sm">
+                      {selectedSlotForAction.period
+                        .map((p) => PERIOD_LABELS[p] ?? p)
+                        .join(", ")}
+                    </Text>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <Text variant="muted">Status</Text>
+                    <Badge
+                      className={
+                        WORK_SHIFT_STATUS_MAP[selectedSlotForAction.status]?.className ||
+                        "bg-gray-500"
+                      }
+                    >
+                      {WORK_SHIFT_STATUS_MAP[selectedSlotForAction.status]?.label ||
+                        selectedSlotForAction.status}
+                    </Badge>
+                  </div>
+                  <div className="flex justify-between">
+                    <Text variant="muted">Periodo</Text>
+                    <Text>
+                      {selectedSlotForAction.period
+                        .map((p) => PERIOD_LABELS[p] ?? p)
+                        .join(", ")}
+                    </Text>
+                  </div>
+                  <div className="flex justify-between">
+                    <Text variant="muted">Horario</Text>
+                    <Text>
+                      {formatTime(selectedSlotForAction.startTime)} -{" "}
+                      {formatTime(selectedSlotForAction.endTime)}
+                    </Text>
+                  </div>
+                  <div className="flex justify-between">
+                    <Text variant="muted">Tipo de Contrato</Text>
+                    <Text className="capitalize">
+                      {selectedSlotForAction.contractType.toLowerCase()}
+                    </Text>
+                  </div>
+                  {(selectedSlotForAction.deliverymanAmountDay ||
+                    selectedSlotForAction.deliverymanAmountNight) && (
+                    <div className="flex justify-between">
+                      <Text variant="muted">Valor</Text>
+                      <Text>
+                        {formatMoney(
+                          selectedSlotForAction.deliverymanAmountDay ||
+                            selectedSlotForAction.deliverymanAmountNight,
+                        )}
+                      </Text>
+                    </div>
+                  )}
+                </div>
+
+                <Separator />
+
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => setEditModeActive(true)}
+                >
+                  <Pencil className="mr-2 size-4" />
+                  Editar
+                </Button>
+              </div>
+            )}
+            {selectedSlotForAction && editModeActive && (
+              <>
+                {isLoadingClientForDetails && <Skeleton className="h-40 w-full" />}
+                {!isLoadingClientForDetails && clientForDetailsDialog && (
+                  <AssignDeliverymanForm
+                    client={clientForDetailsDialog}
+                    period={null}
+                    selectedDate={new Date(selectedSlotForAction.shiftDate)}
+                    editMode={true}
+                    workShiftSlot={selectedSlotForAction}
+                    onSubmit={() => {
+                      toast.success("Turno atualizado com sucesso!");
+                      setDetailsDialogOpen(false);
+                      setEditModeActive(false);
+                      queryClient.invalidateQueries({ queryKey: workShiftSlotsQueryKey });
+                    }}
+                  />
+                )}
+              </>
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </TooltipProvider>
   );

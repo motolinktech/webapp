@@ -8,6 +8,7 @@ import {
   CirclePlus,
   Info,
   MessageSquarePlus,
+  Pencil,
   X,
   XCircle,
 } from "lucide-react";
@@ -280,6 +281,7 @@ function MonitoramentoSemanal() {
   const [selectedSlot, setSelectedSlot] = useState<WorkShiftSlot | null>(null);
   const [logDialogOpen, setLogDialogOpen] = useState(false);
   const [banDialogOpen, setBanDialogOpen] = useState(false);
+  const [editModeActive, setEditModeActive] = useState(false);
 
   // Week dates
   const weekDates = useMemo(() => getWeekDates(weekOffset), [weekOffset]);
@@ -344,6 +346,12 @@ function MonitoramentoSemanal() {
     enabled: hasActiveFilter && clientIds.length > 0,
   });
 
+  const { data: clientForEditSlot, isLoading: isLoadingClientForEdit } = useQuery({
+    queryKey: ["client", selectedSlot?.clientId],
+    queryFn: () => (selectedSlot ? getClientById(selectedSlot.clientId) : Promise.resolve(null)),
+    enabled: !!selectedSlot?.clientId && detailsDialogOpen && editModeActive,
+  });
+
   // Mutations
   const { mutate: markAbsent, isPending: isMarkingAbsent } = useMutation({
     mutationFn: (id: string) => markAbsentWorkShiftSlot(id),
@@ -391,6 +399,7 @@ function MonitoramentoSemanal() {
 
   function openDetailsDialog(slot: WorkShiftSlot) {
     setSelectedSlot(slot);
+    setEditModeActive(false);
     setDetailsDialogOpen(true);
   }
 
@@ -690,14 +699,19 @@ function MonitoramentoSemanal() {
           open={detailsDialogOpen}
           onOpenChange={(open) => {
             setDetailsDialogOpen(open);
-            if (!open) setSelectedSlot(null);
+            if (!open) {
+              setSelectedSlot(null);
+              setEditModeActive(false);
+            }
           }}
         >
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Detalhes do Entregador</DialogTitle>
+              <DialogTitle>
+                {editModeActive ? "Editar Turno" : "Detalhes do Entregador"}
+              </DialogTitle>
             </DialogHeader>
-            {selectedSlot && (
+            {selectedSlot && !editModeActive && (
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
                   <Avatar className="size-12">
@@ -726,11 +740,11 @@ function MonitoramentoSemanal() {
                     </Badge>
                   </div>
                   <div className="flex justify-between">
-                    <Text variant="muted">Período</Text>
+                    <Text variant="muted">Periodo</Text>
                     <Text>{selectedSlot.period.map((p) => PERIOD_LABELS[p] ?? p).join(", ")}</Text>
                   </div>
                   <div className="flex justify-between">
-                    <Text variant="muted">Horário</Text>
+                    <Text variant="muted">Horario</Text>
                     <Text>
                       {formatTime(selectedSlot.startTime)} - {formatTime(selectedSlot.endTime)}
                     </Text>
@@ -757,6 +771,14 @@ function MonitoramentoSemanal() {
                   <Button
                     variant="outline"
                     className="w-full justify-start"
+                    onClick={() => setEditModeActive(true)}
+                  >
+                    <Pencil className="mr-2 size-4" />
+                    Editar
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
                     onClick={() => {
                       setDetailsDialogOpen(false);
                       setLogDialogOpen(true);
@@ -772,7 +794,7 @@ function MonitoramentoSemanal() {
                     onClick={() => markAbsent(selectedSlot.id)}
                   >
                     <XCircle className={classHelper("mr-2 size-4", selectedSlot.status === "ABSENT" && "text-red-500")} />
-                    {isMarkingAbsent ? "Marcando..." : "Marcar Ausência"}
+                    {isMarkingAbsent ? "Marcando..." : "Marcar Ausencia"}
                   </Button>
                   <Button
                     variant="outline"
@@ -787,6 +809,26 @@ function MonitoramentoSemanal() {
                   </Button>
                 </div>
               </div>
+            )}
+            {selectedSlot && editModeActive && (
+              <>
+                {isLoadingClientForEdit && <Skeleton className="h-40 w-full" />}
+                {!isLoadingClientForEdit && clientForEditSlot && (
+                  <AssignDeliverymanForm
+                    client={clientForEditSlot}
+                    period={null}
+                    selectedDate={new Date(selectedSlot.shiftDate)}
+                    editMode={true}
+                    workShiftSlot={selectedSlot}
+                    onSubmit={() => {
+                      toast.success("Turno atualizado com sucesso!");
+                      setDetailsDialogOpen(false);
+                      setEditModeActive(false);
+                      queryClient.invalidateQueries({ queryKey: workShiftSlotsQueryKey });
+                    }}
+                  />
+                )}
+              </>
             )}
           </DialogContent>
         </Dialog>

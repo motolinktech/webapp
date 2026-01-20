@@ -24,7 +24,8 @@ import { classHelper } from "@/lib/utils/class-helper";
 import { BAGS_STATUS, BAGS_STATUS_OPTIONS } from "@/modules/clients/clients.constants";
 import type { Client } from "@/modules/clients/clients.types";
 import { listDeliverymen } from "@/modules/deliverymen/deliverymen.service";
-import { createWorkShiftSlot } from "@/modules/work-shift-slots/work-shift-slots.service";
+import { createWorkShiftSlot, updateWorkShiftSlot } from "@/modules/work-shift-slots/work-shift-slots.service";
+import type { WorkShiftSlot } from "@/modules/work-shift-slots/work-shift-slots.types";
 
 import { Separator } from "../ui/separator";
 
@@ -121,6 +122,11 @@ const PERIOD_OPTIONS = [
   { value: "nighttime", label: "Noturno" },
 ] as const;
 
+function extractTimeFromIso(isoString: string): string {
+  const date = new Date(isoString);
+  return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+}
+
 const periodEnum = z.enum(["daytime", "nighttime"]);
 
 type WorkShiftPeriod = (typeof PERIOD_OPTIONS)[number]["value"];
@@ -163,6 +169,8 @@ interface AssignDeliverymanFormProps {
   period: WorkShiftPeriod | null;
   selectedDate: Date;
   onSubmit: (data: AssignDeliverymanFormData) => void;
+  editMode?: boolean;
+  workShiftSlot?: WorkShiftSlot;
 }
 
 export function AssignDeliverymanForm({
@@ -170,6 +178,8 @@ export function AssignDeliverymanForm({
   period,
   selectedDate,
   onSubmit,
+  editMode = false,
+  workShiftSlot,
 }: AssignDeliverymanFormProps) {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -184,6 +194,27 @@ export function AssignDeliverymanForm({
 
   const isPaymentTypeDisabled = availablePaymentForms.length === 1;
 
+  const defaultValues = useMemo(() => {
+    if (editMode && workShiftSlot) {
+      return {
+        deliverymanId: workShiftSlot.deliverymanId || "",
+        contractType: workShiftSlot.contractType as "FREELANCER" | "INDEPENDENT_COLLABORATOR",
+        periods: workShiftSlot.period,
+        startAt: extractTimeFromIso(workShiftSlot.startTime),
+        endAt: extractTimeFromIso(workShiftSlot.endTime),
+        paymentType: isPaymentTypeDisabled
+          ? (availablePaymentForms[0].value as "DAILY" | "GUARANTEED")
+          : undefined,
+      };
+    }
+    return {
+      periods: period ? [period] : [],
+      paymentType: isPaymentTypeDisabled
+        ? (availablePaymentForms[0].value as "DAILY" | "GUARANTEED")
+        : undefined,
+    };
+  }, [editMode, workShiftSlot, period, isPaymentTypeDisabled, availablePaymentForms]);
+
   const {
     control,
     handleSubmit,
@@ -193,12 +224,7 @@ export function AssignDeliverymanForm({
     formState: { errors },
   } = useForm<AssignDeliverymanFormData>({
     resolver: zodResolver(assignDeliverymanSchema),
-    defaultValues: {
-      periods: period ? [period] : [],
-      paymentType: isPaymentTypeDisabled
-        ? (availablePaymentForms[0].value as "DAILY" | "GUARANTEED")
-        : undefined,
-    },
+    defaultValues,
   });
 
   const selectedDeliverymanId = watch("deliverymanId");
@@ -368,25 +394,37 @@ export function AssignDeliverymanForm({
           const endTime = new Date(selectedDate);
           endTime.setHours(endHour, endMinute);
 
-          await createWorkShiftSlot({
-            clientId: client.id,
-            deliverymanId: formData.deliverymanId,
-            contractType: formData.contractType,
-            shiftDate: selectedDate.toISOString(),
-            startTime: startTime.toISOString(),
-            endTime: endTime.toISOString(),
-            period: formData.periods,
-            isFreelancer: formData.contractType === "FREELANCER",
-            auditStatus: "INVITED",
-            status: "INVITED",
-            deliverymanAmountDay: processedData.deliverymanAmountDay,
-            deliverymanAmountNight: processedData.deliverymanAmountNight,
-          });
+          if (editMode && workShiftSlot) {
+            await updateWorkShiftSlot(workShiftSlot.id, {
+              contractType: formData.contractType,
+              startTime: startTime.toISOString(),
+              endTime: endTime.toISOString(),
+              period: formData.periods,
+              isFreelancer: formData.contractType === "FREELANCER",
+              deliverymanAmountDay: processedData.deliverymanAmountDay,
+              deliverymanAmountNight: processedData.deliverymanAmountNight,
+            });
+          } else {
+            await createWorkShiftSlot({
+              clientId: client.id,
+              deliverymanId: formData.deliverymanId,
+              contractType: formData.contractType,
+              shiftDate: selectedDate.toISOString(),
+              startTime: startTime.toISOString(),
+              endTime: endTime.toISOString(),
+              period: formData.periods,
+              isFreelancer: formData.contractType === "FREELANCER",
+              auditStatus: "INVITED",
+              status: "INVITED",
+              deliverymanAmountDay: processedData.deliverymanAmountDay,
+              deliverymanAmountNight: processedData.deliverymanAmountNight,
+            });
+          }
 
           onSubmit(processedData);
         } catch (err) {
           // eslint-disable-next-line no-console
-          console.error("Error creating invited work shift slot:", err);
+          console.error(editMode ? "Error updating work shift slot:" : "Error creating invited work shift slot:", err);
         } finally {
           setIsSubmitting(false);
         }
@@ -406,49 +444,52 @@ export function AssignDeliverymanForm({
 
         <Field>
           <FieldLabel>Entregador</FieldLabel>
-          <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+          <Popover open={popoverOpen} onOpenChange={editMode ? undefined : setPopoverOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 role="combobox"
                 aria-expanded={popoverOpen}
                 className="w-full justify-between"
-                disabled={isLoadingDeliverymen}
+                disabled={isLoadingDeliverymen || editMode}
               >
                 {selectedDeliverymanId
-                  ? sortedDeliverymen.find((d) => d.id === selectedDeliverymanId)?.name
+                  ? sortedDeliverymen.find((d) => d.id === selectedDeliverymanId)?.name ||
+                    workShiftSlot?.deliveryman?.name
                   : "Selecione um entregador..."}
-                <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+                {!editMode && <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-              <Command>
-                <CommandInput placeholder="Buscar entregador..." />
-                <CommandList>
-                  <CommandEmpty>Nenhum entregador encontrado.</CommandEmpty>
-                  <CommandGroup>
-                    {sortedDeliverymen.map((deliveryman) => (
-                      <CommandItem
-                        key={deliveryman.id}
-                        value={deliveryman.name}
-                        onSelect={() => {
-                          setValue("deliverymanId", deliveryman.id, { shouldValidate: true });
-                          setPopoverOpen(false);
-                        }}
-                      >
-                        <Check
-                          className={classHelper(
-                            "mr-2 size-4",
-                            selectedDeliverymanId === deliveryman.id ? "opacity-100" : "opacity-0",
-                          )}
-                        />
-                        {deliveryman.name}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
+            {!editMode && (
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Buscar entregador..." />
+                  <CommandList>
+                    <CommandEmpty>Nenhum entregador encontrado.</CommandEmpty>
+                    <CommandGroup>
+                      {sortedDeliverymen.map((deliveryman) => (
+                        <CommandItem
+                          key={deliveryman.id}
+                          value={deliveryman.name}
+                          onSelect={() => {
+                            setValue("deliverymanId", deliveryman.id, { shouldValidate: true });
+                            setPopoverOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={classHelper(
+                              "mr-2 size-4",
+                              selectedDeliverymanId === deliveryman.id ? "opacity-100" : "opacity-0",
+                            )}
+                          />
+                          {deliveryman.name}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            )}
           </Popover>
           <FieldError errors={[errors.deliverymanId]} />
         </Field>
@@ -598,7 +639,7 @@ export function AssignDeliverymanForm({
         )}
 
         <Button type="submit" isLoading={isSubmitting} className="w-full">
-          Atribuir Entregador
+          {editMode ? "Salvar Alteracoes" : "Atribuir Entregador"}
         </Button>
       </FieldGroup>
     </form>
