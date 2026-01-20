@@ -70,6 +70,7 @@ const clientFormSchema = z.object({
   deliveryAreaKm: z.number().min(0).optional(),
   bagsAllocated: z.number().min(0).optional(),
   isMotolinkCovered: z.boolean().optional(),
+  provideMeal: z.boolean().optional(),
   clientDailyDay: z.string().optional(),
   clientDailyNight: z.string().optional(),
   clientDailyDayWknd: z.string().optional(),
@@ -88,6 +89,7 @@ const clientFormSchema = z.object({
   deliverymanAdditionalKm: z.string().optional(),
 });
 
+import { Switch } from "../ui/switch";
 import { Textarea } from "../ui/textarea";
 import { PAYMENT_TYPES, PERIOD_TYPES } from "./clients.constants";
 
@@ -152,6 +154,7 @@ export function ClientsForm({ client }: ClientsFormProps) {
       deliveryAreaKm: client?.commercialCondition?.deliveryAreaKm || undefined,
       bagsAllocated: client?.commercialCondition?.bagsAllocated || undefined,
       isMotolinkCovered: client?.commercialCondition?.isMotolinkCovered || false,
+      provideMeal: client?.provideMeal || false,
       // Daily fields (API stores decimal strings like "100.11")
       clientDailyDay: client?.commercialCondition?.clientDailyDay ? moneyMask(String(client.commercialCondition.clientDailyDay)) : "",
       clientDailyNight: client?.commercialCondition?.clientDailyNight ? moneyMask(String(client.commercialCondition.clientDailyNight)) : "",
@@ -195,6 +198,7 @@ export function ClientsForm({ client }: ClientsFormProps) {
         deliveryAreaKm: client.commercialCondition?.deliveryAreaKm || undefined,
         bagsAllocated: client.commercialCondition?.bagsAllocated || undefined,
         isMotolinkCovered: client.commercialCondition?.isMotolinkCovered || false,
+        provideMeal: client.provideMeal || false,
         clientDailyDay: client.commercialCondition?.clientDailyDay ? moneyMask(String(client.commercialCondition.clientDailyDay)) : "",
         clientDailyNight: client.commercialCondition?.clientDailyNight ? moneyMask(String(client.commercialCondition.clientDailyNight)) : "",
         clientDailyDayWknd: client.commercialCondition?.clientDailyDayWknd ? moneyMask(String(client.commercialCondition.clientDailyDayWknd)) : "",
@@ -318,6 +322,7 @@ export function ClientsForm({ client }: ClientsFormProps) {
         bagsStatus,
         bagsAllocated,
         isMotolinkCovered,
+        provideMeal,
         // Daily fields (need to convert from money mask to number)
         clientDailyDay,
         clientDailyNight,
@@ -344,6 +349,7 @@ export function ClientsForm({ client }: ClientsFormProps) {
         client: {
           ...clientData,
           complement: clientData.complement || "",
+          provideMeal,
         },
         commercialCondition: {
           paymentForm,
@@ -698,6 +704,23 @@ export function ClientsForm({ client }: ClientsFormProps) {
                 </div>
               </Label>
             ) : null}
+
+            <Field className="col-span-1">
+              <FieldLabel htmlFor="provideMeal">Fornece Refeição</FieldLabel>
+              <Controller
+                control={control}
+                name="provideMeal"
+                defaultValue={false}
+                render={({ field }) => (
+                  <Switch
+                    id="provideMeal"
+                    checked={!!field.value}
+                    onCheckedChange={(val) => field.onChange(val)}
+                  />
+                )}
+              />
+              <FieldError errors={[errors.provideMeal]} />
+            </Field>
 
             {paymentForm.includes("DAILY") ? (
               <Field className="col-span-1">
