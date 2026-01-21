@@ -118,7 +118,7 @@ const WORK_SHIFT_STATUS_MAP: Record<string, { label: string; className: string; 
   CHECKED_IN: { label: "Em Andamento", className: "bg-green-500", description: "Entregador presente no local" },
   COMPLETED: { label: "Finalizado", className: "bg-purple-500", description: "Turno finalizado com sucesso" },
   ABSENT: { label: "Ausente", className: "bg-red-500", description: "Entregador não compareceu" },
-  CANCELLED: { label: "Cancelado", className: "bg-yellow-500 text-black", description: "Turno cancelado" },
+  CANCELLED: { label: "Cancelado", className: "bg-red-500", description: "Turno cancelado" },
 };
 
 type WorkShiftPeriod = WorkShiftSlot["period"][number];
