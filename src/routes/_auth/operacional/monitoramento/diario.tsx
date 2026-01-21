@@ -99,6 +99,7 @@ import {
   checkOutWorkShiftSlot,
   connectTrackingWorkShiftSlot,
   deleteWorkShiftSlot,
+  getWorkShiftSlotsByGroup,
   listWorkShiftSlots,
   markAbsentWorkShiftSlot,
   sendInviteWorkShiftSlot,
@@ -319,28 +320,46 @@ function MonitoramentoDiario() {
     enabled: !!selectedGroupId && !selectedClientId,
   });
 
-  const clientIds = useMemo(() => {
-    if (selectedClientId) return [selectedClientId];
-    return clientsData?.data?.map((client) => client.id) || [];
-  }, [selectedClientId, clientsData?.data]);
-
   const hasActiveFilter = !!selectedGroupId || !!selectedClientId;
 
-  const workShiftSlotsQueryKey = useMemo(
-    () => ["work-shift-slots", { clientIds, startDate, endDate }],
-    [clientIds, startDate, endDate],
+  // Query for group-based fetching
+  const groupWorkShiftSlotsQueryKey = useMemo(
+    () => ["work-shift-slots-group", selectedGroupId, startDate, endDate],
+    [selectedGroupId, startDate, endDate],
   );
 
-  const { data: workShiftSlotsData, isLoading: isLoadingWorkShiftSlots } = useQuery({
-    queryKey: workShiftSlotsQueryKey,
-    queryFn: () => listWorkShiftSlots({ clientIds, startDate, endDate, limit: 1000 }),
-    enabled: hasActiveFilter && clientIds.length > 0,
+  const { data: groupWorkShiftSlotsData, isLoading: isLoadingGroupWorkShiftSlots } = useQuery({
+    queryKey: groupWorkShiftSlotsQueryKey,
+    queryFn: () => getWorkShiftSlotsByGroup(selectedGroupId, { startDate, endDate }),
+    enabled: !!selectedGroupId && !selectedClientId,
   });
 
+  // Query for client-based fetching
+  const clientWorkShiftSlotsQueryKey = useMemo(
+    () => ["work-shift-slots-client", selectedClientId, startDate, endDate],
+    [selectedClientId, startDate, endDate],
+  );
+
+  const { data: clientWorkShiftSlotsData, isLoading: isLoadingClientWorkShiftSlots } = useQuery({
+    queryKey: clientWorkShiftSlotsQueryKey,
+    queryFn: () => listWorkShiftSlots({ clientId: selectedClientId, startDate, endDate, limit: 1000 }),
+    enabled: !!selectedClientId,
+  });
+
+  const isLoadingWorkShiftSlots = isLoadingGroupWorkShiftSlots || isLoadingClientWorkShiftSlots;
+
+  const invalidateWorkShiftSlots = () => {
+    if (selectedGroupId && !selectedClientId) {
+      queryClient.invalidateQueries({ queryKey: groupWorkShiftSlotsQueryKey });
+    } else if (selectedClientId) {
+      queryClient.invalidateQueries({ queryKey: clientWorkShiftSlotsQueryKey });
+    }
+  };
+
   const { data: planningsData, isLoading: isLoadingPlannings } = useQuery({
-    queryKey: ["plannings", { clientIds, startDate, endDate }],
-    queryFn: () => listPlannings({ startDate, endDate, clientId: clientIds[0], limit: 1000 }),
-    enabled: hasActiveFilter && clientIds.length > 0,
+    queryKey: ["plannings", { selectedClientId, startDate, endDate }],
+    queryFn: () => listPlannings({ startDate, endDate, clientId: selectedClientId, limit: 1000 }),
+    enabled: !!selectedClientId,
   });
 
   const { data: clientForDetailsDialog, isLoading: isLoadingClientForDetails } = useQuery({
@@ -356,7 +375,7 @@ function MonitoramentoDiario() {
     mutationFn: (id: string) => checkInWorkShiftSlot(id),
     onSuccess: () => {
       toast.success("Check-in realizado com sucesso!");
-      queryClient.invalidateQueries({ queryKey: workShiftSlotsQueryKey });
+      invalidateWorkShiftSlots();
     },
     onError: (error) => toast.error("Erro ao realizar check-in", { description: getApiErrorMessage(error) }),
   });
@@ -365,7 +384,7 @@ function MonitoramentoDiario() {
     mutationFn: (id: string) => checkOutWorkShiftSlot(id),
     onSuccess: () => {
       toast.success("Check-out realizado com sucesso!");
-      queryClient.invalidateQueries({ queryKey: workShiftSlotsQueryKey });
+      invalidateWorkShiftSlots();
     },
     onError: (error) => toast.error("Erro ao realizar check-out", { description: getApiErrorMessage(error) }),
   });
@@ -374,7 +393,7 @@ function MonitoramentoDiario() {
     mutationFn: (id: string) => markAbsentWorkShiftSlot(id),
     onSuccess: () => {
       toast.success("Ausência marcada com sucesso!");
-      queryClient.invalidateQueries({ queryKey: workShiftSlotsQueryKey });
+      invalidateWorkShiftSlots();
     },
     onError: (error) => toast.error("Erro ao marcar ausência", { description: getApiErrorMessage(error) }),
   });
@@ -383,7 +402,7 @@ function MonitoramentoDiario() {
     mutationFn: (id: string) => connectTrackingWorkShiftSlot(id),
     onSuccess: () => {
       toast.success("Tracking conectado com sucesso!");
-      queryClient.invalidateQueries({ queryKey: workShiftSlotsQueryKey });
+      invalidateWorkShiftSlots();
     },
     onError: (error) => toast.error("Erro ao conectar tracking", { description: getApiErrorMessage(error) }),
   });
@@ -392,7 +411,7 @@ function MonitoramentoDiario() {
     mutationFn: (id: string) => deleteWorkShiftSlot(id),
     onSuccess: () => {
       toast.success("Turno excluído com sucesso!");
-      queryClient.invalidateQueries({ queryKey: workShiftSlotsQueryKey });
+      invalidateWorkShiftSlots();
       setDeleteDialogOpen(false);
       setSelectedSlotForAction(null);
     },
@@ -404,7 +423,7 @@ function MonitoramentoDiario() {
       sendInviteWorkShiftSlot(data.id, { deliverymanId: data.deliverymanId }),
     onSuccess: () => {
       toast.success("Convite enviado com sucesso!");
-      queryClient.invalidateQueries({ queryKey: workShiftSlotsQueryKey });
+      invalidateWorkShiftSlots();
     },
     onError: (error) =>
       toast.error("Erro ao enviar convite", { description: getApiErrorMessage(error) }),
@@ -426,11 +445,23 @@ function MonitoramentoDiario() {
     return clientsData?.data || [];
   }, [selectedClientId, selectedClientData, clientsData?.data]);
 
+  // Normalize work shift slots data from both query formats
+  const allWorkShiftSlots = useMemo(() => {
+    if (selectedClientId && clientWorkShiftSlotsData) {
+      return clientWorkShiftSlotsData.data || [];
+    }
+    if (selectedGroupId && groupWorkShiftSlotsData) {
+      // Flatten the grouped response (Record<string, WorkShiftSlot[]>) into a flat array
+      return Object.values(groupWorkShiftSlotsData).flat();
+    }
+    return [];
+  }, [selectedClientId, selectedGroupId, clientWorkShiftSlotsData, groupWorkShiftSlotsData]);
+
   function handleAssignSubmit(_data: AssignDeliverymanFormData) {
     // Form handles the API call, we just need to close dialog and refresh data
     toast.success("Entregador atribuído com sucesso!");
     setAssignDialogOpen(false);
-    queryClient.invalidateQueries({ queryKey: workShiftSlotsQueryKey });
+    invalidateWorkShiftSlots();
   }
 
   // Render Logic
@@ -588,7 +619,7 @@ function MonitoramentoDiario() {
                 ? [...Array(3)].map((_, i) => <Skeleton key={i} className="h-48 w-full" />)
                 : clients.map((client) => {
                   const clientWorkShifts =
-                    workShiftSlotsData?.data.filter((slot) => slot.clientId === client.id) || [];
+                    allWorkShiftSlots.filter((slot) => slot.clientId === client.id);
                   const clientPlannings = planningsByClientList[client.id] || [];
 
                   const planningCounts: Record<WorkShiftPeriod, number> = {
@@ -1272,7 +1303,7 @@ function MonitoramentoDiario() {
                       toast.success("Turno atualizado com sucesso!");
                       setDetailsDialogOpen(false);
                       setEditModeActive(false);
-                      queryClient.invalidateQueries({ queryKey: workShiftSlotsQueryKey });
+                      invalidateWorkShiftSlots();
                     }}
                   />
                 )}

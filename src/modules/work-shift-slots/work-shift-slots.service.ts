@@ -34,9 +34,11 @@ export async function getWorkShiftSlotById(id: string): Promise<WorkShiftSlot> {
 
 export async function getWorkShiftSlotsByGroup(
   groupId: string,
+  params?: { startDate?: string; endDate?: string },
 ): Promise<WorkShiftSlotGroupedResponse> {
   const response = await authApi.get<WorkShiftSlotGroupedResponse>(
     `/work-shift-slots/group/${groupId}`,
+    { params },
   );
   return response.data;
 }
