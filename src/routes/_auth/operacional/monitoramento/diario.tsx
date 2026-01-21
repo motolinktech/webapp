@@ -12,7 +12,6 @@ import {
   MoreHorizontal,
   Pencil,
   Send,
-  SquareCheck,
   Trash,
   UserPlus,
   X,
@@ -97,6 +96,7 @@ import { listPlannings } from "@/modules/planning/planning.service";
 import {
   checkInWorkShiftSlot,
   checkOutWorkShiftSlot,
+  confirmCompletionWorkShiftSlot,
   connectTrackingWorkShiftSlot,
   deleteWorkShiftSlot,
   getWorkShiftSlotsByGroup,
@@ -116,6 +116,7 @@ const WORK_SHIFT_STATUS_MAP: Record<string, { label: string; className: string; 
   INVITED: { label: "Convidado", className: "bg-orange-500", description: "Convite enviado ao entregador" },
   CONFIRMED: { label: "Confirmado", className: "bg-blue-500", description: "Confirmado pelo entregador" },
   CHECKED_IN: { label: "Em Andamento", className: "bg-green-500", description: "Entregador presente no local" },
+  PENDING_COMPLETION: { label: "Aguardando Conclusão", className: "bg-amber-500", description: "Check-out realizado, aguardando confirmação de conclusão" },
   COMPLETED: { label: "Finalizado", className: "bg-purple-500", description: "Turno finalizado com sucesso" },
   ABSENT: { label: "Ausente", className: "bg-red-500", description: "Entregador não compareceu" },
   CANCELLED: { label: "Cancelado", className: "bg-red-500", description: "Turno cancelado" },
@@ -276,7 +277,6 @@ function MonitoramentoDiario() {
   );
   const [logDialogOpen, setLogDialogOpen] = useState(false);
   const [banDialogOpen, setBanDialogOpen] = useState(false);
-  const [finishServiceDialogOpen, setFinishServiceDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [absentDialogOpen, setAbsentDialogOpen] = useState(false);
   const [selectedSlotForAction, setSelectedSlotForAction] = useState<WorkShiftSlot | null>(null);
@@ -427,6 +427,16 @@ function MonitoramentoDiario() {
     },
     onError: (error) =>
       toast.error("Erro ao enviar convite", { description: getApiErrorMessage(error) }),
+  });
+
+  const { mutate: confirmCompletion, isPending: isConfirmingCompletion } = useMutation({
+    mutationFn: (id: string) => confirmCompletionWorkShiftSlot(id),
+    onSuccess: () => {
+      toast.success("Turno concluído com sucesso!");
+      invalidateWorkShiftSlots();
+    },
+    onError: (error) =>
+      toast.error("Erro ao confirmar conclusão", { description: getApiErrorMessage(error) }),
   });
 
   const planningsByClientList = useMemo(() => {
@@ -785,6 +795,22 @@ function MonitoramentoDiario() {
                                         )}
                                       </div>
                                     );
+                                  } else if (slot.status === "PENDING_COMPLETION") {
+                                    nextAction = (
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={isConfirmingCompletion}
+                                        onClick={() => confirmCompletion(slot.id)}
+                                      >
+                                        {isConfirmingCompletion ? (
+                                          <Spinner className="mr-2 size-4" />
+                                        ) : (
+                                          <CheckCircle className="mr-2 size-4" />
+                                        )}
+                                        Confirmar Conclusão
+                                      </Button>
+                                    );
                                   }
 
                                   return (
@@ -881,22 +907,6 @@ function MonitoramentoDiario() {
                                                 <TooltipContent>Enviar Convite</TooltipContent>
                                               </Tooltip>
                                             )}
-                                          <Tooltip>
-                                            <TooltipTrigger asChild>
-                                              <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="size-7"
-                                                onClick={() => {
-                                                  setSelectedSlotForAction(slot);
-                                                  setFinishServiceDialogOpen(true);
-                                                }}
-                                              >
-                                                <SquareCheck className="size-4" />
-                                              </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent>Finalizar Servico</TooltipContent>
-                                          </Tooltip>
                                           <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
                                               <Button
@@ -1213,35 +1223,6 @@ function MonitoramentoDiario() {
                 }}
               >
                 {isDeleting ? "Excluindo..." : "Confirmar"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        <AlertDialog
-          open={finishServiceDialogOpen}
-          onOpenChange={(open) => {
-            setFinishServiceDialogOpen(open);
-            if (!open) setSelectedSlotForAction(null);
-          }}
-        >
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Finalizar Servico</AlertDialogTitle>
-              <AlertDialogDescription>
-                Tem certeza que deseja finalizar o servico do entregador{" "}
-                <strong>{selectedSlotForAction?.deliveryman?.name || "N/A"}</strong>?
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => {
-                  toast.info("Funcionalidade de finalizar servico ainda não implementada.");
-                  setFinishServiceDialogOpen(false);
-                }}
-              >
-                Confirmar
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

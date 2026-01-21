@@ -77,6 +77,11 @@ export async function connectTrackingWorkShiftSlot(id: string): Promise<WorkShif
   return response.data;
 }
 
+export async function confirmCompletionWorkShiftSlot(id: string): Promise<WorkShiftSlot> {
+  const response = await authApi.post<WorkShiftSlot>(`/work-shift-slots/${id}/confirm-completion`);
+  return response.data;
+}
+
 export async function sendInviteWorkShiftSlot(
   id: string,
   data: SendInvitePayload,
