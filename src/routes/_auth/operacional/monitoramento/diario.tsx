@@ -734,43 +734,56 @@ function MonitoramentoDiario() {
                                         Check-in
                                       </Button>
                                     );
-                                  } else if (
-                                    slot.status === "CHECKED_IN" &&
-                                    !slot.trackingConnected
-                                  ) {
+                                  } else if (slot.status === "CHECKED_IN") {
                                     nextAction = (
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        disabled={isConnecting}
-                                        onClick={() => connectTracking(slot.id)}
-                                      >
-                                        {isConnecting ? (
-                                          <Spinner className="mr-2 size-4" />
-                                        ) : (
-                                          <CircleDotDashed className="mr-2 size-4" />
+                                      <div className="flex items-center gap-1">
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          disabled={isCheckingOut}
+                                          onClick={() => checkOut(slot.id)}
+                                        >
+                                          {isCheckingOut ? (
+                                            <Spinner className="mr-2 size-4" />
+                                          ) : (
+                                            <CheckCircle className="mr-2 size-4" />
+                                          )}
+                                          Check-out
+                                        </Button>
+                                        {!slot.trackingConnected && (
+                                          <Popover>
+                                            <PopoverTrigger asChild>
+                                              <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="size-8"
+                                                disabled={isConnecting}
+                                              >
+                                                {isConnecting ? (
+                                                  <Spinner className="size-4" />
+                                                ) : (
+                                                  <CircleDotDashed className="size-4" />
+                                                )}
+                                              </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-3">
+                                              <div className="space-y-2">
+                                                <p className="text-sm">Conectar rastreamento?</p>
+                                                <Button
+                                                  size="sm"
+                                                  disabled={isConnecting}
+                                                  onClick={() => connectTracking(slot.id)}
+                                                >
+                                                  {isConnecting ? (
+                                                    <Spinner className="mr-2 size-4" />
+                                                  ) : null}
+                                                  Conectar
+                                                </Button>
+                                              </div>
+                                            </PopoverContent>
+                                          </Popover>
                                         )}
-                                        Conectar
-                                      </Button>
-                                    );
-                                  } else if (
-                                    slot.status === "CHECKED_IN" &&
-                                    slot.trackingConnected
-                                  ) {
-                                    nextAction = (
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        disabled={isCheckingOut}
-                                        onClick={() => checkOut(slot.id)}
-                                      >
-                                        {isCheckingOut ? (
-                                          <Spinner className="mr-2 size-4" />
-                                        ) : (
-                                          <CheckCircle className="mr-2 size-4" />
-                                        )}
-                                        Check-out
-                                      </Button>
+                                      </div>
                                     );
                                   }
 
@@ -808,10 +821,16 @@ function MonitoramentoDiario() {
                                         <Tooltip>
                                           <TooltipTrigger asChild>
                                             <Badge className={classHelper(statusInfo.className, "cursor-help")}>
-                                              {statusInfo.label}
+                                              {slot.status === "CHECKED_IN" && slot.trackingConnected
+                                                ? "Em Andamento (conectado)"
+                                                : statusInfo.label}
                                             </Badge>
                                           </TooltipTrigger>
-                                          <TooltipContent>{statusInfo.description}</TooltipContent>
+                                          <TooltipContent>
+                                            {slot.status === "CHECKED_IN" && slot.trackingConnected
+                                              ? "Entregador presente e rastreamento conectado"
+                                              : statusInfo.description}
+                                          </TooltipContent>
                                         </Tooltip>
                                       </TableCell>
                                       <TableCell>{nextAction || "N/A"}</TableCell>
