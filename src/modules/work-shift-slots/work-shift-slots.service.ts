@@ -55,7 +55,7 @@ export async function checkInWorkShiftSlot(
   id: string,
   data?: CheckInOutPayload,
 ): Promise<WorkShiftSlot> {
-  const response = await authApi.post<WorkShiftSlot>(`/work-shift-slots/${id}/check-in`, data);
+  const response = await authApi.post<WorkShiftSlot>(`/work-shift-slots/${id}/check-in`, data ?? {});
   return response.data;
 }
 
@@ -63,7 +63,7 @@ export async function checkOutWorkShiftSlot(
   id: string,
   data?: CheckInOutPayload,
 ): Promise<WorkShiftSlot> {
-  const response = await authApi.post<WorkShiftSlot>(`/work-shift-slots/${id}/check-out`, data);
+  const response = await authApi.post<WorkShiftSlot>(`/work-shift-slots/${id}/check-out`, data ?? {});
   return response.data;
 }
 
