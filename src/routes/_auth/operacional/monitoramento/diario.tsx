@@ -635,6 +635,7 @@ function MonitoramentoDiario() {
                     nighttime: 0,
                   };
                   clientWorkShifts.forEach((s) => {
+                    if (s.status === "CANCELLED") return;
                     s.period.forEach((p) => {
                       assignedCounts[p] += 1;
                     });
@@ -657,7 +658,10 @@ function MonitoramentoDiario() {
                     })),
                   ];
 
-                  const hasData = clientWorkShifts.length > 0 || unassignedRows.length > 0;
+                  const activeWorkShifts = clientWorkShifts.filter((s) => s.status !== "CANCELLED");
+                  const cancelledWorkShifts = clientWorkShifts.filter((s) => s.status === "CANCELLED");
+
+                  const hasData = activeWorkShifts.length > 0 || cancelledWorkShifts.length > 0 || unassignedRows.length > 0;
 
                   return (
                     <Card key={client.id}>
@@ -707,8 +711,8 @@ function MonitoramentoDiario() {
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
-                                {/* Assigned Rows */}
-                                {clientWorkShifts.map((slot) => {
+                                {/* Active Assigned Rows */}
+                                {activeWorkShifts.map((slot) => {
                                   const statusInfo =
                                     WORK_SHIFT_STATUS_MAP[slot.status] ||
                                     WORK_SHIFT_STATUS_MAP.OPEN;
@@ -998,6 +1002,71 @@ function MonitoramentoDiario() {
                                     </Button>
                                   </TableCell>
                                 </TableRow>
+
+                                {/* Cancelled Rows */}
+                                {cancelledWorkShifts.map((slot) => {
+                                  const statusInfo = WORK_SHIFT_STATUS_MAP[slot.status];
+                                  return (
+                                    <TableRow
+                                      key={slot.id}
+                                      className="opacity-50"
+                                    >
+                                      <TableCell className="font-medium">
+                                        <div className="flex flex-col">
+                                          <span>{slot.deliveryman?.name || "N/A"}</span>
+                                          <span className="text-xs text-muted-foreground">
+                                            {slot.period
+                                              .map((p) => PERIOD_LABELS[p] ?? p)
+                                              .join(", ")}{" "}
+                                            -{" "}
+                                            {formatMoney(
+                                              slot.deliverymanAmountDay ||
+                                              slot.deliverymanAmountNight,
+                                            )}
+                                          </span>
+                                        </div>
+                                      </TableCell>
+                                      <TableCell className="capitalize">
+                                        {slot.contractType.toLowerCase()}
+                                      </TableCell>
+                                      <TableCell>
+                                        {`${formatTime(slot.startTime)} - ${formatTime(
+                                          slot.endTime,
+                                        )}`}
+                                      </TableCell>
+                                      <TableCell>
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <Badge className={classHelper(statusInfo.className, "cursor-help")}>
+                                              {statusInfo.label}
+                                            </Badge>
+                                          </TooltipTrigger>
+                                          <TooltipContent>{statusInfo.description}</TooltipContent>
+                                        </Tooltip>
+                                      </TableCell>
+                                      <TableCell>N/A</TableCell>
+                                      <TableCell className="text-right">
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            <Button
+                                              variant="ghost"
+                                              size="icon"
+                                              className="size-7"
+                                              onClick={() => {
+                                                setSelectedSlotForAction(slot);
+                                                setEditModeActive(false);
+                                                setDetailsDialogOpen(true);
+                                              }}
+                                            >
+                                              <Eye className="size-4" />
+                                            </Button>
+                                          </TooltipTrigger>
+                                          <TooltipContent>Ver Detalhes</TooltipContent>
+                                        </Tooltip>
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                })}
                               </TableBody>
                             </Table>
                           </div>
