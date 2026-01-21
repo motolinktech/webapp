@@ -238,6 +238,10 @@ function formatPerDeliveryInfo(client: Client): string | null {
   return perDelivery;
 }
 
+function formatMealInfo(client: Client): string {
+  return client.provideMeal ? "Fornece Refeição" : "Não fornece refeição";
+}
+
 function getInitials(name: string): string {
   return name
     .split(" ")
@@ -682,6 +686,7 @@ function MonitoramentoDiario() {
                           <Text variant="muted" className="text-xs">
                             {formatCompactAddress(client)}
                           </Text>
+                          <Text variant="muted">{formatMealInfo(client)}</Text>
                           {formatBagsInfo(client) && (
                             <Text variant="muted">{formatBagsInfo(client)}</Text>
                           )}

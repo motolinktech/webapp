@@ -706,19 +706,21 @@ export function ClientsForm({ client }: ClientsFormProps) {
             ) : null}
 
             <Field className="col-span-1">
-              <FieldLabel htmlFor="provideMeal">Fornece Refeição</FieldLabel>
-              <Controller
-                control={control}
-                name="provideMeal"
-                defaultValue={false}
-                render={({ field }) => (
-                  <Switch
-                    id="provideMeal"
-                    checked={!!field.value}
-                    onCheckedChange={(val) => field.onChange(val)}
-                  />
-                )}
-              />
+              <div className="flex items-center justify-between">
+                <FieldLabel htmlFor="provideMeal" className="mb-0">Fornece Refeição</FieldLabel>
+                <Controller
+                  control={control}
+                  name="provideMeal"
+                  defaultValue={false}
+                  render={({ field }) => (
+                    <Switch
+                      id="provideMeal"
+                      checked={!!field.value}
+                      onCheckedChange={(val) => field.onChange(val)}
+                    />
+                  )}
+                />
+              </div>
               <FieldError errors={[errors.provideMeal]} />
             </Field>
 

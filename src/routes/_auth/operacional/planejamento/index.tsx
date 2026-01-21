@@ -96,6 +96,10 @@ function formatCompactAddress(client: Client): string {
   return parts.join(" - ") || "Endereço não informado.";
 }
 
+function formatMealInfo(client: Client): string {
+  return client.provideMeal ? "Fornece Refeição" : "Não fornece refeição";
+}
+
 const PERIODS: PlanningPeriod[] = ["daytime", "nighttime"];
 const PERIOD_LABELS: Record<PlanningPeriod, string> = {
   daytime: "Diurno",
@@ -487,6 +491,9 @@ function Planejamento() {
                         </Heading>
                         <Text variant="muted" className="text-xs mt-1">
                           {formatCompactAddress(client)}
+                        </Text>
+                        <Text variant="muted" className="text-xs mt-1">
+                          {formatMealInfo(client)}
                         </Text>
                       </div>
 

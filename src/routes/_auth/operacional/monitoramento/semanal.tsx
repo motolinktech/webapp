@@ -249,6 +249,10 @@ function formatPerDeliveryInfo(client: Client): string | null {
   return perDelivery;
 }
 
+function formatMealInfo(client: Client): string {
+  return client.provideMeal ? "Fornece Refeição" : "Não fornece refeição";
+}
+
 function formatTime(isoString?: string | null): string {
   if (!isoString) return "N/A";
   return new Date(isoString).toLocaleTimeString("pt-BR", {
@@ -563,6 +567,7 @@ function MonitoramentoSemanal() {
                             <Text variant="muted" className="text-xs">
                               {formatCompactAddress(client)}
                             </Text>
+                            <Text variant="muted">{formatMealInfo(client)}</Text>
                             {bagsInfo && <Text variant="muted">{bagsInfo}</Text>}
                             {deliverymanConditions && (
                               <Text variant="muted">{deliverymanConditions}</Text>
