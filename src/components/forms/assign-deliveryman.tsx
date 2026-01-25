@@ -411,10 +411,13 @@ export function AssignDeliverymanForm({
       if (editMode && workShiftSlot) {
         return updateWorkShiftSlot(workShiftSlot.id, {
           contractType: formData.contractType,
+          shiftDate: workShiftSlot.shiftDate,
           startTime: startTime.toISOString(),
           endTime: endTime.toISOString(),
           period: formData.periods,
           isFreelancer: formData.contractType === "FREELANCER",
+          auditStatus: workShiftSlot.auditStatus,
+          status: workShiftSlot.status,
           deliverymanAmountDay,
           deliverymanAmountNight,
           deliverymanPaymentType,
