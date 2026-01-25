@@ -19,24 +19,68 @@ export const userStatusTranslations: Record<string, string> = {
 
 export const userPermissions = [
   {
-    type: "Colaborador",
-    description: "Permissões para gerir Colaboradores",
+    type: "Entregador",
+    description: "Permissões para gerir Entregadores",
     rules: [
       {
-        permission: "employee.view",
-        description: "Visualizar informações do colaborador",
+        permission: "deliveryman.view",
+        description: "Visualizar informações do entregador",
       },
       {
-        permission: "employee.create",
-        description: "Criar novo colaborador",
+        permission: "deliveryman.create",
+        description: "Criar novo entregador",
       },
       {
-        permission: "employee.edit",
-        description: "Editar informações do colaborador",
+        permission: "deliveryman.edit",
+        description: "Editar informações do entregador",
       },
       {
-        permission: "employee.delete",
-        description: "Excluir colaborador",
+        permission: "deliveryman.delete",
+        description: "Excluir entregador",
+      },
+    ],
+  },
+  {
+    type: "Região",
+    description: "Permissões para gerir Regiões",
+    rules: [
+      {
+        permission: "region.view",
+        description: "Visualizar informações da região",
+      },
+      {
+        permission: "region.create",
+        description: "Criar nova região",
+      },
+      {
+        permission: "region.edit",
+        description: "Editar informações da região",
+      },
+      {
+        permission: "region.delete",
+        description: "Excluir região",
+      },
+    ],
+  },
+  {
+    type: "Grupo",
+    description: "Permissões para gerir Grupos",
+    rules: [
+      {
+        permission: "group.view",
+        description: "Visualizar informações do grupo",
+      },
+      {
+        permission: "group.create",
+        description: "Criar novo grupo",
+      },
+      {
+        permission: "group.edit",
+        description: "Editar informações do grupo",
+      },
+      {
+        permission: "group.delete",
+        description: "Excluir grupo",
       },
     ],
   },
@@ -63,68 +107,46 @@ export const userPermissions = [
     ],
   },
   {
-    type: "Gestor",
-    description: "Permissões para gerir Motoboy, Região e Grupo",
+    type: "Usuário",
+    description: "Permissões para gerir Usuários",
     rules: [
       {
-        permission: "manager.view",
-        description: "Visualizar informações de gestão",
+        permission: "user.view",
+        description: "Visualizar informações do usuário",
       },
       {
-        permission: "manager.create",
-        description: "Criar novos registros de gestão",
+        permission: "user.create",
+        description: "Criar novo usuário",
       },
       {
-        permission: "manager.edit",
-        description: "Editar informações de gestão",
+        permission: "user.edit",
+        description: "Editar informações do usuário",
       },
       {
-        permission: "manager.delete",
-        description: "Excluir registros de gestão",
+        permission: "user.delete",
+        description: "Excluir usuário",
       },
     ],
   },
   {
-    type: "Financeiro",
-    description: "Permissões para gerir Financeiro",
+    type: "Operacional",
+    description: "Permissões para gerir Turnos e Planejamento",
     rules: [
       {
-        permission: "financial.view",
-        description: "Visualizar informações financeiras",
+        permission: "operational.view",
+        description: "Visualizar informações operacionais",
       },
       {
-        permission: "financial.create",
-        description: "Criar novos registros financeiros",
+        permission: "operational.create",
+        description: "Criar novos registros operacionais",
       },
       {
-        permission: "financial.edit",
-        description: "Editar informações financeiras",
+        permission: "operational.edit",
+        description: "Editar informações operacionais",
       },
       {
-        permission: "financial.delete",
-        description: "Excluir registros financeiros",
-      },
-    ],
-  },
-  {
-    type: "Comercial",
-    description: "Permissões para gerir modulo Comercial",
-    rules: [
-      {
-        permission: "commercial.view",
-        description: "Visualizar informações comerciais",
-      },
-      {
-        permission: "commercial.create",
-        description: "Criar novos registros comerciais",
-      },
-      {
-        permission: "commercial.edit",
-        description: "Editar informações comerciais",
-      },
-      {
-        permission: "commercial.delete",
-        description: "Excluir registros comerciais",
+        permission: "operational.delete",
+        description: "Excluir registros operacionais",
       },
     ],
   },

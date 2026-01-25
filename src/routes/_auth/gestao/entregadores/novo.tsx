@@ -8,7 +8,7 @@ import { getStoredUser } from "@/modules/auth/auth.service";
 export const Route = createFileRoute("/_auth/gestao/entregadores/novo")({
   beforeLoad: () => {
     const user = getStoredUser();
-    if (!user || !hasPermissions(user, "manager.create")) {
+    if (!user || !hasPermissions(user, "deliveryman.create")) {
       toast.error("Você não tem permissão para criar entregadores.");
       throw redirect({ to: "/dashboard" });
     }

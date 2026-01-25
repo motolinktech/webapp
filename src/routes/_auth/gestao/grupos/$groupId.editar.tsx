@@ -13,7 +13,7 @@ import { getGroupById } from "@/modules/groups/groups.service";
 export const Route = createFileRoute("/_auth/gestao/grupos/$groupId/editar")({
   beforeLoad: () => {
     const user = getStoredUser();
-    if (!user || !hasPermissions(user, "manager.edit")) {
+    if (!user || !hasPermissions(user, "group.edit")) {
       toast.error("Você não tem permissão para editar grupos.");
       throw redirect({ to: "/dashboard" });
     }

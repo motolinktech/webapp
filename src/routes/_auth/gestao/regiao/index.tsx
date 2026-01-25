@@ -51,9 +51,9 @@ function Regioes() {
   const [selectedRegion, setSelectedRegion] = useState<Region | null>(null);
 
   const currentUser = getStoredUser();
-  const canCreate = currentUser ? hasPermissions(currentUser, "manager.create") : false;
-  const canEdit = currentUser ? hasPermissions(currentUser, "manager.edit") : false;
-  const canDelete = currentUser ? hasPermissions(currentUser, "manager.delete") : false;
+  const canCreate = currentUser ? hasPermissions(currentUser, "region.create") : false;
+  const canEdit = currentUser ? hasPermissions(currentUser, "region.edit") : false;
+  const canDelete = currentUser ? hasPermissions(currentUser, "region.delete") : false;
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["regions", debouncedSearch, page],

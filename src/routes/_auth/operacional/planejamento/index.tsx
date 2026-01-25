@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Check, ChevronLeft, ChevronRight, ChevronsUpDown, Info, Loader2, X } from "lucide-react";
+import { toast } from "sonner";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ContentHeader } from "@/components/composite/content-header";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -27,6 +28,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Text } from "@/components/ui/text";
 import { classHelper } from "@/lib/utils/class-helper";
+import { hasPermissions } from "@/lib/utils/has-permissions";
+import { getStoredUser } from "@/modules/auth/auth.service";
 import { getStoreBranch } from "@/modules/branches/branches.service";
 import { getClientById, listClients } from "@/modules/clients/clients.service";
 import type { Client } from "@/modules/clients/clients.types";
@@ -35,6 +38,13 @@ import { createPlanning, listPlannings, updatePlanning } from "@/modules/plannin
 import type { Planning, PlanningPeriod } from "@/modules/planning/planning.types";
 
 export const Route = createFileRoute("/_auth/operacional/planejamento/")({
+  beforeLoad: () => {
+    const user = getStoredUser();
+    if (!user || !hasPermissions(user, "operational.view")) {
+      toast.error("Você não tem permissão para acessar o planejamento.");
+      throw redirect({ to: "/dashboard" });
+    }
+  },
   component: Planejamento,
 });
 

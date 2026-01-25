@@ -15,11 +15,24 @@ import {
 import { hasPermissions } from "@/lib/utils/has-permissions";
 import { getStoredUser } from "@/modules/auth/auth.service";
 
-const items = [
+type SubItem = {
+  title: string;
+  url: string;
+  requiredPermission?: string;
+};
+
+type MenuItem = {
+  title: string;
+  icon: React.ComponentType;
+  requiredPermission?: string;
+  items: SubItem[];
+};
+
+const items: MenuItem[] = [
   {
     title: "Operacional",
     icon: Target,
-    requiredPermission: "manager.view",
+    requiredPermission: "operational.view",
     items: [
       {
         title: "Planejamento",
@@ -38,7 +51,6 @@ const items = [
   {
     title: "Gestão",
     icon: CirclePlus,
-    requiredPermission: "manager.view",
     items: [
       {
         title: "Clientes",
@@ -48,14 +60,17 @@ const items = [
       {
         title: "Entregadores",
         url: "/gestao/entregadores",
+        requiredPermission: "deliveryman.view",
       },
       {
         title: "Grupos",
         url: "/gestao/grupos",
+        requiredPermission: "group.view",
       },
       {
         title: "Regiões",
         url: "/gestao/regiao",
+        requiredPermission: "region.view",
       },
     ],
   },
@@ -77,7 +92,7 @@ const items = [
   {
     title: "Recursos Humanos",
     icon: BookUser,
-    requiredPermission: "employee.view",
+    requiredPermission: "user.view",
     items: [
       {
         title: "Colaboradores",
@@ -90,10 +105,26 @@ const items = [
 export function AppSidebarContent() {
   const user = getStoredUser();
 
-  const filteredItems = items.filter((item) => {
-    if (!user) return false;
-    return hasPermissions(user, item.requiredPermission);
-  });
+  const filteredItems = items
+    .map((item) => {
+      if (!user) return null;
+
+      const canAccessGroup = item.requiredPermission ? hasPermissions(user, item.requiredPermission) : true;
+      const visibleSubItems = item.items.filter((subItem) => {
+        if (subItem.requiredPermission) {
+          return hasPermissions(user, subItem.requiredPermission);
+        }
+        return canAccessGroup;
+      });
+
+      if (visibleSubItems.length === 0) return null;
+
+      return {
+        ...item,
+        items: visibleSubItems,
+      };
+    })
+    .filter((item): item is MenuItem => Boolean(item));
 
   return (
     <SidebarContent>
@@ -121,21 +152,15 @@ export function AppSidebarContent() {
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <SidebarMenuSub>
-                      {item.items
-                        .filter((subItem) => {
-                          if (!subItem.requiredPermission) return true;
-                          if (!user) return false;
-                          return hasPermissions(user, subItem.requiredPermission);
-                        })
-                        .map((subItem) => (
-                          <SidebarMenuSubItem key={subItem.title}>
-                            <SidebarMenuSubButton asChild>
-                              <Link to={subItem.url}>
-                                <span>{subItem.title}</span>
-                              </Link>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        ))}
+                      {item.items.map((subItem) => (
+                        <SidebarMenuSubItem key={subItem.title}>
+                          <SidebarMenuSubButton asChild>
+                            <Link to={subItem.url}>
+                              <span>{subItem.title}</span>
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
                     </SidebarMenuSub>
                   </CollapsibleContent>
                 </SidebarMenuItem>

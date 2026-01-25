@@ -8,7 +8,7 @@ import { getStoredUser } from "@/modules/auth/auth.service";
 export const Route = createFileRoute("/_auth/rh/colaboradores/novo")({
   beforeLoad: () => {
     const user = getStoredUser();
-    if (!user || !hasPermissions(user, "employee.create")) {
+    if (!user || !hasPermissions(user, "user.create")) {
       toast.error("Você não tem permissão para criar colaboradores.");
       throw redirect({ to: "/dashboard" });
     }

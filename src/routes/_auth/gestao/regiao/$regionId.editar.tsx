@@ -13,7 +13,7 @@ import { getRegionById } from "@/modules/regions/regions.service";
 export const Route = createFileRoute("/_auth/gestao/regiao/$regionId/editar")({
   beforeLoad: () => {
     const user = getStoredUser();
-    if (!user || !hasPermissions(user, "manager.edit")) {
+    if (!user || !hasPermissions(user, "region.edit")) {
       toast.error("Você não tem permissão para editar regiões.");
       throw redirect({ to: "/dashboard" });
     }

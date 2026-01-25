@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import {
   Ban,
   CalendarIcon,
@@ -20,6 +20,8 @@ import {
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ContentHeader } from "@/components/composite/content-header";
+import { hasPermissions } from "@/lib/utils/has-permissions";
+import { getStoredUser } from "@/modules/auth/auth.service";
 import {
   AssignDeliverymanForm,
   type AssignDeliverymanFormData,
@@ -107,6 +109,13 @@ import {
 import type { WorkShiftSlot } from "@/modules/work-shift-slots/work-shift-slots.types";
 
 export const Route = createFileRoute("/_auth/operacional/monitoramento/diario")({
+  beforeLoad: () => {
+    const user = getStoredUser();
+    if (!user || !hasPermissions(user, "operational.view")) {
+      toast.error("Você não tem permissão para acessar o monitoramento diário.");
+      throw redirect({ to: "/dashboard" });
+    }
+  },
   component: MonitoramentoDiario,
 });
 

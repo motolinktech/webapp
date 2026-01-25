@@ -8,7 +8,7 @@ import { getStoredUser } from "@/modules/auth/auth.service";
 export const Route = createFileRoute("/_auth/gestao/grupos/novo")({
   beforeLoad: () => {
     const user = getStoredUser();
-    if (!user || !hasPermissions(user, "manager.create")) {
+    if (!user || !hasPermissions(user, "group.create")) {
       toast.error("Você não tem permissão para criar grupos.");
       throw redirect({ to: "/dashboard" });
     }

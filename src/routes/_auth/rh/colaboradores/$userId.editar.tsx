@@ -13,7 +13,7 @@ import { getUserById } from "@/modules/users/users.service";
 export const Route = createFileRoute("/_auth/rh/colaboradores/$userId/editar")({
   beforeLoad: () => {
     const user = getStoredUser();
-    if (!user || !hasPermissions(user, "employee.edit")) {
+    if (!user || !hasPermissions(user, "user.edit")) {
       toast.error("Você não tem permissão para editar colaboradores.");
       throw redirect({ to: "/dashboard" });
     }

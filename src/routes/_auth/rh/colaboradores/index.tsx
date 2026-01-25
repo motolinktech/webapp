@@ -60,9 +60,9 @@ function Colaboradores() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   const currentUser = getStoredUser();
-  const canCreate = currentUser ? hasPermissions(currentUser, "employee.create") : false;
-  const canEdit = currentUser ? hasPermissions(currentUser, "employee.edit") : false;
-  const canDelete = currentUser ? hasPermissions(currentUser, "employee.delete") : false;
+  const canCreate = currentUser ? hasPermissions(currentUser, "user.create") : false;
+  const canEdit = currentUser ? hasPermissions(currentUser, "user.edit") : false;
+  const canDelete = currentUser ? hasPermissions(currentUser, "user.delete") : false;
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["users", debouncedSearch, page],

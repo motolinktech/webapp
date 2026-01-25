@@ -13,7 +13,7 @@ import { getDeliverymanById } from "@/modules/deliverymen/deliverymen.service";
 export const Route = createFileRoute("/_auth/gestao/entregadores/$deliverymanId/editar")({
   beforeLoad: () => {
     const user = getStoredUser();
-    if (!user || !hasPermissions(user, "manager.edit")) {
+    if (!user || !hasPermissions(user, "deliveryman.edit")) {
       toast.error("Você não tem permissão para editar entregadores.");
       throw redirect({ to: "/dashboard" });
     }
