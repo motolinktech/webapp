@@ -30,6 +30,7 @@ import { useGlobal } from "@/contexts/global-context";
 import { clearMask } from "@/lib/masks/clear-mask";
 import { cpfMask } from "@/lib/masks/cpf-mask";
 import { dateMask } from "@/lib/masks/date-mask";
+import { phoneMask } from "@/lib/masks/phone-mask";
 import { dateToISO } from "@/lib/services/date";
 import { cpfValidator } from "@/lib/utils/cpf-validator";
 import { useBranches } from "@/modules/branches/useBranches";
@@ -43,6 +44,7 @@ const userFormSchema = z.object({
     .min(3, "Nome deve ter pelo menos 3 caracteres")
     .max(100, "Nome deve ter no máximo 100 caracteres"),
   email: z.email("Email inválido"),
+  phone: z.string().min(14, "Telefone inválido (ex: (DD) XXXXX-XXXX)"),
   birthDate: z.string().regex(/^\d{2}\/\d{2}\/\d{4}$/, "Data deve estar no formato DD/MM/YYYY"),
   role: z.enum(["ADMIN", "USER"], {
     message: "Selecione um tipo de usuário",
@@ -85,6 +87,7 @@ export function UserForm({ user }: UserFormProps) {
     defaultValues: {
       name: user?.name || "",
       email: user?.email || "",
+      phone: user?.phone ? phoneMask(user.phone) : "",
       birthDate: dayjs(user?.birthDate).format("DD/MM/YYYY") || "",
       document: cpfMask(user?.document || ""),
       role: user?.role || "USER",
@@ -128,6 +131,7 @@ export function UserForm({ user }: UserFormProps) {
       const formattedData = {
         ...data,
         document: clearMask(data.document),
+        phone: clearMask(data.phone),
         birthDate: await dateToISO(data.birthDate),
       };
 
@@ -181,6 +185,22 @@ export function UserForm({ user }: UserFormProps) {
                 {...register("email")}
               />
               <FieldError errors={[errors.email]} />
+            </Field>
+
+            <Field>
+              <FieldLabel htmlFor="phone">Telefone</FieldLabel>
+              <Input
+                id="phone"
+                type="text"
+                placeholder="(00) 00000-0000"
+                aria-invalid={!!errors.phone}
+                {...register("phone", {
+                  onChange: (e) => {
+                    e.target.value = phoneMask(e.target.value);
+                  },
+                })}
+              />
+              <FieldError errors={[errors.phone]} />
             </Field>
 
             <Field>

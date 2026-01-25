@@ -2,6 +2,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  phone: string;
   role: "ADMIN" | "USER";
   status: "ACTIVE" | "INACTIVE" | "PENDING";
   document: string;
@@ -29,6 +30,7 @@ export interface UserListResponse {
 export interface CreateUserData {
   name: string;
   email: string;
+  phone: string;
   password?: string;
   role: "ADMIN" | "USER";
   birthDate: string;
