@@ -6,6 +6,8 @@ import {
   ChevronRight,
   ChevronsUpDown,
   CirclePlus,
+  ClipboardPaste,
+  Copy,
   Info,
   MessageSquarePlus,
   Pencil,
@@ -69,9 +71,11 @@ import { getClientById, listClients } from "@/modules/clients/clients.service";
 import type { Client } from "@/modules/clients/clients.types";
 import { listGroups } from "@/modules/groups/groups.service";
 import {
+  copyWorkShiftSlots,
   listWorkShiftSlots,
   markAbsentWorkShiftSlot,
 } from "@/modules/work-shift-slots/work-shift-slots.service";
+import { getApiErrorMessage } from "@/lib/services/api";
 import type { WorkShiftSlot } from "@/modules/work-shift-slots/work-shift-slots.types";
 import { toast } from "sonner";
 import { hasPermissions } from "@/lib/utils/has-permissions";
@@ -299,6 +303,10 @@ function MonitoramentoSemanal() {
   const [banDialogOpen, setBanDialogOpen] = useState(false);
   const [editModeActive, setEditModeActive] = useState(false);
 
+  // Copy mode state - tracks which client/date is being copied
+  // Key: clientId, Value: source date string (YYYY-MM-DD)
+  const [copyModeMap, setCopyModeMap] = useState<Map<string, string>>(new Map());
+
   // Week dates
   const weekDates = useMemo(() => getWeekDates(weekOffset), [weekOffset]);
 
@@ -380,6 +388,23 @@ function MonitoramentoSemanal() {
     onError: (error) => toast.error("Erro ao marcar ausência", { description: error.message }),
   });
 
+  const { mutate: copyShifts, isPending: isCopyingShifts } = useMutation({
+    mutationFn: copyWorkShiftSlots,
+    onSuccess: (data) => {
+      toast.success("Turnos copiados com sucesso!");
+      if (data.warnings) {
+        toast.warning("Alguns turnos foram copiados com avisos", {
+          description: data.warnings.message,
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: workShiftSlotsQueryKey });
+      setCopyModeMap(new Map());
+    },
+    onError: (error) => {
+      toast.error("Erro ao copiar turnos", { description: getApiErrorMessage(error) });
+    },
+  });
+
   // Derived data
   const groups = groupsData?.data || [];
   const clients = useMemo(() => {
@@ -400,6 +425,40 @@ function MonitoramentoSemanal() {
     }
     return map;
   }, [workShiftSlotsData?.data]);
+
+  // Copy mode helper functions
+  function isInCopyMode(clientId: string): boolean {
+    return copyModeMap.has(clientId);
+  }
+
+  function getCopySourceDate(clientId: string): string | undefined {
+    return copyModeMap.get(clientId);
+  }
+
+  function handleCopyClick(clientId: string, dateKey: string) {
+    setCopyModeMap((prev) => {
+      const next = new Map(prev);
+      if (next.get(clientId) === dateKey) {
+        // Cancel copy mode
+        next.delete(clientId);
+      } else {
+        // Enter copy mode
+        next.set(clientId, dateKey);
+      }
+      return next;
+    });
+  }
+
+  function handlePasteClick(clientId: string, targetDateKey: string) {
+    const sourceDate = copyModeMap.get(clientId);
+    if (!sourceDate) return;
+
+    copyShifts({
+      sourceDate,
+      targetDate: targetDateKey,
+      clientId,
+    });
+  }
 
   function handleAssignSubmit(_data: AssignDeliverymanFormData) {
     // Form handles the API call, we just need to close dialog and refresh data
@@ -605,18 +664,64 @@ function MonitoramentoSemanal() {
                                       "flex flex-col rounded-md border p-3 min-h-28",
                                       today && "border-primary bg-primary/5",
                                       isPast && "opacity-50",
+                                      getCopySourceDate(client.id) === dateKey && "border-primary border-2 bg-primary/10",
                                     )}
                                   >
-                                    {/* Day header */}
-                                    <span className="text-xs font-medium">{WEEKDAY_LABELS[index]}</span>
-                                    <span
-                                      className={classHelper(
-                                        "text-xs mb-3",
-                                        today ? "font-bold text-primary" : "text-muted-foreground",
+                                    {/* Day header with copy/paste buttons */}
+                                    <div className="flex items-center justify-between mb-1">
+                                      <div>
+                                        <span className="text-xs font-medium">{WEEKDAY_LABELS[index]}</span>
+                                        <span
+                                          className={classHelper(
+                                            "text-xs ml-1",
+                                            today ? "font-bold text-primary" : "text-muted-foreground",
+                                          )}
+                                        >
+                                          {formatDate(date)}
+                                        </span>
+                                      </div>
+
+                                      {/* Copy/Paste Button */}
+                                      {!isPast && (
+                                        <Tooltip>
+                                          <TooltipTrigger asChild>
+                                            {isInCopyMode(client.id) && getCopySourceDate(client.id) !== dateKey ? (
+                                              <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="size-6"
+                                                disabled={isCopyingShifts}
+                                                onClick={() => handlePasteClick(client.id, dateKey)}
+                                              >
+                                                <ClipboardPaste className="size-3.5" />
+                                              </Button>
+                                            ) : (
+                                              <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className={classHelper(
+                                                  "size-6",
+                                                  getCopySourceDate(client.id) === dateKey && "bg-primary/20",
+                                                )}
+                                                disabled={daySlots.length === 0}
+                                                onClick={() => handleCopyClick(client.id, dateKey)}
+                                              >
+                                                <Copy className="size-3.5" />
+                                              </Button>
+                                            )}
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            {isInCopyMode(client.id) && getCopySourceDate(client.id) !== dateKey
+                                              ? "Colar turnos aqui"
+                                              : getCopySourceDate(client.id) === dateKey
+                                                ? "Clique para cancelar"
+                                                : daySlots.length === 0
+                                                  ? "Nenhum turno para copiar"
+                                                  : "Copiar turnos deste dia"}
+                                          </TooltipContent>
+                                        </Tooltip>
                                       )}
-                                    >
-                                      {formatDate(date)}
-                                    </span>
+                                    </div>
 
                                     {/* Avatars + Add button */}
                                     <div className="flex flex-wrap items-center gap-1">

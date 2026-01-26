@@ -124,3 +124,26 @@ export interface SendInviteResponse {
   inviteSentAt?: string;
   inviteExpiresAt?: string;
 }
+
+export interface CopyWorkShiftSlotsPayload {
+  sourceDate: string;
+  targetDate: string;
+  clientId: string;
+}
+
+export interface CopyWorkShiftSlotsConflict {
+  sourceShiftId: string;
+  deliverymanId: string;
+  deliverymanName: string;
+  conflictingShiftId: string;
+}
+
+export interface CopyWorkShiftSlotsWarning {
+  message: string;
+  conflictedShifts: CopyWorkShiftSlotsConflict[];
+}
+
+export interface CopyWorkShiftSlotsResponse {
+  copiedShifts: WorkShiftSlot[];
+  warnings: CopyWorkShiftSlotsWarning | null;
+}

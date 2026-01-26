@@ -1,6 +1,8 @@
 import { authApi } from "@/lib/services/api";
 import type {
   CheckInOutPayload,
+  CopyWorkShiftSlotsPayload,
+  CopyWorkShiftSlotsResponse,
   CreateWorkShiftSlotPayload,
   SendInvitePayload,
   SendInviteResponse,
@@ -95,4 +97,14 @@ export async function sendInviteWorkShiftSlot(
 
 export async function deleteWorkShiftSlot(id: string): Promise<void> {
   await authApi.delete<void>(`/work-shift-slots/${id}`);
+}
+
+export async function copyWorkShiftSlots(
+  data: CopyWorkShiftSlotsPayload,
+): Promise<CopyWorkShiftSlotsResponse> {
+  const response = await authApi.post<CopyWorkShiftSlotsResponse>(
+    "/work-shift-slots/copy",
+    data,
+  );
+  return response.data;
 }
