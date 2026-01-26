@@ -6,6 +6,8 @@ import {
   CheckCircle,
   ChevronsUpDown,
   CircleDotDashed,
+  ClipboardPaste,
+  Copy,
   Eye,
   Info,
   MessageSquarePlus,
@@ -100,6 +102,7 @@ import {
   checkOutWorkShiftSlot,
   confirmCompletionWorkShiftSlot,
   connectTrackingWorkShiftSlot,
+  copyWorkShiftSlots,
   deleteWorkShiftSlot,
   getWorkShiftSlotsByGroup,
   listWorkShiftSlots,
@@ -296,6 +299,10 @@ function MonitoramentoDiario() {
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [editModeActive, setEditModeActive] = useState(false);
 
+  // Copy mode state - tracks which client/date is being copied
+  // Key: clientId, Value: source date string (YYYY-MM-DD)
+  const [copyModeMap, setCopyModeMap] = useState<Map<string, string>>(new Map());
+
   const queryClient = useQueryClient();
 
   const startDate = useMemo(() => formatDateYYYYMMDD(selectedDate), [selectedDate]);
@@ -452,6 +459,23 @@ function MonitoramentoDiario() {
       toast.error("Erro ao confirmar conclusão", { description: getApiErrorMessage(error) }),
   });
 
+  const { mutate: copyShifts, isPending: isCopyingShifts } = useMutation({
+    mutationFn: copyWorkShiftSlots,
+    onSuccess: (data) => {
+      toast.success("Turnos copiados com sucesso!");
+      if (data.warnings) {
+        toast.warning("Alguns turnos foram copiados com avisos", {
+          description: data.warnings.message,
+        });
+      }
+      invalidateWorkShiftSlots();
+      setCopyModeMap(new Map());
+    },
+    onError: (error) => {
+      toast.error("Erro ao copiar turnos", { description: getApiErrorMessage(error) });
+    },
+  });
+
   const planningsByClientList = useMemo(() => {
     const plannings = planningsData?.data || [];
     const byClient: Record<string, typeof plannings> = {};
@@ -485,6 +509,42 @@ function MonitoramentoDiario() {
     toast.success("Entregador atribuído com sucesso!");
     setAssignDialogOpen(false);
     invalidateWorkShiftSlots();
+  }
+
+  // Copy mode helper functions
+  function isInCopyMode(clientId: string): boolean {
+    return copyModeMap.has(clientId);
+  }
+
+  function getCopySourceDate(clientId: string): string | undefined {
+    return copyModeMap.get(clientId);
+  }
+
+  function handleCopyClick(clientId: string) {
+    const currentDateKey = formatDateYYYYMMDD(selectedDate);
+    setCopyModeMap((prev) => {
+      const next = new Map(prev);
+      if (next.get(clientId) === currentDateKey) {
+        // Cancel copy mode
+        next.delete(clientId);
+      } else {
+        // Enter copy mode
+        next.set(clientId, currentDateKey);
+      }
+      return next;
+    });
+  }
+
+  function handlePasteClick(clientId: string) {
+    const sourceDate = copyModeMap.get(clientId);
+    if (!sourceDate) return;
+    const targetDate = formatDateYYYYMMDD(selectedDate);
+
+    copyShifts({
+      sourceDate,
+      targetDate,
+      clientId,
+    });
   }
 
   // Render Logic
@@ -687,24 +747,70 @@ function MonitoramentoDiario() {
                   const hasData = activeWorkShifts.length > 0 || cancelledWorkShifts.length > 0 || unassignedRows.length > 0;
 
                   return (
-                    <Card key={client.id}>
+                    <Card
+                      key={client.id}
+                      className={classHelper(
+                        isInCopyMode(client.id) && "border-primary border-2",
+                      )}
+                    >
                       <CardHeader className="space-y-4">
                         {/* Client Info */}
-                        <div className="space-y-1">
-                          <Heading variant="h4">{client.name}</Heading>
-                          <Text variant="muted" className="text-xs">
-                            {formatCompactAddress(client)}
-                          </Text>
-                          <Text variant="muted">{formatMealInfo(client)}</Text>
-                          {formatBagsInfo(client) && (
-                            <Text variant="muted">{formatBagsInfo(client)}</Text>
-                          )}
-                          {formatDeliverymanConditions(client) && (
-                            <Text variant="muted">{formatDeliverymanConditions(client)}</Text>
-                          )}
-                          {formatPerDeliveryInfo(client) && (
-                            <Text variant="muted">{formatPerDeliveryInfo(client)}</Text>
-                          )}
+                        <div className="flex items-start justify-between">
+                          <div className="space-y-1">
+                            <Heading variant="h4">{client.name}</Heading>
+                            <Text variant="muted" className="text-xs">
+                              {formatCompactAddress(client)}
+                            </Text>
+                            <Text variant="muted">{formatMealInfo(client)}</Text>
+                            {formatBagsInfo(client) && (
+                              <Text variant="muted">{formatBagsInfo(client)}</Text>
+                            )}
+                            {formatDeliverymanConditions(client) && (
+                              <Text variant="muted">{formatDeliverymanConditions(client)}</Text>
+                            )}
+                            {formatPerDeliveryInfo(client) && (
+                              <Text variant="muted">{formatPerDeliveryInfo(client)}</Text>
+                            )}
+                          </div>
+
+                          {/* Copy/Paste buttons */}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              {isInCopyMode(client.id) && getCopySourceDate(client.id) !== startDate ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  disabled={isCopyingShifts}
+                                  onClick={() => handlePasteClick(client.id)}
+                                >
+                                  <ClipboardPaste className="mr-2 size-4" />
+                                  Colar
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className={classHelper(
+                                    "size-8",
+                                    getCopySourceDate(client.id) === startDate && "bg-primary/20",
+                                  )}
+                                  disabled={activeWorkShifts.length === 0}
+                                  onClick={() => handleCopyClick(client.id)}
+                                >
+                                  <Copy className="size-4" />
+                                </Button>
+                              )}
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              {isInCopyMode(client.id) && getCopySourceDate(client.id) !== startDate
+                                ? "Colar turnos aqui"
+                                : getCopySourceDate(client.id) === startDate
+                                  ? "Clique para cancelar"
+                                  : activeWorkShifts.length === 0
+                                    ? "Nenhum turno para copiar"
+                                    : "Copiar turnos deste dia"}
+                            </TooltipContent>
+                          </Tooltip>
                         </div>
 
                         {isLoadingPlannings || isLoadingWorkShiftSlots ? (
