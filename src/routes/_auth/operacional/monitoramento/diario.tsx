@@ -156,16 +156,6 @@ function formatTime(isoString?: string | null): string {
   });
 }
 
-function formatCheckInOut(checkInAt?: string | null, checkOutAt?: string | null): string {
-  const checkIn = formatTime(checkInAt);
-  const checkOut = formatTime(checkOutAt);
-
-  // If both are N/A, return single N/A for cleaner display
-  if (checkIn === "N/A" && checkOut === "N/A") return "N/A";
-
-  return `${checkIn} | ${checkOut}`;
-}
-
 function formatCompactAddress(client: Client): string {
   const streetLine = [client.street, client.number].filter(Boolean).join(", ");
   const complement = client.complement ? `- ${client.complement}` : "";
