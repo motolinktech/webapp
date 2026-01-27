@@ -156,6 +156,15 @@ function formatTime(isoString?: string | null): string {
   });
 }
 
+function formatCheckInCheckOut(checkInAt?: string | null, checkOutAt?: string | null): string {
+  const checkIn = checkInAt ? formatTime(checkInAt) : null;
+  const checkOut = checkOutAt ? formatTime(checkOutAt) : null;
+
+  if (!checkIn && !checkOut) return "-";
+  if (checkIn && checkOut) return `${checkIn} - ${checkOut}`;
+  return checkIn || checkOut || "-";
+}
+
 function formatCompactAddress(client: Client): string {
   const streetLine = [client.street, client.number].filter(Boolean).join(", ");
   const complement = client.complement ? `- ${client.complement}` : "";
@@ -952,11 +961,8 @@ function MonitoramentoDiario() {
                                           slot.endTime,
                                         )}`}
                                       </TableCell>
-                                      <TableCell>
-                                        <div className="flex flex-col text-sm">
-                                          <span className="text-xs text-muted-foreground">In: {formatTime(slot.checkInAt)}</span>
-                                          <span className="text-xs text-muted-foreground">Out: {formatTime(slot.checkOutAt)}</span>
-                                        </div>
+                                      <TableCell className="text-sm">
+                                        {formatCheckInCheckOut(slot.checkInAt, slot.checkOutAt)}
                                       </TableCell>
                                       <TableCell>
                                         <Tooltip>
@@ -1178,11 +1184,8 @@ function MonitoramentoDiario() {
                                           slot.endTime,
                                         )}`}
                                       </TableCell>
-                                      <TableCell>
-                                        <div className="flex flex-col text-sm">
-                                          <span className="text-xs text-muted-foreground">In: {formatTime(slot.checkInAt)}</span>
-                                          <span className="text-xs text-muted-foreground">Out: {formatTime(slot.checkOutAt)}</span>
-                                        </div>
+                                      <TableCell className="text-sm">
+                                        {formatCheckInCheckOut(slot.checkInAt, slot.checkOutAt)}
                                       </TableCell>
                                       <TableCell>
                                         <Tooltip>
@@ -1448,12 +1451,8 @@ function MonitoramentoDiario() {
                     </Text>
                   </div>
                   <div className="flex justify-between">
-                    <Text variant="muted">Check-in</Text>
-                    <Text>{formatTime(selectedSlotForAction.checkInAt)}</Text>
-                  </div>
-                  <div className="flex justify-between">
-                    <Text variant="muted">Check-out</Text>
-                    <Text>{formatTime(selectedSlotForAction.checkOutAt)}</Text>
+                    <Text variant="muted">Check-in/Check-out</Text>
+                    <Text>{formatCheckInCheckOut(selectedSlotForAction.checkInAt, selectedSlotForAction.checkOutAt)}</Text>
                   </div>
                   <div className="flex justify-between">
                     <Text variant="muted">Tipo de Contrato</Text>
