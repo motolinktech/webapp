@@ -169,11 +169,6 @@ function Planejamento() {
     enabled: !!selectedGroupId && !selectedClientId,
   });
 
-  const clientIds = useMemo(() => {
-    if (selectedClientId) return [selectedClientId];
-    return clientsData?.data?.map((c) => c.id) || [];
-  }, [selectedClientId, clientsData?.data]);
-
   const hasActiveFilter = !!selectedGroupId || !!selectedClientId;
 
   const { data: planningsData } = useQuery({
@@ -185,7 +180,7 @@ function Planejamento() {
         clientId: selectedClientId || undefined,
         limit: 1000,
       }),
-    enabled: hasActiveFilter && clientIds.length > 0,
+    enabled: hasActiveFilter,
   });
 
   const groups = groupsData?.data || [];

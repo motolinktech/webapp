@@ -104,7 +104,6 @@ import {
   connectTrackingWorkShiftSlot,
   copyWorkShiftSlots,
   deleteWorkShiftSlot,
-  getWorkShiftSlotsByGroup,
   listWorkShiftSlots,
   markAbsentWorkShiftSlot,
   sendInviteWorkShiftSlot,
@@ -342,38 +341,34 @@ function MonitoramentoDiario() {
 
   const hasActiveFilter = !!selectedGroupId || !!selectedClientId;
 
-  // Query for group-based fetching
-  const groupWorkShiftSlotsQueryKey = useMemo(
-    () => ["work-shift-slots-group", selectedGroupId, startDate, endDate],
-    [selectedGroupId, startDate, endDate],
+  const workShiftSlotsQueryKey = useMemo(
+    () => [
+      "work-shift-slots",
+      {
+        clientId: selectedClientId || undefined,
+        groupId: !selectedClientId && selectedGroupId ? selectedGroupId : undefined,
+        startDate,
+        endDate,
+      },
+    ],
+    [selectedClientId, selectedGroupId, startDate, endDate],
   );
 
-  const { data: groupWorkShiftSlotsData, isLoading: isLoadingGroupWorkShiftSlots } = useQuery({
-    queryKey: groupWorkShiftSlotsQueryKey,
-    queryFn: () => getWorkShiftSlotsByGroup(selectedGroupId, { startDate, endDate }),
-    enabled: !!selectedGroupId && !selectedClientId,
+  const { data: workShiftSlotsData, isLoading: isLoadingWorkShiftSlots } = useQuery({
+    queryKey: workShiftSlotsQueryKey,
+    queryFn: () =>
+      listWorkShiftSlots({
+        clientId: selectedClientId || undefined,
+        groupId: !selectedClientId && selectedGroupId ? selectedGroupId : undefined,
+        startDate,
+        endDate,
+        limit: 1000,
+      }),
+    enabled: hasActiveFilter,
   });
-
-  // Query for client-based fetching
-  const clientWorkShiftSlotsQueryKey = useMemo(
-    () => ["work-shift-slots-client", selectedClientId, startDate, endDate],
-    [selectedClientId, startDate, endDate],
-  );
-
-  const { data: clientWorkShiftSlotsData, isLoading: isLoadingClientWorkShiftSlots } = useQuery({
-    queryKey: clientWorkShiftSlotsQueryKey,
-    queryFn: () => listWorkShiftSlots({ clientId: selectedClientId, startDate, endDate, limit: 1000 }),
-    enabled: !!selectedClientId,
-  });
-
-  const isLoadingWorkShiftSlots = isLoadingGroupWorkShiftSlots || isLoadingClientWorkShiftSlots;
 
   const invalidateWorkShiftSlots = () => {
-    if (selectedGroupId && !selectedClientId) {
-      queryClient.invalidateQueries({ queryKey: groupWorkShiftSlotsQueryKey });
-    } else if (selectedClientId) {
-      queryClient.invalidateQueries({ queryKey: clientWorkShiftSlotsQueryKey });
-    }
+    queryClient.invalidateQueries({ queryKey: workShiftSlotsQueryKey });
   };
 
   const { data: planningsData, isLoading: isLoadingPlannings } = useQuery({
@@ -494,15 +489,8 @@ function MonitoramentoDiario() {
 
   // Normalize work shift slots data from both query formats
   const allWorkShiftSlots = useMemo(() => {
-    if (selectedClientId && clientWorkShiftSlotsData) {
-      return clientWorkShiftSlotsData.data || [];
-    }
-    if (selectedGroupId && groupWorkShiftSlotsData) {
-      // Flatten the grouped response (Record<string, WorkShiftSlot[]>) into a flat array
-      return Object.values(groupWorkShiftSlotsData).flat();
-    }
-    return [];
-  }, [selectedClientId, selectedGroupId, clientWorkShiftSlotsData, groupWorkShiftSlotsData]);
+    return workShiftSlotsData?.data || [];
+  }, [workShiftSlotsData]);
 
   function handleAssignSubmit(_data: AssignDeliverymanFormData) {
     // Form handles the API call, we just need to close dialog and refresh data

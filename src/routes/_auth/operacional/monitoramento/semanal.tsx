@@ -352,22 +352,32 @@ function MonitoramentoSemanal() {
     enabled: !!selectedGroupId && !selectedClientId,
   });
 
-  const clientIds = useMemo(() => {
-    if (selectedClientId) return [selectedClientId];
-    return clientsData?.data?.map((c) => c.id) || [];
-  }, [selectedClientId, clientsData?.data]);
-
   const hasActiveFilter = !!selectedGroupId || !!selectedClientId;
 
   const workShiftSlotsQueryKey = useMemo(
-    () => ["work-shift-slots", { clientIds, startDate, endDate }],
-    [clientIds, startDate, endDate],
+    () => [
+      "work-shift-slots",
+      {
+        clientId: selectedClientId || undefined,
+        groupId: !selectedClientId && selectedGroupId ? selectedGroupId : undefined,
+        startDate,
+        endDate,
+      },
+    ],
+    [selectedClientId, selectedGroupId, startDate, endDate],
   );
 
   const { data: workShiftSlotsData, isLoading: isLoadingWorkShiftSlots } = useQuery({
     queryKey: workShiftSlotsQueryKey,
-    queryFn: () => listWorkShiftSlots({ clientIds, startDate, endDate, limit: 1000 }),
-    enabled: hasActiveFilter && clientIds.length > 0,
+    queryFn: () =>
+      listWorkShiftSlots({
+        clientId: selectedClientId || undefined,
+        groupId: !selectedClientId && selectedGroupId ? selectedGroupId : undefined,
+        startDate,
+        endDate,
+        limit: 1000,
+      }),
+    enabled: hasActiveFilter,
   });
 
   const { data: clientForEditSlot, isLoading: isLoadingClientForEdit } = useQuery({

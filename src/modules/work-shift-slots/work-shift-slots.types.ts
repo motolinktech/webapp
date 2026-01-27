@@ -49,7 +49,7 @@ export interface WorkShiftSlotListParams {
   page?: number;
   limit?: number;
   clientId?: string;
-  clientIds?: string[];
+  groupId?: string;
   deliverymanId?: string;
   status?: string;
   month?: number;
