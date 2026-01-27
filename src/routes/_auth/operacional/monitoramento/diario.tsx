@@ -156,6 +156,16 @@ function formatTime(isoString?: string | null): string {
   });
 }
 
+function formatCheckInOut(checkInAt?: string | null, checkOutAt?: string | null): string {
+  const checkIn = formatTime(checkInAt);
+  const checkOut = formatTime(checkOutAt);
+
+  // If both are N/A, return single N/A for cleaner display
+  if (checkIn === "N/A" && checkOut === "N/A") return "N/A";
+
+  return `${checkIn} | ${checkOut}`;
+}
+
 function formatCompactAddress(client: Client): string {
   const streetLine = [client.street, client.number].filter(Boolean).join(", ");
   const complement = client.complement ? `- ${client.complement}` : "";
@@ -820,9 +830,10 @@ function MonitoramentoDiario() {
                             <Table>
                               <TableHeader>
                                 <TableRow>
-                                  <TableHead className="w-[20%]">Entregador</TableHead>
+                                  <TableHead className="w-[18%]">Entregador</TableHead>
                                   <TableHead className="w-[10%]">Contrato</TableHead>
                                   <TableHead className="w-[10%]">Horário</TableHead>
+                                  <TableHead className="w-[12%]">Check-in/Check-out</TableHead>
                                   <TableHead className="w-[15%]">Status Atual</TableHead>
                                   <TableHead className="w-[15%]">Próxima Ação</TableHead>
                                   <TableHead className="text-right">Ações</TableHead>
@@ -950,6 +961,12 @@ function MonitoramentoDiario() {
                                         {`${formatTime(slot.startTime)} - ${formatTime(
                                           slot.endTime,
                                         )}`}
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="flex flex-col text-sm">
+                                          <span className="text-xs text-muted-foreground">In: {formatTime(slot.checkInAt)}</span>
+                                          <span className="text-xs text-muted-foreground">Out: {formatTime(slot.checkOutAt)}</span>
+                                        </div>
                                       </TableCell>
                                       <TableCell>
                                         <Tooltip>
@@ -1103,7 +1120,7 @@ function MonitoramentoDiario() {
                                         </span>
                                       </div>
                                     </TableCell>
-                                    <TableCell colSpan={4}>
+                                    <TableCell colSpan={5}>
                                       <Text variant="muted">N/A</Text>
                                     </TableCell>
                                     <TableCell className="text-right">
@@ -1170,6 +1187,12 @@ function MonitoramentoDiario() {
                                         {`${formatTime(slot.startTime)} - ${formatTime(
                                           slot.endTime,
                                         )}`}
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="flex flex-col text-sm">
+                                          <span className="text-xs text-muted-foreground">In: {formatTime(slot.checkInAt)}</span>
+                                          <span className="text-xs text-muted-foreground">Out: {formatTime(slot.checkOutAt)}</span>
+                                        </div>
                                       </TableCell>
                                       <TableCell>
                                         <Tooltip>
@@ -1433,6 +1456,14 @@ function MonitoramentoDiario() {
                       {formatTime(selectedSlotForAction.startTime)} -{" "}
                       {formatTime(selectedSlotForAction.endTime)}
                     </Text>
+                  </div>
+                  <div className="flex justify-between">
+                    <Text variant="muted">Check-in</Text>
+                    <Text>{formatTime(selectedSlotForAction.checkInAt)}</Text>
+                  </div>
+                  <div className="flex justify-between">
+                    <Text variant="muted">Check-out</Text>
+                    <Text>{formatTime(selectedSlotForAction.checkOutAt)}</Text>
                   </div>
                   <div className="flex justify-between">
                     <Text variant="muted">Tipo de Contrato</Text>
