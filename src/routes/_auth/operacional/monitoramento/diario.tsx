@@ -264,15 +264,15 @@ function getInitials(name: string): string {
 
 function startOfDay(date: Date): Date {
   const next = new Date(date);
-  next.setHours(0, 0, 0, 0);
+  next.setUTCHours(0, 0, 0, 0);
   return next;
 }
 
 
 function formatDateYYYYMMDD(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
 

@@ -114,17 +114,17 @@ const PERIOD_LABELS: Record<WorkShiftPeriod, string> = {
 
 function getWeekDates(weekOffset = 0): Date[] {
   const today = new Date();
-  const dayOfWeek = today.getDay();
+  const dayOfWeek = today.getUTCDay();
   const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
 
   const monday = new Date(today);
-  monday.setDate(today.getDate() + mondayOffset + weekOffset * 7);
-  monday.setHours(0, 0, 0, 0);
+  monday.setUTCDate(today.getUTCDate() + mondayOffset + weekOffset * 7);
+  monday.setUTCHours(0, 0, 0, 0);
 
   const weekDates: Date[] = [];
   for (let i = 0; i < 7; i++) {
     const date = new Date(monday);
-    date.setDate(monday.getDate() + i);
+    date.setUTCDate(monday.getUTCDate() + i);
     weekDates.push(date);
   }
 
@@ -133,39 +133,41 @@ function getWeekDates(weekOffset = 0): Date[] {
 
 function isPastDay(date: Date): boolean {
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  today.setUTCHours(0, 0, 0, 0);
   return date < today;
 }
 
 function formatDate(date: Date): string {
-  return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  return `${day}/${month}`;
 }
 
 function isToday(date: Date): boolean {
   const today = new Date();
   return (
-    date.getDate() === today.getDate() &&
-    date.getMonth() === today.getMonth() &&
-    date.getFullYear() === today.getFullYear()
+    date.getUTCDate() === today.getUTCDate() &&
+    date.getUTCMonth() === today.getUTCMonth() &&
+    date.getUTCFullYear() === today.getUTCFullYear()
   );
 }
 
 function toDateKey(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const day = String(date.getUTCDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
 
 function startOfDay(date: Date): Date {
   const next = new Date(date);
-  next.setHours(0, 0, 0, 0);
+  next.setUTCHours(0, 0, 0, 0);
   return next;
 }
 
 function endOfDay(date: Date): Date {
   const next = new Date(date);
-  next.setHours(23, 59, 59, 999);
+  next.setUTCHours(23, 59, 59, 999);
   return next;
 }
 
