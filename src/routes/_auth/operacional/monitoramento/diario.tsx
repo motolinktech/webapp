@@ -374,6 +374,8 @@ function MonitoramentoDiario() {
         limit: 1000,
       }),
     enabled: hasActiveFilter,
+    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchIntervalInBackground: false, // Only refetch when tab is active
   });
 
   const invalidateWorkShiftSlots = () => {
