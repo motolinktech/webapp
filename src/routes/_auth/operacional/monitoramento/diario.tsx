@@ -671,8 +671,8 @@ function MonitoramentoDiario() {
 
             <div className="flex items-center gap-2">
               {selectedGroupId && (
-                <Popover>
-                  <PopoverTrigger asChild>
+                <Tooltip>
+                  <TooltipTrigger asChild>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -687,11 +687,11 @@ function MonitoramentoDiario() {
                     >
                       <Send className="size-4" />
                     </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-64 text-sm">
+                  </TooltipTrigger>
+                  <TooltipContent>
                     Enviar convites para todos os turnos convidados do grupo selecionado na data escolhida.
-                  </PopoverContent>
-                </Popover>
+                  </TooltipContent>
+                </Tooltip>
               )}
 
               <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
@@ -826,8 +826,8 @@ function MonitoramentoDiario() {
 
                           {/* Copy/Paste and Bulk Invite buttons */}
                           <div className="flex items-center gap-2">
-                            <Popover>
-                              <PopoverTrigger asChild>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
                                 <Button
                                   variant="ghost"
                                   size="icon"
@@ -843,11 +843,11 @@ function MonitoramentoDiario() {
                                 >
                                   <Send className="size-4" />
                                 </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-64 text-sm">
+                              </TooltipTrigger>
+                              <TooltipContent>
                                 Enviar convites para todos os turnos convidados deste cliente na data escolhida.
-                              </PopoverContent>
-                            </Popover>
+                              </TooltipContent>
+                            </Tooltip>
 
                             <Tooltip>
                               <TooltipTrigger asChild>
