@@ -18,6 +18,7 @@ import {
 import { Field, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Spinner } from "@/components/ui/spinner";
 import { Text } from "@/components/ui/text";
 import { hourMask } from "@/lib/masks/hour-mask";
 import { clearMoneyMask, moneyMask } from "@/lib/masks/money-mask";
@@ -25,7 +26,8 @@ import { getApiErrorMessage } from "@/lib/services/api";
 import { classHelper } from "@/lib/utils/class-helper";
 import { BAGS_STATUS, BAGS_STATUS_OPTIONS } from "@/modules/clients/clients.constants";
 import type { Client } from "@/modules/clients/clients.types";
-import { listDeliverymen } from "@/modules/deliverymen/deliverymen.service";
+import { getDeliverymanById, listDeliverymen } from "@/modules/deliverymen/deliverymen.service";
+import type { Deliveryman } from "@/modules/deliverymen/deliverymen.types";
 import { createWorkShiftSlot, updateWorkShiftSlot } from "@/modules/work-shift-slots/work-shift-slots.service";
 import type { WorkShiftSlot } from "@/modules/work-shift-slots/work-shift-slots.types";
 
@@ -184,6 +186,10 @@ export function AssignDeliverymanForm({
   workShiftSlot,
 }: AssignDeliverymanFormProps) {
   const [popoverOpen, setPopoverOpen] = useState(false);
+  const [deliverymanSearch, setDeliverymanSearch] = useState("");
+  const [debouncedDeliverymanSearch, setDebouncedDeliverymanSearch] = useState("");
+  const [deliverymenResults, setDeliverymenResults] = useState<Deliveryman[]>([]);
+  const [selectedDeliveryman, setSelectedDeliveryman] = useState<Deliveryman | null>(null);
   const queryClient = useQueryClient();
   const selectedDateValue = useMemo(() => {
     const [year, month, day] = selectedDate.split("-").map((value) => Number(value));
@@ -238,16 +244,64 @@ export function AssignDeliverymanForm({
   const selectedPeriods = watch("periods");
   const deliverymanPaymentMethod = watch("deliverymanPaymentMethod");
 
+  const normalizedDeliverymanSearch = useMemo(() => {
+    return deliverymanSearch.trim().replace(/\s+/g, " ");
+  }, [deliverymanSearch]);
+
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setDebouncedDeliverymanSearch(normalizedDeliverymanSearch);
+    }, 500);
+    return () => clearTimeout(handle);
+  }, [normalizedDeliverymanSearch]);
+
+  const deliverymenSearchEnabled = debouncedDeliverymanSearch.length >= 3;
+
   // TODO: Implementar filtro de entregadores bloqueados
-  const { data: deliverymenData, isLoading: isLoadingDeliverymen } = useQuery({
-    queryKey: ["deliverymen"],
-    queryFn: () => listDeliverymen({ limit: 1000 }), // TODO: better pagination/search
+  const { data: deliverymenData, isFetching: isFetchingDeliverymen } = useQuery({
+    queryKey: ["deliverymen", "search", debouncedDeliverymanSearch],
+    queryFn: () =>
+      listDeliverymen({
+        limit: 20,
+        name: debouncedDeliverymanSearch,
+      }),
+    enabled: deliverymenSearchEnabled,
   });
 
-  const sortedDeliverymen = useMemo(() => {
-    if (!deliverymenData?.data) return [];
+  const { data: selectedDeliverymanData, isFetching: isFetchingSelectedDeliveryman } = useQuery({
+    queryKey: ["deliverymen", selectedDeliverymanId],
+    queryFn: () => getDeliverymanById(selectedDeliverymanId),
+    enabled: !!selectedDeliverymanId && selectedDeliveryman?.id !== selectedDeliverymanId,
+  });
 
-    return [...deliverymenData.data].sort((a, b) => {
+  useEffect(() => {
+    if (!selectedDeliverymanId) {
+      setSelectedDeliveryman(null);
+      return;
+    }
+
+    const match = deliverymenResults.find((deliveryman) => deliveryman.id === selectedDeliverymanId);
+    if (match) {
+      setSelectedDeliveryman(match);
+    }
+  }, [selectedDeliverymanId, deliverymenResults]);
+
+  useEffect(() => {
+    if (selectedDeliverymanData) {
+      setSelectedDeliveryman(selectedDeliverymanData);
+    }
+  }, [selectedDeliverymanData]);
+
+  useEffect(() => {
+    if (deliverymenData) {
+      setDeliverymenResults(deliverymenData.data);
+    }
+  }, [deliverymenData]);
+
+  const sortedDeliverymen = useMemo(() => {
+    if (!deliverymenResults.length) return [];
+
+    return [...deliverymenResults].sort((a, b) => {
       const aInRegion = a.regionId === client.regionId;
       const bInRegion = b.regionId === client.regionId;
 
@@ -256,12 +310,7 @@ export function AssignDeliverymanForm({
 
       return a.name.localeCompare(b.name);
     });
-  }, [deliverymenData?.data, client.regionId]);
-
-  const selectedDeliveryman = useMemo(() => {
-    if (!selectedDeliverymanId) return null;
-    return sortedDeliverymen.find((d) => d.id === selectedDeliverymanId);
-  }, [selectedDeliverymanId, sortedDeliverymen]);
+  }, [deliverymenResults, client.regionId]);
 
   const deliverymanPaymentOptions = useMemo(() => {
     if (!selectedDeliveryman) return [];
@@ -303,6 +352,9 @@ export function AssignDeliverymanForm({
       setValue("deliverymanPaymentMethod", undefined);
     }
   }, [selectedDeliverymanId, setValue]);
+
+  const isSearchingDeliverymen =
+    deliverymenSearchEnabled && (isFetchingDeliverymen || isFetchingSelectedDeliveryman);
 
   const isWeekend = useMemo(() => {
     const day = selectedDateValue.getDay();
@@ -481,11 +533,10 @@ export function AssignDeliverymanForm({
                 role="combobox"
                 aria-expanded={popoverOpen}
                 className="w-full justify-between"
-                disabled={isLoadingDeliverymen || editMode}
+                disabled={editMode}
               >
                 {selectedDeliverymanId
-                  ? sortedDeliverymen.find((d) => d.id === selectedDeliverymanId)?.name ||
-                  workShiftSlot?.deliveryman?.name
+                  ? selectedDeliveryman?.name || workShiftSlot?.deliveryman?.name
                   : "Selecione um entregador..."}
                 {!editMode && <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />}
               </Button>
@@ -493,9 +544,26 @@ export function AssignDeliverymanForm({
             {!editMode && (
               <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
                 <Command>
-                  <CommandInput placeholder="Buscar entregador..." />
+                  <CommandInput
+                    placeholder="Buscar entregador..."
+                    value={deliverymanSearch}
+                    onValueChange={setDeliverymanSearch}
+                  />
                   <CommandList>
-                    <CommandEmpty>Nenhum entregador encontrado.</CommandEmpty>
+                    {!deliverymenSearchEnabled && (
+                      <div className="px-2 py-2 text-sm text-muted-foreground">
+                        Digite ao menos 3 letras para buscar.
+                      </div>
+                    )}
+                    {deliverymenSearchEnabled && !isSearchingDeliverymen && deliverymenResults.length === 0 && (
+                      <CommandEmpty>Nenhum entregador encontrado.</CommandEmpty>
+                    )}
+                    {isSearchingDeliverymen && (
+                      <div className="flex items-center gap-2 px-2 py-2 text-sm text-muted-foreground">
+                        <Spinner className="size-3" />
+                        Buscando entregadores...
+                      </div>
+                    )}
                     <CommandGroup>
                       {sortedDeliverymen.map((deliveryman) => (
                         <CommandItem
@@ -503,6 +571,7 @@ export function AssignDeliverymanForm({
                           value={deliveryman.name}
                           onSelect={() => {
                             setValue("deliverymanId", deliveryman.id, { shouldValidate: true });
+                            setSelectedDeliveryman(deliveryman);
                             setPopoverOpen(false);
                           }}
                         >
