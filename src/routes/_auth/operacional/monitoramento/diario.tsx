@@ -271,18 +271,16 @@ function getInitials(name: string): string {
     .toUpperCase();
 }
 
-function startOfDay(date: Date): Date {
-  const next = new Date(date);
-  next.setUTCHours(0, 0, 0, 0);
-  return next;
+function formatDateYYYYMMDD(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
-
-function formatDateYYYYMMDD(date: Date): string {
-  const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-  const day = String(date.getUTCDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+function parseLocalDateFromYYYYMMDD(dateString: string): Date {
+  const [year, month, day] = dateString.split("-").map((value) => Number(value));
+  return new Date(year, month - 1, day);
 }
 
 // Main Component
@@ -291,7 +289,7 @@ function MonitoramentoDiario() {
   const [selectedClientId, setSelectedClientId] = useState<string>("");
   const [clientSearchOpen, setClientSearchOpen] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()));
+  const [selectedDate, setSelectedDate] = useState(() => formatDateYYYYMMDD(new Date()));
 
   useEffect(() => {
     console.log("[monitoramento-diario] selectedDate changed:", selectedDate);
@@ -317,9 +315,12 @@ function MonitoramentoDiario() {
 
   const queryClient = useQueryClient();
 
-  const startDate = useMemo(() => formatDateYYYYMMDD(selectedDate), [selectedDate]);
-  const endDate = useMemo(() => formatDateYYYYMMDD(selectedDate), [selectedDate]);
-  const dateLabel = useMemo(() => formatDateLabel(selectedDate), [selectedDate]);
+  const startDate = useMemo(() => selectedDate, [selectedDate]);
+  const endDate = useMemo(() => selectedDate, [selectedDate]);
+  const dateLabel = useMemo(
+    () => formatDateLabel(parseLocalDateFromYYYYMMDD(selectedDate)),
+    [selectedDate],
+  );
 
   // Queries
   const { data: groupsData, isLoading: isLoadingGroups } = useQuery({
@@ -524,7 +525,7 @@ function MonitoramentoDiario() {
   }
 
   function handleCopyClick(clientId: string) {
-    const currentDateKey = formatDateYYYYMMDD(selectedDate);
+    const currentDateKey = selectedDate;
     setCopyModeMap((prev) => {
       const next = new Map(prev);
       if (next.get(clientId) === currentDateKey) {
@@ -541,7 +542,7 @@ function MonitoramentoDiario() {
   function handlePasteClick(clientId: string) {
     const sourceDate = copyModeMap.get(clientId);
     if (!sourceDate) return;
-    const targetDate = formatDateYYYYMMDD(selectedDate);
+    const targetDate = selectedDate;
 
     copyShifts({
       sourceDate,
@@ -663,10 +664,10 @@ function MonitoramentoDiario() {
               <PopoverContent className="w-auto p-0" align="end">
                 <Calendar
                   mode="single"
-                  selected={selectedDate}
+                  selected={parseLocalDateFromYYYYMMDD(selectedDate)}
                   onSelect={(date) => {
                     if (!date) return;
-                    setSelectedDate(startOfDay(date));
+                    setSelectedDate(formatDateYYYYMMDD(date));
                     setDatePickerOpen(false);
                   }}
                   initialFocus
