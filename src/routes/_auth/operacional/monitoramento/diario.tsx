@@ -1500,7 +1500,7 @@ function MonitoramentoDiario() {
                   <AssignDeliverymanForm
                     client={clientForDetailsDialog}
                     period={null}
-                    selectedDate={new Date(selectedSlotForAction.shiftDate)}
+                    selectedDate={formatDateYYYYMMDD(new Date(selectedSlotForAction.shiftDate))}
                     editMode={true}
                     workShiftSlot={selectedSlotForAction}
                     onSubmit={() => {

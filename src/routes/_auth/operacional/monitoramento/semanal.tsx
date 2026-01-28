@@ -276,6 +276,13 @@ function formatTime(isoString?: string | null): string {
   });
 }
 
+function formatDateYYYYMMDD(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function getInitials(name: string): string {
   return name
     .split(" ")
@@ -823,7 +830,7 @@ function MonitoramentoSemanal() {
                 client={clientForDialogData}
                 period={null}
                 onSubmit={handleAssignSubmit}
-                selectedDate={dateForAssign}
+                selectedDate={formatDateYYYYMMDD(dateForAssign)}
               />
             )}
           </DialogContent>
@@ -952,7 +959,7 @@ function MonitoramentoSemanal() {
                   <AssignDeliverymanForm
                     client={clientForEditSlot}
                     period={null}
-                    selectedDate={new Date(selectedSlot.shiftDate)}
+                    selectedDate={formatDateYYYYMMDD(new Date(selectedSlot.shiftDate))}
                     editMode={true}
                     workShiftSlot={selectedSlot}
                     onSubmit={() => {

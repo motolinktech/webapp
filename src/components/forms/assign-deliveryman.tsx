@@ -169,7 +169,7 @@ export type { AssignDeliverymanFormData };
 interface AssignDeliverymanFormProps {
   client: Client;
   period: WorkShiftPeriod | null;
-  selectedDate: Date;
+  selectedDate: string;
   onSubmit: (data: AssignDeliverymanFormData) => void;
   editMode?: boolean;
   workShiftSlot?: WorkShiftSlot;
@@ -185,6 +185,10 @@ export function AssignDeliverymanForm({
 }: AssignDeliverymanFormProps) {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const queryClient = useQueryClient();
+  const selectedDateValue = useMemo(() => {
+    const [year, month, day] = selectedDate.split("-").map((value) => Number(value));
+    return new Date(year, month - 1, day);
+  }, [selectedDate]);
 
   const availablePaymentForms = useMemo(() => {
     return (
@@ -301,9 +305,9 @@ export function AssignDeliverymanForm({
   }, [selectedDeliverymanId, setValue]);
 
   const isWeekend = useMemo(() => {
-    const day = selectedDate.getDay();
+    const day = selectedDateValue.getDay();
     return day === 0 || day === 6;
-  }, [selectedDate]);
+  }, [selectedDateValue]);
 
   const diurnoServiceValue = useMemo(() => {
     const cc = client.commercialCondition;
@@ -401,11 +405,11 @@ export function AssignDeliverymanForm({
       }
 
       const [startHour, startMinute] = formData.startAt.split(":").map(Number);
-      const startTime = new Date(selectedDate);
+      const startTime = new Date(selectedDateValue);
       startTime.setHours(startHour, startMinute);
 
       const [endHour, endMinute] = formData.endAt.split(":").map(Number);
-      const endTime = new Date(selectedDate);
+      const endTime = new Date(selectedDateValue);
       endTime.setHours(endHour, endMinute);
 
       if (editMode && workShiftSlot) {
@@ -429,7 +433,7 @@ export function AssignDeliverymanForm({
         clientId: client.id,
         deliverymanId: formData.deliverymanId,
         contractType: formData.contractType,
-        shiftDate: selectedDate.toISOString(),
+        shiftDate: selectedDateValue.toISOString(),
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
         period: formData.periods,
