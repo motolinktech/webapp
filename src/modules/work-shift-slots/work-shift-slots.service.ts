@@ -4,8 +4,8 @@ import type {
   CopyWorkShiftSlotsPayload,
   CopyWorkShiftSlotsResponse,
   CreateWorkShiftSlotPayload,
-  SendInvitePayload,
-  SendInviteResponse,
+  SendBulkInvitesPayload,
+  SendBulkInvitesResponse,
   UpdateWorkShiftSlotPayload,
   WorkShiftSlot,
   WorkShiftSlotGroupedResponse,
@@ -84,12 +84,11 @@ export async function confirmCompletionWorkShiftSlot(id: string): Promise<WorkSh
   return response.data;
 }
 
-export async function sendInviteWorkShiftSlot(
-  id: string,
-  data: SendInvitePayload,
-): Promise<SendInviteResponse> {
-  const response = await authApi.post<SendInviteResponse>(
-    `/work-shift-slots/${id}/send-invite`,
+export async function sendWorkShiftSlotInvites(
+  data: SendBulkInvitesPayload,
+): Promise<SendBulkInvitesResponse> {
+  const response = await authApi.post<SendBulkInvitesResponse>(
+    "/work-shift-slots/invites",
     data,
   );
   return response.data;

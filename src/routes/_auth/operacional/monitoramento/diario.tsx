@@ -106,7 +106,7 @@ import {
   deleteWorkShiftSlot,
   listWorkShiftSlots,
   markAbsentWorkShiftSlot,
-  sendInviteWorkShiftSlot,
+  sendWorkShiftSlotInvites,
 } from "@/modules/work-shift-slots/work-shift-slots.service";
 import type { WorkShiftSlot } from "@/modules/work-shift-slots/work-shift-slots.types";
 
@@ -276,6 +276,13 @@ function formatDateYYYYMMDD(date: Date): string {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+function formatDateDDMMYYYYFromISO(dateString: string): string {
+  const normalized = dateString.slice(0, 10);
+  const [year, month, day] = normalized.split("-");
+  if (!year || !month || !day) return dateString;
+  return `${day}/${month}/${year}`;
 }
 
 function parseLocalDateFromYYYYMMDD(dateString: string): Date {
@@ -449,11 +456,25 @@ function MonitoramentoDiario() {
     onError: (error) => toast.error("Erro ao excluir turno", { description: getApiErrorMessage(error) }),
   });
 
-  const { mutate: sendInvite, isPending: isSendingInvite } = useMutation({
-    mutationFn: (data: { id: string; deliverymanId: string }) =>
-      sendInviteWorkShiftSlot(data.id, { deliverymanId: data.deliverymanId }),
-    onSuccess: () => {
-      toast.success("Convite enviado com sucesso!");
+  const { mutate: sendInvites, isPending: isSendingInvite } = useMutation({
+    mutationFn: (data: {
+      date: string;
+      workShiftSlotId?: string;
+      clientId?: string;
+      groupId?: string;
+    }) => sendWorkShiftSlotInvites(data),
+    onSuccess: (response) => {
+      if (response.sent > 0 && response.failed === 0) {
+        toast.success("Convite enviado com sucesso!");
+      } else if (response.sent > 0 && response.failed > 0) {
+        toast.warning("Convites enviados com avisos", {
+          description: `${response.sent} enviados, ${response.failed} falharam.`,
+        });
+      } else {
+        toast.error("Erro ao enviar convite", {
+          description: response.errors?.[0]?.reason || "Não foi possível enviar o convite.",
+        });
+      }
       invalidateWorkShiftSlots();
     },
     onError: (error) =>
@@ -648,32 +669,58 @@ function MonitoramentoDiario() {
               </Popover>
             </div>
 
-            <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={classHelper(
-                    "w-44 justify-start text-left font-normal",
-                    !selectedDate && "text-muted-foreground",
-                  )}
-                >
-                  <CalendarIcon className="mr-2 size-4" />
-                  {dateLabel}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="end">
-                <Calendar
-                  mode="single"
-                  selected={parseLocalDateFromYYYYMMDD(selectedDate)}
-                  onSelect={(date) => {
-                    if (!date) return;
-                    setSelectedDate(formatDateYYYYMMDD(date));
-                    setDatePickerOpen(false);
-                  }}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+            <div className="flex items-center gap-2">
+              {selectedGroupId && (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label="Enviar convites do grupo"
+                      disabled={isSendingInvite}
+                      onClick={() => {
+                        sendInvites({
+                          groupId: selectedGroupId,
+                          date: formatDateDDMMYYYYFromISO(selectedDate),
+                        });
+                      }}
+                    >
+                      <Send className="size-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 text-sm">
+                    Enviar convites para todos os turnos convidados do grupo selecionado na data escolhida.
+                  </PopoverContent>
+                </Popover>
+              )}
+
+              <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={classHelper(
+                      "w-44 justify-start text-left font-normal",
+                      !selectedDate && "text-muted-foreground",
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 size-4" />
+                    {dateLabel}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="end">
+                  <Calendar
+                    mode="single"
+                    selected={parseLocalDateFromYYYYMMDD(selectedDate)}
+                    onSelect={(date) => {
+                      if (!date) return;
+                      setSelectedDate(formatDateYYYYMMDD(date));
+                      setDatePickerOpen(false);
+                    }}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
 
           {/* Content Area */}
@@ -777,44 +824,69 @@ function MonitoramentoDiario() {
                             )}
                           </div>
 
-                          {/* Copy/Paste buttons */}
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              {isInCopyMode(client.id) && getCopySourceDate(client.id) !== startDate ? (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  disabled={isCopyingShifts}
-                                  onClick={() => handlePasteClick(client.id)}
-                                >
-                                  <ClipboardPaste className="mr-2 size-4" />
-                                  Colar
-                                </Button>
-                              ) : (
+                          {/* Copy/Paste and Bulk Invite buttons */}
+                          <div className="flex items-center gap-2">
+                            <Popover>
+                              <PopoverTrigger asChild>
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className={classHelper(
-                                    "size-8",
-                                    getCopySourceDate(client.id) === startDate && "bg-primary/20",
-                                  )}
-                                  disabled={activeWorkShifts.length === 0}
-                                  onClick={() => handleCopyClick(client.id)}
+                                  className="size-8"
+                                  aria-label="Enviar convites do cliente"
+                                  disabled={isSendingInvite}
+                                  onClick={() => {
+                                    sendInvites({
+                                      clientId: client.id,
+                                      date: formatDateDDMMYYYYFromISO(selectedDate),
+                                    });
+                                  }}
                                 >
-                                  <Copy className="size-4" />
+                                  <Send className="size-4" />
                                 </Button>
-                              )}
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              {isInCopyMode(client.id) && getCopySourceDate(client.id) !== startDate
-                                ? "Colar turnos aqui"
-                                : getCopySourceDate(client.id) === startDate
-                                  ? "Clique para cancelar"
-                                  : activeWorkShifts.length === 0
-                                    ? "Nenhum turno para copiar"
-                                    : "Copiar turnos deste dia"}
-                            </TooltipContent>
-                          </Tooltip>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-64 text-sm">
+                                Enviar convites para todos os turnos convidados deste cliente na data escolhida.
+                              </PopoverContent>
+                            </Popover>
+
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                {isInCopyMode(client.id) && getCopySourceDate(client.id) !== startDate ? (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    disabled={isCopyingShifts}
+                                    onClick={() => handlePasteClick(client.id)}
+                                  >
+                                    <ClipboardPaste className="mr-2 size-4" />
+                                    Colar
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className={classHelper(
+                                      "size-8",
+                                      getCopySourceDate(client.id) === startDate && "bg-primary/20",
+                                    )}
+                                    disabled={activeWorkShifts.length === 0}
+                                    onClick={() => handleCopyClick(client.id)}
+                                  >
+                                    <Copy className="size-4" />
+                                  </Button>
+                                )}
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {isInCopyMode(client.id) && getCopySourceDate(client.id) !== startDate
+                                  ? "Colar turnos aqui"
+                                  : getCopySourceDate(client.id) === startDate
+                                    ? "Clique para cancelar"
+                                    : activeWorkShifts.length === 0
+                                      ? "Nenhum turno para copiar"
+                                      : "Copiar turnos deste dia"}
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
                         </div>
 
                         {isLoadingPlannings || isLoadingWorkShiftSlots ? (
@@ -1023,9 +1095,9 @@ function MonitoramentoDiario() {
                                                         );
                                                         return;
                                                       }
-                                                      sendInvite({
-                                                        id: slot.id,
-                                                        deliverymanId: slot.deliverymanId,
+                                                      sendInvites({
+                                                        workShiftSlotId: slot.id,
+                                                        date: formatDateDDMMYYYYFromISO(selectedDate),
                                                       });
                                                     }}
                                                   >

@@ -114,15 +114,22 @@ export interface MarkAbsentPayload {
   reason?: string;
 }
 
-export interface SendInvitePayload {
-  deliverymanId: string;
-  expiresInHours?: number;
+export interface SendBulkInvitesPayload {
+  date: string;
+  workShiftSlotId?: string;
+  groupId?: string;
+  clientId?: string;
 }
 
-export interface SendInviteResponse {
-  inviteToken?: string;
-  inviteSentAt?: string;
-  inviteExpiresAt?: string;
+export interface SendBulkInvitesError {
+  slotId: string;
+  reason: string;
+}
+
+export interface SendBulkInvitesResponse {
+  sent: number;
+  failed: number;
+  errors: SendBulkInvitesError[];
 }
 
 export interface CopyWorkShiftSlotsPayload {
