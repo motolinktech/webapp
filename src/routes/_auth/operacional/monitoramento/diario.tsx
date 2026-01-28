@@ -19,7 +19,7 @@ import {
   X,
   XCircle,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ContentHeader } from "@/components/composite/content-header";
 import { hasPermissions } from "@/lib/utils/has-permissions";
@@ -292,6 +292,10 @@ function MonitoramentoDiario() {
   const [clientSearchOpen, setClientSearchOpen] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()));
+
+  useEffect(() => {
+    console.log("[monitoramento-diario] selectedDate changed:", selectedDate);
+  }, [selectedDate]);
 
   // Dialog states
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
