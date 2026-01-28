@@ -295,6 +295,9 @@ function MonitoramentoDiario() {
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
   const [selectedClientId, setSelectedClientId] = useState<string>("");
   const [clientSearchOpen, setClientSearchOpen] = useState(false);
+  const [clientSearch, setClientSearch] = useState("");
+  const [debouncedClientSearch, setDebouncedClientSearch] = useState("");
+  const [searchClientsResults, setSearchClientsResults] = useState<Client[]>([]);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(() => formatDateYYYYMMDD(new Date()));
 
@@ -329,16 +332,33 @@ function MonitoramentoDiario() {
     [selectedDate],
   );
 
+  const normalizedClientSearch = useMemo(() => {
+    return clientSearch.trim().replace(/\s+/g, " ");
+  }, [clientSearch]);
+
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setDebouncedClientSearch(normalizedClientSearch);
+    }, 500);
+    return () => clearTimeout(handle);
+  }, [normalizedClientSearch]);
+
+  const clientSearchEnabled = debouncedClientSearch.length >= 3;
+
   // Queries
   const { data: groupsData, isLoading: isLoadingGroups } = useQuery({
     queryKey: ["groups"],
     queryFn: () => listGroups({ limit: 100 }),
   });
 
-  const { data: searchClientsData } = useQuery({
-    queryKey: ["clients-search"],
-    queryFn: () => listClients({ limit: 20 }),
-    enabled: clientSearchOpen,
+  const { data: searchClientsData, isFetching: isFetchingSearchClients } = useQuery({
+    queryKey: ["clients-search", debouncedClientSearch],
+    queryFn: () =>
+      listClients({
+        limit: 20,
+        name: debouncedClientSearch,
+      }),
+    enabled: clientSearchOpen && clientSearchEnabled,
   });
 
   const { data: selectedClientData, isLoading: isLoadingSelectedClient } = useQuery({
@@ -361,6 +381,14 @@ function MonitoramentoDiario() {
   });
 
   const hasActiveFilter = !!selectedGroupId || !!selectedClientId;
+
+  useEffect(() => {
+    if (searchClientsData) {
+      setSearchClientsResults(searchClientsData.data);
+    }
+  }, [searchClientsData]);
+
+  const isSearchingClients = clientSearchEnabled && isFetchingSearchClients;
 
   const workShiftSlotsQueryKey = useMemo(
     () => [
@@ -645,11 +673,28 @@ function MonitoramentoDiario() {
                 </PopoverTrigger>
                 <PopoverContent className="w-56 p-0">
                   <Command>
-                    <CommandInput placeholder="Buscar cliente..." />
+                    <CommandInput
+                      placeholder="Buscar cliente..."
+                      value={clientSearch}
+                      onValueChange={setClientSearch}
+                    />
                     <CommandList>
-                      <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
+                      {!clientSearchEnabled && (
+                        <div className="px-2 py-2 text-sm text-muted-foreground">
+                          Digite ao menos 3 letras para buscar.
+                        </div>
+                      )}
+                      {clientSearchEnabled && !isSearchingClients && searchClientsResults.length === 0 && (
+                        <CommandEmpty>Nenhum cliente encontrado.</CommandEmpty>
+                      )}
+                      {isSearchingClients && (
+                        <div className="flex items-center gap-2 px-2 py-2 text-sm text-muted-foreground">
+                          <Spinner className="size-3" />
+                          Buscando clientes...
+                        </div>
+                      )}
                       <CommandGroup>
-                        {searchClientsData?.data?.map((client) => (
+                        {searchClientsResults.map((client) => (
                           <CommandItem
                             key={client.id}
                             value={client.name}
