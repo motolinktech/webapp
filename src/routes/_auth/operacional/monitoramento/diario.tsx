@@ -594,8 +594,29 @@ function MonitoramentoDiario() {
   // Mutations
 
   const { mutate: updateTimes, isPending: isUpdatingTimes } = useMutation({
-    mutationFn: ({ id, checkInAt, checkOutAt }: { id: string; checkInAt?: string | null; checkOutAt?: string | null }) =>
-      updateWorkShiftSlot(id, { checkInAt, checkOutAt }),
+    mutationFn: ({
+      slot,
+      checkInAt,
+      checkOutAt,
+    }: {
+      slot: WorkShiftSlot;
+      checkInAt?: string | null;
+      checkOutAt?: string | null;
+    }) =>
+      updateWorkShiftSlot(slot.id, {
+        clientId: slot.clientId,
+        contractType: slot.contractType,
+        shiftDate: slot.shiftDate,
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+        period: slot.period,
+        auditStatus: slot.auditStatus,
+        deliverymanId: slot.deliverymanId,
+        status: slot.status,
+        isFreelancer: slot.isFreelancer,
+        checkInAt,
+        checkOutAt,
+      }),
     onSuccess: () => {
       toast.success("Horários atualizados com sucesso!");
       invalidateWorkShiftSlots();
@@ -1886,7 +1907,7 @@ function MonitoramentoDiario() {
                 }
 
                 updateTimes({
-                  id: selectedSlotForAction.id,
+                  slot: selectedSlotForAction,
                   checkInAt,
                   checkOutAt,
                 });
