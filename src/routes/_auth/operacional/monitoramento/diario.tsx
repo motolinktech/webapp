@@ -1071,8 +1071,9 @@ function MonitoramentoDiario() {
                                               .join(", ")}{" "}
                                             -{" "}
                                             {formatMoney(
-                                              slot.deliverymanAmountDay ||
-                                              slot.deliverymanAmountNight,
+                                              slot.deliverymanAmountDay && slot.deliverymanAmountNight
+                                                ? Number(slot.deliverymanAmountDay) + Number(slot.deliverymanAmountNight)
+                                                : slot.deliverymanAmountDay || slot.deliverymanAmountNight,
                                             )}
                                           </span>
                                         </div>
@@ -1294,8 +1295,9 @@ function MonitoramentoDiario() {
                                               .join(", ")}{" "}
                                             -{" "}
                                             {formatMoney(
-                                              slot.deliverymanAmountDay ||
-                                              slot.deliverymanAmountNight,
+                                              slot.deliverymanAmountDay && slot.deliverymanAmountNight
+                                                ? Number(slot.deliverymanAmountDay) + Number(slot.deliverymanAmountNight)
+                                                : slot.deliverymanAmountDay || slot.deliverymanAmountNight,
                                             )}
                                           </span>
                                         </div>
@@ -1590,8 +1592,9 @@ function MonitoramentoDiario() {
                         <Text variant="muted">Valor</Text>
                         <Text>
                           {formatMoney(
-                            selectedSlotForAction.deliverymanAmountDay ||
-                            selectedSlotForAction.deliverymanAmountNight,
+                            selectedSlotForAction.deliverymanAmountDay && selectedSlotForAction.deliverymanAmountNight
+                              ? Number(selectedSlotForAction.deliverymanAmountDay) + Number(selectedSlotForAction.deliverymanAmountNight)
+                              : selectedSlotForAction.deliverymanAmountDay || selectedSlotForAction.deliverymanAmountNight,
                           )}
                         </Text>
                       </div>
