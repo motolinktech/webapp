@@ -150,9 +150,14 @@ const assignDeliverymanSchema = z
     periods: z.array(periodEnum).min(1, "Selecione pelo menos um período"),
     serviceValueDiurno: z.string().optional(),
     serviceValueNoturno: z.string().optional(),
-    deliverymanPaymentMethod: z.string().optional(),
+    deliverymanPaymentMethod: z.enum(["mainPixKey", "secondPixKey", "thridPixKey", "bankAccount"]).optional(),
     deliverymanAmountDay: z.number().optional(),
     deliverymanAmountNight: z.number().optional(),
+    // GUARANTEED payment fields
+    guaranteedQuantityDiurno: z.coerce.number().optional(),
+    guaranteedQuantityNoturno: z.coerce.number().optional(),
+    perDeliveryDiurno: z.string().optional(),
+    perDeliveryNoturno: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.deliverymanId && !data.deliverymanPaymentMethod) {
@@ -164,7 +169,8 @@ const assignDeliverymanSchema = z
     }
   });
 
-type AssignDeliverymanFormData = z.infer<typeof assignDeliverymanSchema>;
+type AssignDeliverymanFormInput = z.input<typeof assignDeliverymanSchema>;
+type AssignDeliverymanFormData = z.output<typeof assignDeliverymanSchema>;
 
 export type { AssignDeliverymanFormData };
 
@@ -208,16 +214,37 @@ export function AssignDeliverymanForm({
 
   const defaultValues = useMemo(() => {
     if (editMode && workShiftSlot) {
+      const isDaily = workShiftSlot.paymentForm === "DAILY";
+      const isGuaranteed = workShiftSlot.paymentForm === "GUARANTEED";
+
       return {
         deliverymanId: workShiftSlot.deliverymanId || "",
         contractType: workShiftSlot.contractType as "FREELANCER" | "INDEPENDENT_COLLABORATOR",
         periods: workShiftSlot.period,
         startAt: extractTimeFromIso(workShiftSlot.startTime),
         endAt: extractTimeFromIso(workShiftSlot.endTime),
-        paymentType: isPaymentTypeDisabled
-          ? (availablePaymentForms[0].value as "DAILY" | "GUARANTEED")
-          : undefined,
+        paymentType: workShiftSlot.paymentForm as "DAILY" | "GUARANTEED" | undefined,
         deliverymanPaymentMethod: workShiftSlot.deliverymanPaymentType,
+
+        serviceValueDiurno:
+          isDaily && workShiftSlot.deliverymanAmountDay
+            ? formatMoney(workShiftSlot.deliverymanAmountDay)
+            : undefined,
+        serviceValueNoturno:
+          isDaily && workShiftSlot.deliverymanAmountNight
+            ? formatMoney(workShiftSlot.deliverymanAmountNight)
+            : undefined,
+
+        guaranteedQuantityDiurno: isGuaranteed ? workShiftSlot.guaranteedQuantityDay : undefined,
+        guaranteedQuantityNoturno: isGuaranteed ? workShiftSlot.guaranteedQuantityNight : undefined,
+        perDeliveryDiurno:
+          isGuaranteed && workShiftSlot.deliverymanPerDeliveryDay
+            ? formatMoney(workShiftSlot.deliverymanPerDeliveryDay)
+            : undefined,
+        perDeliveryNoturno:
+          isGuaranteed && workShiftSlot.deliverymanPerDeliveryNight
+            ? formatMoney(workShiftSlot.deliverymanPerDeliveryNight)
+            : undefined,
       };
     }
     return {
@@ -235,7 +262,7 @@ export function AssignDeliverymanForm({
     watch,
     register,
     formState: { errors },
-  } = useForm<AssignDeliverymanFormData>({
+  } = useForm<AssignDeliverymanFormInput, unknown, AssignDeliverymanFormData>({
     resolver: zodResolver(assignDeliverymanSchema),
     defaultValues,
   });
@@ -412,6 +439,16 @@ export function AssignDeliverymanForm({
     return { value: displayValue, label, isMoney };
   }, [client.commercialCondition, selectedPaymentType, isWeekend]);
 
+  const perDeliveryValue = useMemo(() => {
+    const cc = client.commercialCondition;
+    if (!cc || selectedPaymentType !== "GUARANTEED") return { value: undefined };
+
+    const value = cc.deliverymanPerDelivery;
+    const displayValue = formatMoney(value || "0");
+
+    return { value: displayValue };
+  }, [client.commercialCondition, selectedPaymentType]);
+
   useEffect(() => {
     if (selectedPeriods?.includes("daytime") && diurnoServiceValue.value !== undefined) {
       setValue("serviceValueDiurno", diurnoServiceValue.value);
@@ -424,6 +461,33 @@ export function AssignDeliverymanForm({
     }
   }, [noturnoServiceValue.value, selectedPeriods, setValue]);
 
+  // Set guaranteed quantity and per-delivery values when GUARANTEED is selected
+  useEffect(() => {
+    if (selectedPaymentType === "GUARANTEED") {
+      if (selectedPeriods?.includes("daytime") && diurnoServiceValue.value !== undefined) {
+        setValue("guaranteedQuantityDiurno", Number(diurnoServiceValue.value) || 0);
+      }
+      if (selectedPeriods?.includes("nighttime") && noturnoServiceValue.value !== undefined) {
+        setValue("guaranteedQuantityNoturno", Number(noturnoServiceValue.value) || 0);
+      }
+      if (perDeliveryValue.value !== undefined) {
+        if (selectedPeriods?.includes("daytime")) {
+          setValue("perDeliveryDiurno", perDeliveryValue.value);
+        }
+        if (selectedPeriods?.includes("nighttime")) {
+          setValue("perDeliveryNoturno", perDeliveryValue.value);
+        }
+      }
+    }
+  }, [
+    selectedPaymentType,
+    selectedPeriods,
+    diurnoServiceValue.value,
+    noturnoServiceValue.value,
+    perDeliveryValue.value,
+    setValue,
+  ]);
+
   const bagsInfo = formatBagsInfo(client);
   const deliverymanConditions = formatDeliverymanConditions(client);
 
@@ -431,16 +495,36 @@ export function AssignDeliverymanForm({
     mutationFn: async (formData: AssignDeliverymanFormData) => {
       // Convert monetary values from masked strings to numbers (only for selected periods)
       const deliverymanAmountDay =
-        formData.periods.includes("daytime") && formData.serviceValueDiurno
-          ? diurnoServiceValue.isMoney
-            ? Number(clearMoneyMask(formData.serviceValueDiurno))
-            : Number(formData.serviceValueDiurno)
+        formData.paymentType === "DAILY" && formData.periods.includes("daytime") && formData.serviceValueDiurno
+          ? Number(clearMoneyMask(formData.serviceValueDiurno))
           : undefined;
       const deliverymanAmountNight =
-        formData.periods.includes("nighttime") && formData.serviceValueNoturno
-          ? noturnoServiceValue.isMoney
-            ? Number(clearMoneyMask(formData.serviceValueNoturno))
-            : Number(formData.serviceValueNoturno)
+        formData.paymentType === "DAILY" &&
+        formData.periods.includes("nighttime") &&
+        formData.serviceValueNoturno
+          ? Number(clearMoneyMask(formData.serviceValueNoturno))
+          : undefined;
+
+      const guaranteedQuantityDay =
+        formData.paymentType === "GUARANTEED" && formData.periods.includes("daytime")
+          ? formData.guaranteedQuantityDiurno
+          : undefined;
+      const guaranteedQuantityNight =
+        formData.paymentType === "GUARANTEED" && formData.periods.includes("nighttime")
+          ? formData.guaranteedQuantityNoturno
+          : undefined;
+
+      const deliverymanPerDeliveryDay =
+        formData.paymentType === "GUARANTEED" &&
+        formData.periods.includes("daytime") &&
+        formData.perDeliveryDiurno
+          ? Number(clearMoneyMask(formData.perDeliveryDiurno))
+          : undefined;
+      const deliverymanPerDeliveryNight =
+        formData.paymentType === "GUARANTEED" &&
+        formData.periods.includes("nighttime") &&
+        formData.perDeliveryNoturno
+          ? Number(clearMoneyMask(formData.perDeliveryNoturno))
           : undefined;
 
       // Compute payment type and value for deliveryman
@@ -481,6 +565,11 @@ export function AssignDeliverymanForm({
           deliverymanAmountNight,
           deliverymanPaymentType,
           deliverymenPaymentValue,
+          paymentForm: formData.paymentType,
+          guaranteedQuantityDay,
+          guaranteedQuantityNight,
+          deliverymanPerDeliveryDay,
+          deliverymanPerDeliveryNight,
         });
       }
 
@@ -499,6 +588,11 @@ export function AssignDeliverymanForm({
         deliverymanAmountNight,
         deliverymanPaymentType,
         deliverymenPaymentValue,
+        paymentForm: formData.paymentType,
+        guaranteedQuantityDay,
+        guaranteedQuantityNight,
+        deliverymanPerDeliveryDay,
+        deliverymanPerDeliveryNight,
       });
     },
     onSuccess: (_, formData) => {
@@ -706,7 +800,7 @@ export function AssignDeliverymanForm({
           )}
         />
 
-        {selectedPeriods?.includes("daytime") && selectedPaymentType && (
+        {selectedPeriods?.includes("daytime") && selectedPaymentType === "DAILY" && (
           <Field>
             <FieldLabel htmlFor="serviceValueDiurno">{diurnoServiceValue.label}</FieldLabel>
             <Input
@@ -723,7 +817,33 @@ export function AssignDeliverymanForm({
           </Field>
         )}
 
-        {selectedPeriods?.includes("nighttime") && selectedPaymentType && (
+        {selectedPeriods?.includes("daytime") && selectedPaymentType === "GUARANTEED" && (
+          <>
+            <Field>
+              <FieldLabel htmlFor="guaranteedQuantityDiurno">Qt. Garantida (Diurno)</FieldLabel>
+              <Input
+                id="guaranteedQuantityDiurno"
+                type="number"
+                {...register("guaranteedQuantityDiurno")}
+              />
+              <FieldError errors={[errors.guaranteedQuantityDiurno]} />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="perDeliveryDiurno">Valor por Entrega (Diurno)</FieldLabel>
+              <Input
+                id="perDeliveryDiurno"
+                {...register("perDeliveryDiurno", {
+                  onChange: (e) => {
+                    e.target.value = moneyMask(e.target.value);
+                  },
+                })}
+              />
+              <FieldError errors={[errors.perDeliveryDiurno]} />
+            </Field>
+          </>
+        )}
+
+        {selectedPeriods?.includes("nighttime") && selectedPaymentType === "DAILY" && (
           <Field>
             <FieldLabel htmlFor="serviceValueNoturno">{noturnoServiceValue.label}</FieldLabel>
             <Input
@@ -738,6 +858,32 @@ export function AssignDeliverymanForm({
             />
             <FieldError errors={[errors.serviceValueNoturno]} />
           </Field>
+        )}
+
+        {selectedPeriods?.includes("nighttime") && selectedPaymentType === "GUARANTEED" && (
+          <>
+            <Field>
+              <FieldLabel htmlFor="guaranteedQuantityNoturno">Qt. Garantida (Noturno)</FieldLabel>
+              <Input
+                id="guaranteedQuantityNoturno"
+                type="number"
+                {...register("guaranteedQuantityNoturno")}
+              />
+              <FieldError errors={[errors.guaranteedQuantityNoturno]} />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="perDeliveryNoturno">Valor por Entrega (Noturno)</FieldLabel>
+              <Input
+                id="perDeliveryNoturno"
+                {...register("perDeliveryNoturno", {
+                  onChange: (e) => {
+                    e.target.value = moneyMask(e.target.value);
+                  },
+                })}
+              />
+              <FieldError errors={[errors.perDeliveryNoturno]} />
+            </Field>
+          </>
         )}
 
         <Button type="submit" isLoading={isPending} className="w-full">

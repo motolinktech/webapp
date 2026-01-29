@@ -27,10 +27,15 @@ export interface WorkShiftSlot {
   period: ("daytime" | "nighttime")[];
   isFreelancer: boolean;
   auditStatus: string;
-  deliverymanAmountDay?: number;
-  deliverymanAmountNight?: number;
-  deliverymanPaymentType?: string;
+  deliverymanAmountDay?: string;
+  deliverymanAmountNight?: string;
+  deliverymanPaymentType?: "mainPixKey" | "secondPixKey" | "thridPixKey" | "bankAccount";
   deliverymenPaymentValue?: string;
+  paymentForm?: "DAILY" | "GUARANTEED";
+  guaranteedQuantityDay?: number;
+  guaranteedQuantityNight?: number;
+  deliverymanPerDeliveryDay?: string;
+  deliverymanPerDeliveryNight?: string;
   logs: WorkShiftSlotLog[];
   checkInAt?: string | null;
   checkOutAt?: string | null;
@@ -82,6 +87,11 @@ export interface CreateWorkShiftSlotPayload {
   deliverymanAmountNight?: number;
   deliverymanPaymentType?: string;
   deliverymenPaymentValue?: string;
+  paymentForm?: "DAILY" | "GUARANTEED";
+  guaranteedQuantityDay?: number;
+  guaranteedQuantityNight?: number;
+  deliverymanPerDeliveryDay?: number;
+  deliverymanPerDeliveryNight?: number;
   logs?: WorkShiftSlotLog[];
 }
 
@@ -100,6 +110,11 @@ export interface UpdateWorkShiftSlotPayload {
   deliverymanAmountNight?: number;
   deliverymanPaymentType?: string;
   deliverymenPaymentValue?: string;
+  paymentForm?: "DAILY" | "GUARANTEED";
+  guaranteedQuantityDay?: number;
+  guaranteedQuantityNight?: number;
+  deliverymanPerDeliveryDay?: number;
+  deliverymanPerDeliveryNight?: number;
   logs?: WorkShiftSlotLog[];
 }
 

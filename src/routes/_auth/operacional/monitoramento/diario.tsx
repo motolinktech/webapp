@@ -271,6 +271,38 @@ function getInitials(name: string): string {
     .toUpperCase();
 }
 
+function calculateShiftValue(slot: WorkShiftSlot): number | undefined {
+  if (slot.paymentForm === "GUARANTEED") {
+    let total = 0;
+    if (slot.period.includes("daytime") && slot.guaranteedQuantityDay && slot.deliverymanPerDeliveryDay) {
+      total += slot.guaranteedQuantityDay * Number(slot.deliverymanPerDeliveryDay);
+    }
+    if (
+      slot.period.includes("nighttime") &&
+      slot.guaranteedQuantityNight &&
+      slot.deliverymanPerDeliveryNight
+    ) {
+      total += slot.guaranteedQuantityNight * Number(slot.deliverymanPerDeliveryNight);
+    }
+    return total > 0 ? total : undefined;
+  }
+
+  // Default to DAILY logic
+  if (slot.deliverymanAmountDay && slot.deliverymanAmountNight) {
+    return Number(slot.deliverymanAmountDay) + Number(slot.deliverymanAmountNight);
+  }
+
+  if (slot.deliverymanAmountDay) {
+    return Number(slot.deliverymanAmountDay);
+  }
+
+  if (slot.deliverymanAmountNight) {
+    return Number(slot.deliverymanAmountNight);
+  }
+
+  return undefined;
+}
+
 function formatDateYYYYMMDD(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -1069,12 +1101,7 @@ function MonitoramentoDiario() {
                                             {slot.period
                                               .map((p) => PERIOD_LABELS[p] ?? p)
                                               .join(", ")}{" "}
-                                            -{" "}
-                                            {formatMoney(
-                                              slot.deliverymanAmountDay && slot.deliverymanAmountNight
-                                                ? Number(slot.deliverymanAmountDay) + Number(slot.deliverymanAmountNight)
-                                                : slot.deliverymanAmountDay || slot.deliverymanAmountNight,
-                                            )}
+                                            - {formatMoney(calculateShiftValue(slot))}
                                           </span>
                                         </div>
                                       </TableCell>
@@ -1293,12 +1320,7 @@ function MonitoramentoDiario() {
                                             {slot.period
                                               .map((p) => PERIOD_LABELS[p] ?? p)
                                               .join(", ")}{" "}
-                                            -{" "}
-                                            {formatMoney(
-                                              slot.deliverymanAmountDay && slot.deliverymanAmountNight
-                                                ? Number(slot.deliverymanAmountDay) + Number(slot.deliverymanAmountNight)
-                                                : slot.deliverymanAmountDay || slot.deliverymanAmountNight,
-                                            )}
+                                            - {formatMoney(calculateShiftValue(slot) ?? undefined)}
                                           </span>
                                         </div>
                                       </TableCell>
@@ -1586,19 +1608,14 @@ function MonitoramentoDiario() {
                       {selectedSlotForAction.contractType.toLowerCase()}
                     </Text>
                   </div>
-                  {(selectedSlotForAction.deliverymanAmountDay ||
-                    selectedSlotForAction.deliverymanAmountNight) && (
-                      <div className="flex justify-between">
-                        <Text variant="muted">Valor</Text>
-                        <Text>
-                          {formatMoney(
-                            selectedSlotForAction.deliverymanAmountDay && selectedSlotForAction.deliverymanAmountNight
-                              ? Number(selectedSlotForAction.deliverymanAmountDay) + Number(selectedSlotForAction.deliverymanAmountNight)
-                              : selectedSlotForAction.deliverymanAmountDay || selectedSlotForAction.deliverymanAmountNight,
-                          )}
-                        </Text>
-                      </div>
-                    )}
+                  {calculateShiftValue(selectedSlotForAction) && (
+                    <div className="flex justify-between">
+                      <Text variant="muted">Valor</Text>
+                      <Text>
+                        {formatMoney(calculateShiftValue(selectedSlotForAction) ?? undefined)}
+                      </Text>
+                    </div>
+                  )}
                 </div>
 
                 <Separator />
