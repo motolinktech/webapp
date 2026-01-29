@@ -412,33 +412,35 @@ export function AssignDeliverymanForm({
   }, [client.commercialCondition, selectedPaymentType, isWeekend]);
 
   useEffect(() => {
-    if (diurnoServiceValue.value !== undefined) {
+    if (selectedPeriods?.includes("daytime") && diurnoServiceValue.value !== undefined) {
       setValue("serviceValueDiurno", diurnoServiceValue.value);
     }
-  }, [diurnoServiceValue.value, setValue]);
+  }, [diurnoServiceValue.value, selectedPeriods, setValue]);
 
   useEffect(() => {
-    if (noturnoServiceValue.value !== undefined) {
+    if (selectedPeriods?.includes("nighttime") && noturnoServiceValue.value !== undefined) {
       setValue("serviceValueNoturno", noturnoServiceValue.value);
     }
-  }, [noturnoServiceValue.value, setValue]);
+  }, [noturnoServiceValue.value, selectedPeriods, setValue]);
 
   const bagsInfo = formatBagsInfo(client);
   const deliverymanConditions = formatDeliverymanConditions(client);
 
   const { mutateAsync, isPending } = useMutation({
     mutationFn: async (formData: AssignDeliverymanFormData) => {
-      // Convert monetary values from masked strings to numbers
-      const deliverymanAmountDay = formData.serviceValueDiurno
-        ? diurnoServiceValue.isMoney
-          ? Number(clearMoneyMask(formData.serviceValueDiurno))
-          : Number(formData.serviceValueDiurno)
-        : undefined;
-      const deliverymanAmountNight = formData.serviceValueNoturno
-        ? noturnoServiceValue.isMoney
-          ? Number(clearMoneyMask(formData.serviceValueNoturno))
-          : Number(formData.serviceValueNoturno)
-        : undefined;
+      // Convert monetary values from masked strings to numbers (only for selected periods)
+      const deliverymanAmountDay =
+        formData.periods.includes("daytime") && formData.serviceValueDiurno
+          ? diurnoServiceValue.isMoney
+            ? Number(clearMoneyMask(formData.serviceValueDiurno))
+            : Number(formData.serviceValueDiurno)
+          : undefined;
+      const deliverymanAmountNight =
+        formData.periods.includes("nighttime") && formData.serviceValueNoturno
+          ? noturnoServiceValue.isMoney
+            ? Number(clearMoneyMask(formData.serviceValueNoturno))
+            : Number(formData.serviceValueNoturno)
+          : undefined;
 
       // Compute payment type and value for deliveryman
       const deliverymanPaymentType = formData.deliverymanPaymentMethod;
