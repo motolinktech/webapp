@@ -140,6 +140,11 @@ const PERIOD_LABELS: Record<WorkShiftPeriod, string> = {
   nighttime: "Noturno",
 };
 
+const PAYMENT_FORM_LABELS: Record<NonNullable<WorkShiftSlot["paymentForm"]>, string> = {
+  DAILY: "Diária",
+  GUARANTEED: "Garantida",
+};
+
 function formatDateLabel(date: Date): string {
   return date.toLocaleDateString("pt-BR", {
     day: "2-digit",
@@ -187,6 +192,16 @@ function formatMoney(value?: number | string): string {
   const digits = value.replace(/\D/g, "");
   if (!digits) return "N/A";
   return moneyMask(digits);
+}
+
+function parseMoneyValue(value?: number | string | null): number | undefined {
+  if (value === null || value === undefined) return undefined;
+  if (typeof value === "number") {
+    return Number.isNaN(value) ? undefined : value;
+  }
+  const normalized = value.replace(",", ".");
+  const parsed = Number.parseFloat(normalized);
+  return Number.isNaN(parsed) ? undefined : parsed;
 }
 
 function formatBagsInfo(client: Client): string | null {
@@ -271,36 +286,123 @@ function getInitials(name: string): string {
     .toUpperCase();
 }
 
-function calculateShiftValue(slot: WorkShiftSlot): number | undefined {
+function getPaymentFormLabel(paymentForm?: WorkShiftSlot["paymentForm"]): string {
+  if (!paymentForm) return PAYMENT_FORM_LABELS.DAILY;
+  return PAYMENT_FORM_LABELS[paymentForm] ?? paymentForm;
+}
+
+type PaymentBreakdownLine = {
+  label: string;
+  value: string;
+};
+
+function buildPaymentBreakdown(slot: WorkShiftSlot): { lines: PaymentBreakdownLine[]; total?: number } {
+  const lines: PaymentBreakdownLine[] = [];
+  let total = 0;
+  let hasTotal = false;
+
+  const addLine = (period: WorkShiftPeriod, value: string) => {
+    lines.push({
+      label: `Pagamento ${PERIOD_LABELS[period] ?? period}`,
+      value,
+    });
+  };
+
+  const addDailyLine = (period: WorkShiftPeriod, amountRaw?: number | string) => {
+    const amount = parseMoneyValue(amountRaw);
+    if (amount === undefined) {
+      addLine(period, "Não informado");
+      return;
+    }
+    total += amount;
+    hasTotal = true;
+    addLine(period, formatMoney(amount));
+  };
+
+  const addGuaranteedLine = (
+    period: WorkShiftPeriod,
+    quantity?: number,
+    perDeliveryRaw?: number | string,
+  ) => {
+    const perDelivery = parseMoneyValue(perDeliveryRaw);
+    if (quantity === undefined && perDelivery === undefined) {
+      addLine(period, "Não informado");
+      return;
+    }
+    if (quantity === undefined || perDelivery === undefined) {
+      const quantityLabel =
+        quantity === undefined ? "Qtd. garantida não informada" : `Qtd. garantida ${quantity}`;
+      const perDeliveryLabel =
+        perDelivery === undefined
+          ? "Valor por entrega não informado"
+          : `Valor por entrega ${formatMoney(perDelivery)}`;
+      addLine(period, `${quantityLabel} · ${perDeliveryLabel}`);
+      return;
+    }
+    const amount = quantity * perDelivery;
+    total += amount;
+    hasTotal = true;
+    addLine(period, `Qtd. garantida ${quantity} x ${formatMoney(perDelivery)} = ${formatMoney(amount)}`);
+  };
+
   if (slot.paymentForm === "GUARANTEED") {
-    let total = 0;
-    if (slot.period.includes("daytime") && slot.guaranteedQuantityDay && slot.deliverymanPerDeliveryDay) {
-      total += slot.guaranteedQuantityDay * Number(slot.deliverymanPerDeliveryDay);
+    if (slot.period.includes("daytime")) {
+      addGuaranteedLine("daytime", slot.guaranteedQuantityDay, slot.deliverymanPerDeliveryDay);
     }
-    if (
-      slot.period.includes("nighttime") &&
-      slot.guaranteedQuantityNight &&
-      slot.deliverymanPerDeliveryNight
-    ) {
-      total += slot.guaranteedQuantityNight * Number(slot.deliverymanPerDeliveryNight);
+    if (slot.period.includes("nighttime")) {
+      addGuaranteedLine("nighttime", slot.guaranteedQuantityNight, slot.deliverymanPerDeliveryNight);
     }
-    return total > 0 ? total : undefined;
+    return { lines, total: hasTotal ? total : undefined };
   }
 
-  // Default to DAILY logic
-  if (slot.deliverymanAmountDay && slot.deliverymanAmountNight) {
-    return Number(slot.deliverymanAmountDay) + Number(slot.deliverymanAmountNight);
+  if (slot.period.includes("daytime")) {
+    addDailyLine("daytime", slot.deliverymanAmountDay);
+  }
+  if (slot.period.includes("nighttime")) {
+    addDailyLine("nighttime", slot.deliverymanAmountNight);
   }
 
-  if (slot.deliverymanAmountDay) {
-    return Number(slot.deliverymanAmountDay);
+  return { lines, total: hasTotal ? total : undefined };
+}
+
+function calculateShiftValue(slot: WorkShiftSlot): number | undefined {
+  let total = 0;
+  let hasTotal = false;
+
+  if (slot.paymentForm === "GUARANTEED") {
+    if (slot.period.includes("daytime")) {
+      const perDelivery = parseMoneyValue(slot.deliverymanPerDeliveryDay);
+      if (slot.guaranteedQuantityDay !== undefined && perDelivery !== undefined) {
+        total += slot.guaranteedQuantityDay * perDelivery;
+        hasTotal = true;
+      }
+    }
+    if (slot.period.includes("nighttime")) {
+      const perDelivery = parseMoneyValue(slot.deliverymanPerDeliveryNight);
+      if (slot.guaranteedQuantityNight !== undefined && perDelivery !== undefined) {
+        total += slot.guaranteedQuantityNight * perDelivery;
+        hasTotal = true;
+      }
+    }
+    return hasTotal ? total : undefined;
   }
 
-  if (slot.deliverymanAmountNight) {
-    return Number(slot.deliverymanAmountNight);
+  if (slot.period.includes("daytime")) {
+    const amount = parseMoneyValue(slot.deliverymanAmountDay);
+    if (amount !== undefined) {
+      total += amount;
+      hasTotal = true;
+    }
+  }
+  if (slot.period.includes("nighttime")) {
+    const amount = parseMoneyValue(slot.deliverymanAmountNight);
+    if (amount !== undefined) {
+      total += amount;
+      hasTotal = true;
+    }
   }
 
-  return undefined;
+  return hasTotal ? total : undefined;
 }
 
 function formatDateYYYYMMDD(date: Date): string {
@@ -363,6 +465,14 @@ function MonitoramentoDiario() {
     () => formatDateLabel(parseLocalDateFromYYYYMMDD(selectedDate)),
     [selectedDate],
   );
+
+  const selectedSlotPayment = useMemo(() => {
+    if (!selectedSlotForAction) return null;
+    return {
+      paymentFormLabel: getPaymentFormLabel(selectedSlotForAction.paymentForm),
+      breakdown: buildPaymentBreakdown(selectedSlotForAction),
+    };
+  }, [selectedSlotForAction]);
 
   const normalizedClientSearch = useMemo(() => {
     return clientSearch.trim().replace(/\s+/g, " ");
@@ -1608,13 +1718,34 @@ function MonitoramentoDiario() {
                       {selectedSlotForAction.contractType.toLowerCase()}
                     </Text>
                   </div>
-                  {calculateShiftValue(selectedSlotForAction) && (
-                    <div className="flex justify-between">
-                      <Text variant="muted">Valor</Text>
-                      <Text>
-                        {formatMoney(calculateShiftValue(selectedSlotForAction) ?? undefined)}
-                      </Text>
-                    </div>
+                  {selectedSlotPayment && (
+                    <>
+                      <div className="flex justify-between">
+                        <Text variant="muted">Forma de Pagamento</Text>
+                        <Text>{selectedSlotPayment.paymentFormLabel}</Text>
+                      </div>
+                      {selectedSlotPayment.breakdown.lines.length > 0 ? (
+                        selectedSlotPayment.breakdown.lines.map((line) => (
+                          <div key={line.label} className="flex justify-between">
+                            <Text variant="muted">{line.label}</Text>
+                            <Text className="text-right">{line.value}</Text>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="flex justify-between">
+                          <Text variant="muted">Pagamento</Text>
+                          <Text>Não informado</Text>
+                        </div>
+                      )}
+                      {selectedSlotPayment.breakdown.total !== undefined && (
+                        <div className="flex justify-between">
+                          <Text variant="muted">Total pago</Text>
+                          <Text className="font-medium">
+                            {formatMoney(selectedSlotPayment.breakdown.total)}
+                          </Text>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
 
