@@ -217,6 +217,7 @@ export function AssignDeliverymanForm({
         paymentType: isPaymentTypeDisabled
           ? (availablePaymentForms[0].value as "DAILY" | "GUARANTEED")
           : undefined,
+        deliverymanPaymentMethod: workShiftSlot.deliverymanPaymentType,
       };
     }
     return {
@@ -348,10 +349,10 @@ export function AssignDeliverymanForm({
   }, [deliverymanPaymentMethod, selectedDeliveryman]);
 
   useEffect(() => {
-    if (selectedDeliverymanId) {
+    if (selectedDeliverymanId && !editMode) {
       setValue("deliverymanPaymentMethod", undefined);
     }
-  }, [selectedDeliverymanId, setValue]);
+  }, [selectedDeliverymanId, setValue, editMode]);
 
   const isSearchingDeliverymen =
     deliverymenSearchEnabled && (isFetchingDeliverymen || isFetchingSelectedDeliveryman);
