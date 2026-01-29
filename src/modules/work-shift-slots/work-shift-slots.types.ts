@@ -116,6 +116,8 @@ export interface UpdateWorkShiftSlotPayload {
   deliverymanPerDeliveryDay?: number;
   deliverymanPerDeliveryNight?: number;
   logs?: WorkShiftSlotLog[];
+  checkInAt?: string | null;
+  checkOutAt?: string | null;
 }
 
 export interface CheckInOutPayload {

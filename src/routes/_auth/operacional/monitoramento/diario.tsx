@@ -7,6 +7,7 @@ import {
   ChevronsUpDown,
   CircleDotDashed,
   ClipboardPaste,
+  Clock,
   Copy,
   Eye,
   Info,
@@ -66,7 +67,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Field, FieldLabel } from "@/components/ui/field";
 import { Heading } from "@/components/ui/heading";
+import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Select,
@@ -89,6 +92,7 @@ import {
 import { Text } from "@/components/ui/text";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { hourMask } from "@/lib/masks/hour-mask";
 import { moneyMask } from "@/lib/masks/money-mask";
 import { getApiErrorMessage } from "@/lib/services/api";
 import { classHelper } from "@/lib/utils/class-helper";
@@ -107,6 +111,7 @@ import {
   listWorkShiftSlots,
   markAbsentWorkShiftSlot,
   sendWorkShiftSlotInvites,
+  updateWorkShiftSlot,
 } from "@/modules/work-shift-slots/work-shift-slots.service";
 import type { WorkShiftSlot } from "@/modules/work-shift-slots/work-shift-slots.types";
 
@@ -159,6 +164,12 @@ function formatTime(isoString?: string | null): string {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+function extractTimeFromIso(isoString?: string | null): string {
+  if (!isoString) return "";
+  const date = new Date(isoString);
+  return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
 
 function formatCheckInCheckOut(checkInAt?: string | null, checkOutAt?: string | null): string {
@@ -452,6 +463,9 @@ function MonitoramentoDiario() {
   const [selectedSlotForAction, setSelectedSlotForAction] = useState<WorkShiftSlot | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [editModeActive, setEditModeActive] = useState(false);
+  const [editTimesDialogOpen, setEditTimesDialogOpen] = useState(false);
+  const [editCheckInTime, setEditCheckInTime] = useState("");
+  const [editCheckOutTime, setEditCheckOutTime] = useState("");
 
   // Copy mode state - tracks which client/date is being copied
   // Key: clientId, Value: source date string (YYYY-MM-DD)
@@ -578,6 +592,20 @@ function MonitoramentoDiario() {
   });
 
   // Mutations
+
+  const { mutate: updateTimes, isPending: isUpdatingTimes } = useMutation({
+    mutationFn: ({ id, checkInAt, checkOutAt }: { id: string; checkInAt?: string | null; checkOutAt?: string | null }) =>
+      updateWorkShiftSlot(id, { checkInAt, checkOutAt }),
+    onSuccess: () => {
+      toast.success("Horários atualizados com sucesso!");
+      invalidateWorkShiftSlots();
+      setEditTimesDialogOpen(false);
+      setSelectedSlotForAction(null);
+    },
+    onError: (error) => toast.error("Erro ao atualizar horários", {
+      description: getApiErrorMessage(error)
+    }),
+  });
 
   const { mutate: checkIn, isPending: isCheckingIn } = useMutation({
     mutationFn: (id: string) => checkInWorkShiftSlot(id),
@@ -1320,6 +1348,17 @@ function MonitoramentoDiario() {
                                                 <Pencil className="size-4" />
                                                 Editar Turno
                                               </DropdownMenuItem>
+                                              <DropdownMenuItem
+                                                onClick={() => {
+                                                  setSelectedSlotForAction(slot);
+                                                  setEditCheckInTime(extractTimeFromIso(slot.checkInAt));
+                                                  setEditCheckOutTime(extractTimeFromIso(slot.checkOutAt));
+                                                  setEditTimesDialogOpen(true);
+                                                }}
+                                              >
+                                                <Clock className="size-4" />
+                                                Editar horários
+                                              </DropdownMenuItem>
                                               <DropdownMenuSeparator />
                                               <DropdownMenuItem
                                                 disabled={isAbsent || isMarkingAbsent}
@@ -1781,6 +1820,80 @@ function MonitoramentoDiario() {
                 )}
               </>
             )}
+          </DialogContent>
+        </Dialog>
+
+        <Dialog
+          open={editTimesDialogOpen}
+          onOpenChange={(open) => {
+            setEditTimesDialogOpen(open);
+            if (!open) {
+              setSelectedSlotForAction(null);
+              setEditCheckInTime("");
+              setEditCheckOutTime("");
+            }
+          }}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Editar Horários</DialogTitle>
+              <DialogDescription>
+                Edite os horários de check-in e check-out do turno de{" "}
+                {selectedSlotForAction?.deliveryman?.name || "N/A"}.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid grid-cols-2 gap-4">
+              <Field>
+                <FieldLabel htmlFor="editCheckIn">Check-in</FieldLabel>
+                <Input
+                  id="editCheckIn"
+                  placeholder="00:00"
+                  value={editCheckInTime}
+                  onChange={(e) => setEditCheckInTime(hourMask(e.target.value))}
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="editCheckOut">Check-out</FieldLabel>
+                <Input
+                  id="editCheckOut"
+                  placeholder="00:00"
+                  value={editCheckOutTime}
+                  onChange={(e) => setEditCheckOutTime(hourMask(e.target.value))}
+                />
+              </Field>
+            </div>
+            <Button
+              disabled={isUpdatingTimes}
+              onClick={() => {
+                if (!selectedSlotForAction) return;
+
+                const shiftDate = new Date(selectedSlotForAction.shiftDate);
+
+                let checkInAt: string | null = null;
+                if (editCheckInTime && /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(editCheckInTime)) {
+                  const [hours, minutes] = editCheckInTime.split(":").map(Number);
+                  const checkInDate = new Date(shiftDate);
+                  checkInDate.setHours(hours, minutes, 0, 0);
+                  checkInAt = checkInDate.toISOString();
+                }
+
+                let checkOutAt: string | null = null;
+                if (editCheckOutTime && /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/.test(editCheckOutTime)) {
+                  const [hours, minutes] = editCheckOutTime.split(":").map(Number);
+                  const checkOutDate = new Date(shiftDate);
+                  checkOutDate.setHours(hours, minutes, 0, 0);
+                  checkOutAt = checkOutDate.toISOString();
+                }
+
+                updateTimes({
+                  id: selectedSlotForAction.id,
+                  checkInAt,
+                  checkOutAt,
+                });
+              }}
+            >
+              {isUpdatingTimes ? "Salvando..." : "Salvar"}
+            </Button>
           </DialogContent>
         </Dialog>
       </div>
