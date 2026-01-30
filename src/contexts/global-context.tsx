@@ -1,4 +1,4 @@
-import { createContext, type ReactNode, useContext, useState } from "react";
+import { createContext, type ReactNode, useContext, useEffect, useState } from "react";
 import { clearAuth, getStoredUser } from "@/modules/auth/auth.service";
 import { getStoreBranch } from "@/modules/branches/branches.service";
 import type { Branch } from "@/modules/branches/branches.types";
@@ -18,6 +18,34 @@ export function GlobalProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => getStoredUser());
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(() => getStoreBranch());
 
+  useEffect(() => {
+    const checkVersion = () => {
+      fetch("/version.txt")
+        .then((res) => res.text())
+        .then((version) => {
+          const trimmedVersion = version.trim();
+          const storedVersion = localStorage.getItem("app_version");
+
+          if (!storedVersion) {
+            localStorage.setItem("app_version", trimmedVersion);
+            return;
+          }
+
+          if (storedVersion !== trimmedVersion) {
+            localStorage.setItem("app_version", trimmedVersion);
+            window.location.reload();
+          }
+        })
+        .catch(() => {
+          // Silently fail if version.txt doesn't exist (dev mode)
+        });
+    };
+
+    checkVersion();
+    const intervalId = setInterval(checkVersion, 60000);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   const logout = () => {
     clearAuth();
