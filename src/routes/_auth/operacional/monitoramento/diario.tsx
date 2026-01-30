@@ -1050,7 +1050,14 @@ function MonitoramentoDiario() {
                     })),
                   ];
 
-                  const activeWorkShifts = clientWorkShifts.filter((s) => s.status !== "CANCELLED");
+                  const activeWorkShifts = clientWorkShifts
+                    .filter((s) => s.status !== "CANCELLED")
+                    .sort((a, b) => {
+                      // Shifts without startTime go to the top
+                      if (!a.startTime) return -1;
+                      if (!b.startTime) return 1;
+                      return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
+                    });
                   const cancelledWorkShifts = clientWorkShifts.filter((s) => s.status === "CANCELLED");
 
                   const hasData = activeWorkShifts.length > 0 || cancelledWorkShifts.length > 0 || unassignedRows.length > 0;
