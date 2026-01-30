@@ -710,6 +710,28 @@ function MonitoramentoDiario() {
       toast.error("Erro ao confirmar conclusão", { description: getApiErrorMessage(error) }),
   });
 
+  const { mutate: acceptInvite, isPending: isAcceptingInvite } = useMutation({
+    mutationFn: (slot: WorkShiftSlot) =>
+      updateWorkShiftSlot(slot.id, {
+        clientId: slot.clientId,
+        contractType: slot.contractType,
+        shiftDate: slot.shiftDate,
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+        period: slot.period,
+        auditStatus: slot.auditStatus,
+        deliverymanId: slot.deliverymanId,
+        status: "CONFIRMED",
+        isFreelancer: slot.isFreelancer,
+      }),
+    onSuccess: () => {
+      toast.success("Convite aceito com sucesso!");
+      invalidateWorkShiftSlots();
+    },
+    onError: (error) =>
+      toast.error("Erro ao aceitar convite", { description: getApiErrorMessage(error) }),
+  });
+
   const { mutate: copyShifts, isPending: isCopyingShifts } = useMutation({
     mutationFn: copyWorkShiftSlots,
     onSuccess: (data) => {
@@ -1161,7 +1183,23 @@ function MonitoramentoDiario() {
                                     WORK_SHIFT_STATUS_MAP.OPEN;
                                   const isAbsent = slot.status === "ABSENT";
                                   let nextAction = null;
-                                  if (slot.status === "CONFIRMED") {
+                                  if (slot.status === "INVITED") {
+                                    nextAction = (
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={isAcceptingInvite}
+                                        onClick={() => acceptInvite(slot)}
+                                      >
+                                        {isAcceptingInvite ? (
+                                          <Spinner className="mr-2 size-4" />
+                                        ) : (
+                                          <CheckCircle className="mr-2 size-4" />
+                                        )}
+                                        Marcar aceite
+                                      </Button>
+                                    );
+                                  } else if (slot.status === "CONFIRMED") {
                                     nextAction = (
                                       <Button
                                         variant="outline"
