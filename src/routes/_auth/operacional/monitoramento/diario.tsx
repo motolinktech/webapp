@@ -1042,6 +1042,9 @@ function MonitoramentoDiario() {
                     });
                   });
 
+                  const totalPlanned = planningCounts.daytime + planningCounts.nighttime;
+                  const totalAssigned = assignedCounts.daytime + assignedCounts.nighttime;
+
                   const remainingDiurno = Math.max(
                     0,
                     planningCounts.daytime - assignedCounts.daytime,
@@ -1082,7 +1085,14 @@ function MonitoramentoDiario() {
                         {/* Client Info */}
                         <div className="flex items-start justify-between">
                           <div className="space-y-1">
-                            <Heading variant="h4">{client.name}</Heading>
+                            <Heading variant="h4">
+                              {client.name}
+                              {totalPlanned > 0 && (
+                                <span className="ml-2 text-sm font-normal text-muted-foreground">
+                                  ({totalAssigned}/{totalPlanned})
+                                </span>
+                              )}
+                            </Heading>
                             <Text variant="muted" className="text-xs">
                               {formatCompactAddress(client)}
                             </Text>
