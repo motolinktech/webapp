@@ -1314,7 +1314,7 @@ function MonitoramentoDiario() {
                                     <TableRow
                                       key={slot.id}
                                       className={classHelper(
-                                        isAbsent && "bg-red-100 hover:bg-red-200 dark:bg-red-950/50 dark:hover:bg-red-950/70",
+                                        isAbsent && "bg-red-100 hover:bg-red-200 dark:bg-red-900/70 dark:hover:bg-red-900/80 border-l-4 border-l-red-500",
                                       )}
                                     >
                                       <TableCell className="font-medium">
