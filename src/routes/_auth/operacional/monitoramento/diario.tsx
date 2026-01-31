@@ -150,6 +150,11 @@ const PAYMENT_FORM_LABELS: Record<NonNullable<WorkShiftSlot["paymentForm"]>, str
   GUARANTEED: "Garantida",
 };
 
+const CONTRACT_TYPE_LABELS: Record<string, string> = {
+  FREELANCER: "Freelancer",
+  INDEPENDENT_COLLABORATOR: "Colaborador Independente",
+};
+
 function formatDateLabel(date: Date): string {
   return date.toLocaleDateString("pt-BR", {
     day: "2-digit",
@@ -300,6 +305,10 @@ function getInitials(name: string): string {
 function getPaymentFormLabel(paymentForm?: WorkShiftSlot["paymentForm"]): string {
   if (!paymentForm) return PAYMENT_FORM_LABELS.DAILY;
   return PAYMENT_FORM_LABELS[paymentForm] ?? paymentForm;
+}
+
+function getContractTypeLabel(contractType: string): string {
+  return CONTRACT_TYPE_LABELS[contractType.toUpperCase()] ?? contractType;
 }
 
 type PaymentBreakdownLine = {
@@ -1309,8 +1318,8 @@ function MonitoramentoDiario() {
                                           </span>
                                         </div>
                                       </TableCell>
-                                      <TableCell className="capitalize">
-                                        {slot.contractType.toLowerCase()}
+                                      <TableCell>
+                                        {getContractTypeLabel(slot.contractType)}
                                       </TableCell>
                                       <TableCell>
                                         {`${formatTime(slot.startTime)} - ${formatTime(
@@ -1539,8 +1548,8 @@ function MonitoramentoDiario() {
                                           </span>
                                         </div>
                                       </TableCell>
-                                      <TableCell className="capitalize">
-                                        {slot.contractType.toLowerCase()}
+                                      <TableCell>
+                                        {getContractTypeLabel(slot.contractType)}
                                       </TableCell>
                                       <TableCell>
                                         {`${formatTime(slot.startTime)} - ${formatTime(
