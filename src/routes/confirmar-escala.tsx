@@ -306,12 +306,17 @@ function ConfirmarEscala() {
               className="mt-0.5"
             />
             <span className="text-sm text-muted-foreground leading-relaxed">
-              Ao aceitar a escala, declaro ciência e concordância em comparecer e executar as
-              atividades nos horários informados. Caso haja impossibilidade, comprometo-me a avisar
-              com, no mínimo, 24 (vinte e quatro) horas de antecedência ou indicar substituto
-              autorizado pela empresa, sob pena de exclusão da base e dos grupos de vagas. E o
-              intervalo deverá ocorrer entre entregas, com tempo suficiente para necessidades
-              pessoais.
+              Declaro que, ao aceitar esta prestação de serviço, o faço de forma livre, voluntária e
+              eventual, na condição de prestador autônomo, sem exclusividade e sem qualquer
+              subordinação jurídica, inexistindo vínculo empregatício de qualquer natureza. Estou
+              ciente de que a atividade possui caráter pontual, sendo realizada conforme minha
+              disponibilidade, nos horários informados. Em caso de impossibilidade de
+              comparecimento, comprometo-me a comunicar previamente, sempre que possível, ou indicar
+              substituto previamente autorizado, preservando a continuidade do serviço. O intervalo
+              para descanso ocorrerá de forma flexível, entre as entregas, respeitando minhas
+              necessidades pessoais e a dinâmica da operação. A presente manifestação de interesse
+              não gera obrigação futura, habitualidade, exclusividade ou continuidade, limitando-se
+              exclusivamente à prestação aqui descrita.
             </span>
           </Label>
 
