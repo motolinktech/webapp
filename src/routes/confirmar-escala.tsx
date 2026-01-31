@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { AlertTriangle, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -226,13 +227,22 @@ function ConfirmarEscala() {
           <div className="mx-auto w-full max-w-sm space-y-6 text-center">
             <img src={logoImage} alt="Motolink Logo" className="w-64 mx-auto" />
             {accepted ? (
-              <Heading>Obrigado por confirmar!</Heading>
+              <Alert variant="success">
+                <CheckCircle2 />
+                <AlertTitle>Escala confirmada com sucesso!</AlertTitle>
+                <AlertDescription>
+                  Sua confirmação foi registrada. Você já pode fechar esta página.
+                </AlertDescription>
+              </Alert>
             ) : (
-              <Heading>Resposta registrada.</Heading>
+              <Alert variant="warning">
+                <AlertTriangle />
+                <AlertTitle>Escala recusada</AlertTitle>
+                <AlertDescription>
+                  Sua recusa foi registrada. Você já pode fechar esta página.
+                </AlertDescription>
+              </Alert>
             )}
-            <Text variant="muted">
-              Sua resposta foi registrada com sucesso. Você já pode fechar esta página.
-            </Text>
             <WorkShiftDetails invite={invite} />
           </div>
         </div>
