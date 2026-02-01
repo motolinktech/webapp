@@ -588,9 +588,16 @@ function MonitoramentoDiario() {
   };
 
   const { data: planningsData, isLoading: isLoadingPlannings } = useQuery({
-    queryKey: ["plannings", { selectedClientId, startDate, endDate }],
-    queryFn: () => listPlannings({ startDate, endDate, clientId: selectedClientId, limit: 1000 }),
-    enabled: !!selectedClientId,
+    queryKey: ["plannings", { selectedClientId, selectedGroupId, startDate, endDate }],
+    queryFn: () =>
+      listPlannings({
+        startDate,
+        endDate,
+        clientId: selectedClientId || undefined,
+        groupId: !selectedClientId && selectedGroupId ? selectedGroupId : undefined,
+        limit: 1000,
+      }),
+    enabled: !!selectedClientId || !!selectedGroupId,
   });
 
   const { data: clientForDetailsDialog, isLoading: isLoadingClientForDetails } = useQuery({

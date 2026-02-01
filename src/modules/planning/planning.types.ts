@@ -20,6 +20,7 @@ export interface PlanningListParams {
   limit?: number;
   clientId?: string;
   branchId?: string;
+  groupId?: string;
   startDate?: string;
   endDate?: string;
 }

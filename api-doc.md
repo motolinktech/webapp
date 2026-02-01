@@ -65,11 +65,17 @@ See `prisma/schema.prisma` for full model definitions. Below are models that aff
   - trackingConnectedAt: DateTime?
   - deliverymanAmountDay: Decimal(16,2) (default 0) — payment amount for daytime shifts
   - deliverymanAmountNight: Decimal(16,2) (default 0) — payment amount for nighttime shifts
+  - deliverymanPaymentType: String (default "") — payment key type (e.g. "mainPixKey", "account")
+  - deliverymenPaymentValue: String (default "") — payment value string (matches `deliverymanPaymentType`)
+  - paymentForm: String (default "DAILY")
+  - guaranteedQuantityDay: Int (default 0)
+  - guaranteedQuantityNight: Int (default 0)
+  - deliverymanPerDeliveryDay: Decimal(16,2) (default 0)
+  - deliverymanPerDeliveryNight: Decimal(16,2) (default 0)
+  - isWeekendRate: Boolean (default false)
   - updatedAt, createdAt
   - relations: `deliveryman`, `client`, `paymentRequests`, `invites`
   - indexes: [clientId, shiftDate], [deliverymanId, shiftDate], [inviteToken]
-  - deliverymanPaymentType: String — (e.g. "mainPixKey" | "account" ) indicates how the deliveryman is paid
-  - deliverymenPaymentValue: String — string value representing the payment metric (matches `deliverymanPaymentType`, e.g. "pix-key-asda")
 
 - `PaymentRequest`
   - id, workShiftSlotId, deliverymanId, amount (Decimal 16,2), status
@@ -230,7 +236,7 @@ Total endpoints documented: 67
 - Summary: Manage scheduled delivery shifts (create, list, lifecycle actions, check-in/out, mark absent, connect tracking, delete/cancel). Invitation sending/response lives under the `/invites` submodule.
 - Auth: Core slot routes require `isAuth` and `branchCheck` via `authPlugin`. Invite lookup/response is public (token required), while bulk invite sending requires auth (see Invites module below).
 
-Response format note: Most responses use `WorkShiftSlotResponse`, which converts Decimal fields (`deliverymanAmountDay`, `deliverymanAmountNight`) to strings. `GET /api/work-shift-slots/:id` returns the full `WorkShiftSlot` with `deliveryman` and `client` relations, but still coerces the Decimal amounts to strings.
+Response format note: Most responses use `WorkShiftSlotResponse`, which converts Decimal fields (`deliverymanAmountDay`, `deliverymanAmountNight`, `deliverymanPerDeliveryDay`, `deliverymanPerDeliveryNight`) to strings. `GET /api/work-shift-slots/:id` returns the full `WorkShiftSlot` with `deliveryman` and `client` relations, but the service still coerces those Decimal amounts to strings.
 
 Status enum values: `OPEN` | `INVITED` | `CONFIRMED` | `CHECKED_IN` | `PENDING_COMPLETION` | `COMPLETED` | `ABSENT` | `CANCELLED` | `REJECTED`
 
@@ -250,7 +256,7 @@ Endpoints (detailed):
   - Description: Create a new work shift slot for a client (optionally assign a deliveryman).
   - Auth: `isAuth`, `branchCheck`
   - Body (request): `WorkShiftSlotMutateSchema`
-    - `clientId` (string) — required
+    - `clientId` (string) — required by DB (schema marks optional, but create will fail without it)
     - `deliverymanId` (string) — optional
     - `contractType` (string) — required
     - `shiftDate` (string, ISO) — required
@@ -261,6 +267,16 @@ Endpoints (detailed):
     - `status` (string) — optional, defaults to `OPEN`
     - `isFreelancer` (boolean) — optional, default: false
     - `logs` (array) — optional
+    - `deliverymanAmountDay` (number) — optional, default: 0
+    - `deliverymanAmountNight` (number) — optional, default: 0
+    - `deliverymanPaymentType` (string) — optional
+    - `deliverymenPaymentValue` (string) — optional
+    - `paymentForm` (string) — optional, default: "DAILY"
+    - `guaranteedQuantityDay` (number) — optional, default: 0
+    - `guaranteedQuantityNight` (number) — optional, default: 0
+    - `deliverymanPerDeliveryDay` (number) — optional, default: 0
+    - `deliverymanPerDeliveryNight` (number) — optional, default: 0
+    - `isWeekendRate` (boolean) — optional, default: false
   - Time normalization:
     - `startTime` and `endTime` are normalized to the provided `shiftDate` day.
     - If `endTime` is the same as or earlier than `startTime`, it is treated as overnight and stored on the next day.
@@ -282,7 +298,13 @@ Endpoints (detailed):
       "deliverymanAmountDay": "150.00",
       "deliverymanAmountNight": "0",
       "deliverymanPaymentType": "per_shift",
-      "deliverymenPaymentValue": "150.00"
+      "deliverymenPaymentValue": "150.00",
+      "paymentForm": "DAILY",
+      "guaranteedQuantityDay": 0,
+      "guaranteedQuantityNight": 0,
+      "deliverymanPerDeliveryDay": "8.50",
+      "deliverymanPerDeliveryNight": "0",
+      "isWeekendRate": false
     }
     ```
 
@@ -306,6 +328,10 @@ Endpoints (detailed):
     - If `startDate` or `endDate` is provided, those are used to build the date range (supports ISO or `YYYY-MM-DD`); date-only values are normalized to start/end of day.
     - If only one date is provided, the range is that single day.
     - If no dates are provided, falls back to `month`/`week`, and finally to the current week (Mon–Sun).
+  - Errors:
+    - 400 "startDate inválido. Use formato ISO ou YYYY-MM-DD."
+    - 400 "endDate inválido. Use formato ISO ou YYYY-MM-DD."
+    - 400 "endDate não pode ser anterior a startDate."
   - Response 200: `{ data: WorkShiftSlotResponse[] (with deliveryman{ id,name } + client{ id,name }), count: number }`
   - Note: Items in `data` include `checkInAt` and `checkOutAt` (nullable ISO-8601 timestamps) when present.
   - Example query: `?page=1&limit=20&groupId=01JHRZ5K8MGRP01&startDate=2026-01-13&endDate=2026-01-19&period[]=daytime`
@@ -334,6 +360,7 @@ Endpoints (detailed):
     - If only `endDate` provided, `startDate` defaults to start of that same day
     - If format is `YYYY-MM-DD`, date is normalized to start/end of day respectively
   - Response 200: `Record<string, WorkShiftSlotResponse[]>` keyed by client name. Each slot includes `deliveryman` (nullable id/name).
+  - Note: If the group has no clients, the response is an empty object (`{}`) instead of an error.
   - Errors:
     - 400 "startDate inválido. Use formato ISO ou YYYY-MM-DD." — if `startDate` cannot be parsed
     - 400 "endDate inválido. Use formato ISO ou YYYY-MM-DD." — if `endDate` cannot be parsed
@@ -437,7 +464,7 @@ Action endpoints (stateful operations):
 
 Notes & behavior details:
 - Date/time fields: route validation expects ISO strings for `shiftDate`, `startTime`, `endTime`. The service normalizes `startTime`/`endTime` to the `shiftDate` day and bumps overnight `endTime` to the next day. Responses use `Date` types (from generated Prismabox schemas).
-- Decimal fields: `deliverymanAmountDay` and `deliverymanAmountNight` are Prisma `Decimal(16,2)` in DB but converted to strings in API responses.
+- Decimal fields: `deliverymanAmountDay`, `deliverymanAmountNight`, `deliverymanPerDeliveryDay`, and `deliverymanPerDeliveryNight` are Prisma `Decimal(16,2)` in DB but converted to strings in API responses.
  - Check-in / check-out flow:
    - `POST /api/work-shift-slots/:id/check-in` sets `status = CHECKED_IN` and `checkInAt = <now>`; the response includes the `checkInAt` value (nullable before action).
    - `POST /api/work-shift-slots/:id/check-out` sets `status = PENDING_COMPLETION` and `checkOutAt = <now>`; the response includes the `checkOutAt` value (nullable before action).
@@ -511,15 +538,142 @@ Endpoints (detailed):
 - DELETE `/api/payment-requests/:id` — Auth + branchCheck
 
 **Planning** (`/api/planning`)
-- POST `/api/planning` — Auth + branchCheck
-- GET `/api/planning` — Auth + branchCheck
-- GET `/api/planning/:id` — Auth + branchCheck
-- PUT `/api/planning/:id` — Auth + branchCheck
-- DELETE `/api/planning/:id` — Auth + branchCheck
+- Summary: Manage delivery planning records. Each planning defines how many deliverymen are expected for a specific client on a given date and period (daytime/nighttime).
+- Auth: All endpoints require `isAuth` and `branchCheck`.
 
-Notes on `Planning` payloads:
-- `PlanningMutateSchema` fields: `clientId: string`, `branchId: string`, `plannedDate: string (ISO)`, `plannedCount: number`, `period: 'daytime' | 'nighttime'`
-- Unique constraint in DB: `@@unique([clientId, plannedDate, period])` — creating duplicates will raise AppError/validation from service layer.
+Database model (`Planning`):
+- `id`: String (uuid(7))
+- `clientId`: String (FK to Client)
+- `branchId`: String
+- `plannedDate`: DateTime
+- `plannedCount`: Int
+- `period`: String (default "diurno") — values: `daytime` | `nighttime`
+- `updatedAt`: DateTime
+- `createdAt`: DateTime
+- Unique constraint: `@@unique([clientId, plannedDate, period])`
+
+Endpoints (detailed):
+
+- POST `/api/planning`
+  - Description: Create a new planning record for a client.
+  - Auth: `isAuth`, `branchCheck`
+  - Body (`PlanningMutateSchema` without id):
+    - `clientId` (string) — required
+    - `branchId` (string) — required
+    - `plannedDate` (string, ISO) — required, error: "Data planejada é obrigatória"
+    - `plannedCount` (number) — required, minimum: 0, error: "Quantidade deve ser maior ou igual a 0"
+    - `period` (string) — required, values: `daytime` | `nighttime`, error: "Período é obrigatório (diurno ou noturno)"
+  - Business rules:
+    - Cannot create planning for past dates
+    - Client must exist and not be deleted
+    - Duplicate (clientId, plannedDate, period) not allowed
+  - Response 200: `PlanningResponse` (Planning without client relation)
+  - Errors:
+    - 400 "Não é permitido criar planejamentos para datas passadas."
+    - 404 "Cliente não encontrado."
+    - 400 "Cliente foi deletado."
+    - 400 "Já existe um planejamento para este cliente, data e período."
+  - Example request body:
+    ```json
+    {
+      "clientId": "01JHRZ5K8MABCDE",
+      "branchId": "01JHRZ5K8MBRNCH",
+      "plannedDate": "2026-02-15",
+      "plannedCount": 5,
+      "period": "daytime"
+    }
+    ```
+  - Example response:
+    ```json
+    {
+      "id": "01JHRZ5K8MPLNNG",
+      "clientId": "01JHRZ5K8MABCDE",
+      "branchId": "01JHRZ5K8MBRNCH",
+      "plannedDate": "2026-02-15T00:00:00.000Z",
+      "plannedCount": 5,
+      "period": "daytime",
+      "updatedAt": "2026-02-01T10:30:00.000Z",
+      "createdAt": "2026-02-01T10:30:00.000Z"
+    }
+    ```
+
+- GET `/api/planning`
+  - Description: List planning records with pagination and filters.
+  - Auth: `isAuth`, `branchCheck`
+  - Query params (`ListPlanningsSchema`):
+    - `page` (number) — optional, default: 1
+    - `limit` (number) — optional, default: PAGE_SIZE (env) or 20
+    - `clientId` (string) — optional, filter by client
+    - `branchId` (string) — optional, filter by branch
+    - `groupId` (string) — optional, filter by client's group (uses `client.groupId`)
+    - `startDate` (string) — optional, ISO or YYYY-MM-DD, filters `plannedDate >= startDate`
+    - `endDate` (string) — optional, ISO or YYYY-MM-DD, filters `plannedDate <= endDate`
+    - `period` (string) — optional, values: `daytime` | `nighttime`
+  - Response 200:
+    ```json
+    {
+      "data": [
+        {
+          "id": "01JHRZ5K8MPLNNG",
+          "clientId": "01JHRZ5K8MABCDE",
+          "branchId": "01JHRZ5K8MBRNCH",
+          "plannedDate": "2026-02-15T00:00:00.000Z",
+          "plannedCount": 5,
+          "period": "daytime",
+          "updatedAt": "2026-02-01T10:30:00.000Z",
+          "createdAt": "2026-02-01T10:30:00.000Z",
+          "client": {
+            "id": "01JHRZ5K8MABCDE",
+            "name": "Restaurante Bom Sabor"
+          }
+        }
+      ],
+      "count": 1
+    }
+    ```
+  - Note: Results ordered by `plannedDate` ascending. Each item includes `client: { id, name }`.
+  - Example query: `?page=1&limit=20&groupId=01JHRZ5K8MGRP01&startDate=2026-02-01&endDate=2026-02-28&period=daytime`
+
+- GET `/api/planning/:id`
+  - Description: Retrieve a single planning record by ID.
+  - Auth: `isAuth`, `branchCheck`
+  - Params: `id` (string)
+  - Response 200: `PlanningResponse`
+  - Errors: 404 "Planejamento não encontrado."
+
+- PUT `/api/planning/:id`
+  - Description: Update an existing planning record. All fields except `id` are optional.
+  - Auth: `isAuth`, `branchCheck`
+  - Params: `id` (string)
+  - Body (partial `PlanningMutateSchema`):
+    - `clientId` (string) — optional
+    - `branchId` (string) — optional
+    - `plannedDate` (string, ISO) — optional
+    - `plannedCount` (number) — optional, minimum: 0
+    - `period` (string) — optional, values: `daytime` | `nighttime`
+  - Business rules:
+    - Cannot edit planning if the (existing or new) plannedDate is in the past
+  - Response 200: Updated `PlanningResponse`
+  - Errors:
+    - 404 "Planejamento não encontrado."
+    - 400 "Não é permitido editar planejamentos de datas passadas."
+  - Example request body:
+    ```json
+    {
+      "plannedCount": 8
+    }
+    ```
+
+- DELETE `/api/planning/:id`
+  - Description: Delete a planning record.
+  - Auth: `isAuth`, `branchCheck`
+  - Params: `id` (string)
+  - Business rules:
+    - Cannot delete planning for past dates
+  - Response 200: `{ "message": "Planejamento deletado com sucesso." }`
+  - Errors:
+    - 404 "Planejamento não encontrado."
+    - 400 "Não é permitido deletar planejamentos de datas passadas."
 
 ---
 
