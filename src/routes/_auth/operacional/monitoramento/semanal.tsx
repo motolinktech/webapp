@@ -466,6 +466,7 @@ function MonitoramentoSemanal() {
     const map = new Map<string, WorkShiftSlot[]>();
     const slots = workShiftSlotsData?.data || [];
     for (const slot of slots) {
+      if (slot.status === "CANCELLED") continue;
       const slotDate = new Date(slot.shiftDate);
       const dateKey = toDateKey(slotDate);
       const key = `${slot.clientId}-${dateKey}`;
