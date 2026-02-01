@@ -11,6 +11,7 @@ import {
   Info,
   MessageSquarePlus,
   Pencil,
+  User,
   X,
   XCircle,
 } from "lucide-react";
@@ -76,6 +77,7 @@ import {
   listWorkShiftSlots,
   markAbsentWorkShiftSlot,
 } from "@/modules/work-shift-slots/work-shift-slots.service";
+import { listPlannings } from "@/modules/planning/planning.service";
 import { getApiErrorMessage } from "@/lib/services/api";
 import type { WorkShiftSlot } from "@/modules/work-shift-slots/work-shift-slots.types";
 import { toast } from "sonner";
@@ -419,6 +421,19 @@ function MonitoramentoSemanal() {
     enabled: hasActiveFilter,
   });
 
+  const { data: planningsData } = useQuery({
+    queryKey: ["plannings", { selectedClientId, selectedGroupId, startDate, endDate }],
+    queryFn: () =>
+      listPlannings({
+        startDate,
+        endDate,
+        clientId: selectedClientId || undefined,
+        groupId: !selectedClientId && selectedGroupId ? selectedGroupId : undefined,
+        limit: 1000,
+      }),
+    enabled: !!selectedClientId || !!selectedGroupId,
+  });
+
   const { data: clientForEditSlot, isLoading: isLoadingClientForEdit } = useQuery({
     queryKey: ["client", selectedSlot?.clientId],
     queryFn: () => (selectedSlot ? getClientById(selectedSlot.clientId) : Promise.resolve(null)),
@@ -475,6 +490,20 @@ function MonitoramentoSemanal() {
     }
     return map;
   }, [workShiftSlotsData?.data]);
+
+  // Group plannings by client and date
+  const planningsByClientAndDate = useMemo(() => {
+    const map = new Map<string, { daytime: number; nighttime: number }>();
+    const plannings = planningsData?.data || [];
+    for (const planning of plannings) {
+      const dateKey = planning.plannedDate.slice(0, 10); // "YYYY-MM-DD"
+      const key = `${planning.clientId}-${dateKey}`;
+      if (!map.has(key)) map.set(key, { daytime: 0, nighttime: 0 });
+      const counts = map.get(key)!;
+      counts[planning.period] += planning.plannedCount;
+    }
+    return map;
+  }, [planningsData?.data]);
 
   // Copy mode helper functions
   function isInCopyMode(clientId: string): boolean {
@@ -724,6 +753,27 @@ function MonitoramentoSemanal() {
                                 const isPast = isPastDay(date);
                                 const today = isToday(date);
 
+                                // Planning counts for this day
+                                const plannedCounts = planningsByClientAndDate.get(key) || { daytime: 0, nighttime: 0 };
+                                const totalPlanned = plannedCounts.daytime + plannedCounts.nighttime;
+
+                                // Assigned counts (excluding cancelled - already filtered)
+                                const assignedCounts = { daytime: 0, nighttime: 0 };
+                                daySlots.forEach((slot) => {
+                                  slot.period.forEach((p) => {
+                                    assignedCounts[p] += 1;
+                                  });
+                                });
+                                const totalAssigned = assignedCounts.daytime + assignedCounts.nighttime;
+
+                                // Unassigned placeholder count
+                                const remainingDiurno = Math.max(0, plannedCounts.daytime - assignedCounts.daytime);
+                                const remainingNoturno = Math.max(0, plannedCounts.nighttime - assignedCounts.nighttime);
+                                const unassignedSlots = [
+                                  ...Array.from({ length: remainingDiurno }, () => "daytime" as const),
+                                  ...Array.from({ length: remainingNoturno }, () => "nighttime" as const),
+                                ];
+
                                 return (
                                   <div
                                     key={date.toISOString()}
@@ -746,6 +796,11 @@ function MonitoramentoSemanal() {
                                         >
                                           {formatDate(date)}
                                         </span>
+                                        {totalPlanned > 0 && (
+                                          <span className="ml-1 text-xs text-muted-foreground">
+                                            ({totalAssigned}/{totalPlanned})
+                                          </span>
+                                        )}
                                       </div>
 
                                       {/* Copy/Paste Button */}
@@ -790,8 +845,9 @@ function MonitoramentoSemanal() {
                                       )}
                                     </div>
 
-                                    {/* Avatars + Add button */}
+                                    {/* Avatars + Unassigned + Add button */}
                                     <div className="flex flex-wrap items-center gap-1">
+                                      {/* Existing assigned slots */}
                                       {daySlots.map((slot) => (
                                         <Tooltip key={slot.id}>
                                           <TooltipTrigger asChild>
@@ -819,6 +875,30 @@ function MonitoramentoSemanal() {
                                         </Tooltip>
                                       ))}
 
+                                      {/* Unassigned placeholder buttons */}
+                                      {!isPast && unassignedSlots.map((period, idx) => (
+                                        <Tooltip key={`unassigned-${period}-${idx}`}>
+                                          <TooltipTrigger asChild>
+                                            <button
+                                              type="button"
+                                              onClick={() => openAssignDialog(client, date)}
+                                              className="cursor-pointer"
+                                            >
+                                              <Avatar className="size-7 border-2 border-dashed border-muted-foreground/50">
+                                                <AvatarFallback className="text-xs bg-muted">
+                                                  <User className="size-3.5 text-muted-foreground" />
+                                                </AvatarFallback>
+                                              </Avatar>
+                                            </button>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                            <p>Vaga {PERIOD_LABELS[period]} não preenchida</p>
+                                            <p className="text-xs text-muted-foreground">Clique para atribuir</p>
+                                          </TooltipContent>
+                                        </Tooltip>
+                                      ))}
+
+                                      {/* Add button */}
                                       <Tooltip>
                                         <TooltipTrigger asChild>
                                           <Button
