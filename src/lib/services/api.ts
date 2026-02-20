@@ -48,3 +48,20 @@ authApi.interceptors.request.use((config) => {
 
   return config;
 });
+
+authApi.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error instanceof AxiosError && error.response?.status === 401) {
+      const appVersion = localStorage.getItem("app_version");
+      localStorage.clear();
+      if (appVersion) {
+        localStorage.setItem("app_version", appVersion);
+      }
+
+      window.location.href = "/login";
+    }
+
+    return Promise.reject(error);
+  },
+);
