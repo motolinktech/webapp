@@ -858,9 +858,10 @@ function MonitoramentoDiario() {
         />
 
         <div className="flex flex-1 flex-col gap-6 p-6">
-          <Heading variant="h2">
-            Monitoramento Diário
-          </Heading>
+          <div className="flex items-baseline gap-3">
+            <Heading variant="h2">Monitoramento Diário</Heading>
+            <Text variant="muted" className="text-base">{dateLabel}</Text>
+          </div>
 
           {/* Filters */}
           <div className="flex items-center justify-between gap-4">
