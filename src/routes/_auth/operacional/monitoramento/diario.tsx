@@ -20,7 +20,7 @@ import {
   X,
   XCircle,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { type ComponentProps, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ContentHeader } from "@/components/composite/content-header";
 import { hasPermissions } from "@/lib/utils/has-permissions";
@@ -43,7 +43,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import { Calendar, CalendarDayButton } from "@/components/ui/calendar";
 import { Card, CardHeader } from "@/components/ui/card";
 import {
   Command,
@@ -113,6 +113,7 @@ import {
   sendWorkShiftSlotInvites,
   updateWorkShiftSlot,
 } from "@/modules/work-shift-slots/work-shift-slots.service";
+import type { DayButton } from "react-day-picker";
 import type { WorkShiftSlot } from "@/modules/work-shift-slots/work-shift-slots.types";
 
 export const Route = createFileRoute("/_auth/operacional/monitoramento/diario")({
@@ -442,6 +443,21 @@ function formatDateDDMMYYYYFromISO(dateString: string): string {
 function parseLocalDateFromYYYYMMDD(dateString: string): Date {
   const [year, month, day] = dateString.split("-").map((value) => Number(value));
   return new Date(year, month - 1, day);
+}
+
+function MonitoringCalendarDayButton({
+  modifiers,
+  children,
+  ...props
+}: ComponentProps<typeof DayButton>) {
+  return (
+    <CalendarDayButton modifiers={modifiers} {...props}>
+      {children}
+      {modifiers.today && !modifiers.selected && (
+        <span className="mx-auto h-1 w-1 rounded-full bg-foreground/50" />
+      )}
+    </CalendarDayButton>
+  );
 }
 
 // Main Component
@@ -985,10 +1001,17 @@ function MonitoramentoDiario() {
                   <Calendar
                     mode="single"
                     selected={parseLocalDateFromYYYYMMDD(selectedDate)}
+                    defaultMonth={parseLocalDateFromYYYYMMDD(selectedDate)}
                     onSelect={(date) => {
                       if (!date) return;
                       setSelectedDate(formatDateYYYYMMDD(date));
                       setDatePickerOpen(false);
+                    }}
+                    classNames={{
+                      today: "rounded-md data-[selected=true]:rounded-none",
+                    }}
+                    components={{
+                      DayButton: MonitoringCalendarDayButton,
                     }}
                     initialFocus
                   />
