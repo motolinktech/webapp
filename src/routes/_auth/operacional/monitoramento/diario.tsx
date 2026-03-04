@@ -1075,9 +1075,6 @@ function MonitoramentoDiario() {
                     });
                   });
 
-                  const totalPlanned = planningCounts.daytime + planningCounts.nighttime;
-                  const totalAssigned = assignedCounts.daytime + assignedCounts.nighttime;
-
                   const remainingDiurno = Math.max(
                     0,
                     planningCounts.daytime - assignedCounts.daytime,
