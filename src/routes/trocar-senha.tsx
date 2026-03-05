@@ -33,6 +33,14 @@ function TrocarSenha() {
             <img src={logoImage} alt="Motolink Logo" className="w-64 mx-auto" />
 
             <Text variant="muted">Digite sua nova senha para acessar o sistema.</Text>
+
+            <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside text-left">
+              <li>Mínimo de 8 caracteres</li>
+              <li>Pelo menos uma letra maiúscula (A-Z)</li>
+              <li>Pelo menos uma letra minúscula (a-z)</li>
+              <li>Pelo menos um número (0-9)</li>
+              <li>Pelo menos um caractere especial (ex: !@#$%)</li>
+            </ul>
           </div>
 
           <ChangePasswordForm userId={userId} token={token} />
