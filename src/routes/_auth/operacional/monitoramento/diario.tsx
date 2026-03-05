@@ -964,13 +964,13 @@ function MonitoramentoDiario() {
 
               <Select
                 value={selectedContractType}
-                onValueChange={setSelectedContractType}
+                onValueChange={(v) => setSelectedContractType(v === "ALL" ? "" : v)}
               >
                 <SelectTrigger className="w-56">
                   <SelectValue placeholder="Tipo de contrato" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="ALL">Todos</SelectItem>
                   {Object.entries(CONTRACT_TYPE_LABELS).map(([value, label]) => (
                     <SelectItem key={value} value={value}>
                       {label}
