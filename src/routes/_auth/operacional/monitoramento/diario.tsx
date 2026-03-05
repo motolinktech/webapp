@@ -1115,25 +1115,30 @@ function MonitoramentoDiario() {
                         {/* Client Info */}
                         <div className="flex items-start justify-between">
                           <div className="space-y-1">
-                            <Heading variant="h4">
-                              {client.name}
-                              {(planningCounts.daytime > 0 || assignedCounts.daytime > 0) && (
-                                <span className="ml-2 inline-flex items-center gap-1 text-sm font-normal text-muted-foreground">
-                                  <Sun className="size-3.5" />
-                                  {planningCounts.daytime > 0
-                                    ? `${assignedCounts.daytime}/${planningCounts.daytime}`
-                                    : assignedCounts.daytime}
-                                </span>
-                              )}
-                              {(planningCounts.nighttime > 0 || assignedCounts.nighttime > 0) && (
-                                <span className="ml-1.5 inline-flex items-center gap-1 text-sm font-normal text-muted-foreground">
-                                  <Moon className="size-3.5" />
-                                  {planningCounts.nighttime > 0
-                                    ? `${assignedCounts.nighttime}/${planningCounts.nighttime}`
-                                    : assignedCounts.nighttime}
-                                </span>
-                              )}
-                            </Heading>
+                            <Heading variant="h4">{client.name}</Heading>
+                            {(planningCounts.daytime > 0 || assignedCounts.daytime > 0 ||
+                              planningCounts.nighttime > 0 || assignedCounts.nighttime > 0) && (
+                              <div className="flex flex-col gap-0.5">
+                                {(planningCounts.daytime > 0 || assignedCounts.daytime > 0) && (
+                                  <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
+                                    <Sun className="size-3.5" />
+                                    Diurno:{" "}
+                                    {planningCounts.daytime > 0
+                                      ? `${assignedCounts.daytime}/${planningCounts.daytime}`
+                                      : assignedCounts.daytime}
+                                  </span>
+                                )}
+                                {(planningCounts.nighttime > 0 || assignedCounts.nighttime > 0) && (
+                                  <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
+                                    <Moon className="size-3.5" />
+                                    Noturno:{" "}
+                                    {planningCounts.nighttime > 0
+                                      ? `${assignedCounts.nighttime}/${planningCounts.nighttime}`
+                                      : assignedCounts.nighttime}
+                                  </span>
+                                )}
+                              </div>
+                            )}
                             <Text variant="muted" className="text-xs">
                               {formatCompactAddress(client)}
                             </Text>
