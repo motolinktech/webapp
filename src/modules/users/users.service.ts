@@ -41,3 +41,8 @@ export async function changePassword(data: ChangePasswordData): Promise<User> {
   const response = await authApi.post<User>(`/users/${id}/change-password`, payload);
   return response.data;
 }
+
+export async function resetUserAccess(id: string): Promise<User> {
+  const response = await authApi.post<User>(`/users/${id}/reset-access`);
+  return response.data;
+}

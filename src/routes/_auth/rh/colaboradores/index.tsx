@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import dayjs from "dayjs";
-import { Link as CopyLink, Eye, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { Link as CopyLink, Eye, KeyRound, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ContentHeader } from "@/components/composite/content-header";
 import { Alert } from "@/components/ui/alert";
@@ -38,7 +38,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { userStatusTranslations } from "@/modules/users/users.constants";
-import { deleteUser, listUsers } from "@/modules/users/users.service";
+import { deleteUser, listUsers, resetUserAccess } from "@/modules/users/users.service";
 import type { User } from "@/modules/users/users.types";
 
 export const Route = createFileRoute("/_auth/rh/colaboradores/")({
@@ -57,6 +57,7 @@ function Colaboradores() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
   const [toogleAlert, setToogleAlert] = useState(false);
+  const [toggleResetAlert, setToggleResetAlert] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   const currentUser = getStoredUser();
@@ -94,6 +95,19 @@ function Colaboradores() {
     if (selectedUser?.id) {
       await deleteUser(selectedUser.id);
       setToogleAlert(false);
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+    }
+  };
+
+  const openResetAlert = (user: User) => {
+    setSelectedUser(user);
+    setToggleResetAlert(true);
+  };
+
+  const handleResetAccess = async () => {
+    if (selectedUser?.id) {
+      await resetUserAccess(selectedUser.id);
+      setToggleResetAlert(false);
       queryClient.invalidateQueries({ queryKey: ["users"] });
     }
   };
@@ -277,6 +291,15 @@ function Colaboradores() {
                             </Link>
                           </Button>
                         )}
+                        {canEdit && user.status !== "PENDING" && (
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            onClick={() => openResetAlert(user)}
+                          >
+                            <KeyRound className="size-4" />
+                          </Button>
+                        )}
                         {canDelete && (
                           <Button
                             variant="ghost"
@@ -334,6 +357,25 @@ function Colaboradores() {
               <Button variant="destructive" onClick={handleDeleteUser}>
                 Apagar
               </Button>
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={toggleResetAlert} onOpenChange={setToggleResetAlert}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Redefinir senha do usuário?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Isso irá limpar a senha atual de <strong>{selectedUser?.name}</strong> e enviar um
+              novo link de acesso via WhatsApp. O usuário precisará configurar uma nova senha antes
+              de acessar o sistema. Tem certeza que deseja prosseguir?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction asChild>
+              <Button onClick={handleResetAccess}>Confirmar</Button>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
