@@ -472,6 +472,7 @@ function MonitoramentoDiario() {
   const [searchClientsResults, setSearchClientsResults] = useState<Client[]>([]);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(() => formatDateYYYYMMDD(new Date()));
+  const [selectedContractType, setSelectedContractType] = useState<string>("");
 
   useEffect(() => {
     console.log("[monitoramento-diario] selectedDate changed:", selectedDate);
@@ -960,6 +961,23 @@ function MonitoramentoDiario() {
                   </Command>
                 </PopoverContent>
               </Popover>
+
+              <Select
+                value={selectedContractType}
+                onValueChange={setSelectedContractType}
+              >
+                <SelectTrigger className="w-56">
+                  <SelectValue placeholder="Tipo de contrato" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Todos</SelectItem>
+                  {Object.entries(CONTRACT_TYPE_LABELS).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="flex items-center gap-2">
@@ -1102,7 +1120,12 @@ function MonitoramentoDiario() {
                     });
                   const cancelledWorkShifts = clientWorkShifts.filter((s) => s.status === "CANCELLED");
 
-                  const hasData = activeWorkShifts.length > 0 || cancelledWorkShifts.length > 0 || unassignedRows.length > 0;
+                  const filteredActiveWorkShifts = selectedContractType
+                    ? activeWorkShifts.filter((s) => s.contractType === selectedContractType)
+                    : activeWorkShifts;
+                  const filteredUnassignedRows = selectedContractType ? [] : unassignedRows;
+
+                  const hasData = filteredActiveWorkShifts.length > 0 || cancelledWorkShifts.length > 0 || filteredUnassignedRows.length > 0;
 
                   return (
                     <Card
@@ -1249,7 +1272,7 @@ function MonitoramentoDiario() {
                               </TableHeader>
                               <TableBody>
                                 {/* Active Assigned Rows */}
-                                {activeWorkShifts.map((slot) => {
+                                {filteredActiveWorkShifts.map((slot) => {
                                   const statusInfo =
                                     WORK_SHIFT_STATUS_MAP[slot.status] ||
                                     WORK_SHIFT_STATUS_MAP.OPEN;
@@ -1535,7 +1558,7 @@ function MonitoramentoDiario() {
                                 })}
 
                                 {/* Unassigned Rows */}
-                                {unassignedRows.map(({ period }, index) => (
+                                {filteredUnassignedRows.map(({ period }, index) => (
                                   <TableRow
                                     key={`unassigned-${client.id}-${period}-${index}`}
                                     className="bg-muted/30 hover:bg-muted/50"
